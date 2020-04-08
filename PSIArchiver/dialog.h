@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QKeyEvent>
+#include <QTableView>
 #include <iostream>
 #include <vector>
 #include <string>

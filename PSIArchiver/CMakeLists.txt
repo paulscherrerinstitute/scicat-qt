@@ -37,6 +37,9 @@ if(ANDROID)
     archiverutils.cpp
     archiverutils.h
     pstream.h
+    datasetbrowser.cpp
+    datasetbrowser.h
+    datasetbrowser.ui
   )
 else()
   add_executable(PSIArchiver
@@ -49,6 +52,9 @@ else()
     archiverutils.cpp
     archiverutils.h
     pstream.h
+    datasetbrowser.cpp
+    datasetbrowser.h
+    datasetbrowser.ui
   )
 endif()
 

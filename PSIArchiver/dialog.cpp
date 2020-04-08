@@ -68,6 +68,23 @@ void Dialog::filelistingNextSlide(){
         QMessageBox::information(this, tr("Invalid entry"), tr("Please add at least one file/directory.") );
     }
 
+    // prepare metadata entries
+    ui->lineEditOwnerEmail->setText(QString::fromStdString(metadataContainer.PIemail));
+    ui->lineEditOwner->setText(QString::fromStdString(metadataContainer.PIFirstname + " " + metadataContainer.PILastname));
+    ui->lineEditOwnerGroup->setText(QString::fromStdString(metadataContainer.pgroup));
+    ui->lineEditProposalID->setText(QString::fromStdString(metadataContainer.proposalID));
+//    curl -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22p17301%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=$SCICAT_TOKEN'
+    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22" + metadataContainer.pgroup + "%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=" + token + "'");
+    auto delim = '}';
+    std::vector<std::string> tmpVec = utils::split(tmp, delim);
+//    QAbstractItemModel datasetsModel;
+//    datasetsModel
+//    QTableView datasets;
+//    datasets.setModel()
+//    for (auto v:tmpVec){
+//        std::cout << v << std::endl;
+//    }
+//    std::cout << tmp << std::endl;
 }
 void Dialog::metadataNextSlide(){
     std::cout << "metadata" << std::endl;
@@ -100,11 +117,21 @@ void Dialog::previousSlide(){
 bool Dialog::checkPgroup(){
     bool pgroupIsValid = true;
     if (ui->lineEditPgroup->text().size()==0){
-        std::cout << "pgroup cannot be empty" << std::endl;
+        QMessageBox::information(this, tr("Error"), tr("pgroup cannot be empty") );
         pgroupIsValid = false;
     } else if ((ui->lineEditPgroup->text().size() != 6) || (ui->lineEditPgroup->text().toStdString().find("p") != 0)){
-        std::cout << "Could not detect a valid pgroup" << std::endl;
+        QMessageBox::information(this, tr("Error"), tr("Please enter a valid pgroup") );
+        pgroupIsValid = false;
     }
+
+    // check if user has access to the given pgroup
+    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Proposals?filter=%7B%22fields%22%3A%20%22ownerGroup%22%7D&access_token=" + token + "'");
+    if (pgroupIsValid && (tmp.find(ui->lineEditPgroup->text().toStdString())==std::string::npos)){
+        auto msg = "Cannot access pgroup " + ui->lineEditPgroup->text().toStdString() + ". Permission denied.";
+        QMessageBox::information(this, tr("Error"), tr(msg.c_str()));
+        pgroupIsValid = false;
+    }
+
     return pgroupIsValid;
 }
 
@@ -121,7 +148,7 @@ void Dialog::getPI(){
     if (Dialog::checkPgroup()){
         metadataContainer.pgroup = ui->lineEditPgroup->text().toStdString();
         auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Proposals?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.pgroup + "%22%7D%7D&access_token=" + token + "'");
-        std::cout << tmp << std::endl;
+//        std::cout << tmp << std::endl;
         if (tmp.length()>5){
             metadataContainer.PIFirstname = utils::extractFromJson(tmp, "pi_firstname");
             metadataContainer.PILastname = utils::extractFromJson(tmp, "pi_lastname");
