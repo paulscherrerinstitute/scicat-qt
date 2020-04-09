@@ -10,7 +10,6 @@
 #include <tuple>
 #include "pstream.h"
 
-
 namespace utils {
 
 std::string system_call(const std::string& bash_cmd);
@@ -22,5 +21,4 @@ void split(const std::string& s, char delim, Out result);
 std::vector<std::string> split(const std::string& s, char delim);
 
 }
-
 #endif // ARCHIVERUTILS_H

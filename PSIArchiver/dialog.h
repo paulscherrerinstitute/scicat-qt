@@ -9,6 +9,9 @@
 #include <string>
 #include <QFileSystemModel>
 #include "archiverutils.h"
+#include <QAbstractTableModel>
+#include <QPainter>
+#include <QPropertyAnimation>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -17,6 +20,14 @@ namespace Ui {
     class Login;
 }
 QT_END_NAMESPACE
+
+class DatasetModel;
+
+
+struct styleSheets_t {
+    QString buttonNavigation;
+    QString buttonNotActive;
+};
 
 struct metadataContainer_t {
     std::string PIemail;
@@ -52,14 +63,21 @@ public:
     void updateFilelistingDisplay();
     std::string token;
     void keyPressEvent(QKeyEvent *event);
+    std::vector<QStringList> datasetContainer;
+
 
 private slots:
     void nextSlide();
-    void previousSlide();
     void fileDialogFilelisting();
     void clearAllFilelisting();
     void clearFilelisting();
     void getPI();
+    void goToPgroup();
+    void goToFiles();
+    void goToMetadata();
+    void goToSubmit();
+
+
 
 private:
     std::vector<void (Dialog::*)()> nextSlideButtonFunctions;
@@ -71,7 +89,13 @@ private:
     int currentSlideIndex;
     bool checkPgroup();
     bool checkPIInfo();
+    void updateNavigationButton();
+    void goToPage(int pageIndex);
+    bool filelistingCheckAndUpdate();
+    bool checkMetadata();
     metadataContainer_t metadataContainer;
+    styleSheets_t styleSheetsContainer;
+    std::vector<QPushButton *> navigationButtons;
 
 
 
@@ -87,8 +111,8 @@ public:
     ~fileBrowser();
     void connectToUi(Ui::Dialog *ui);
     bool removeDuplicates = true;
-    static void updateFileCount(Ui::Dialog *baseUi);
-    static int countFilelistingEntries(QString path);
+//    static void updateFileCount(Ui::Dialog *baseUi);
+//    static int countFilelistingEntries(QString path);
 
 private slots:
     void getCurrentEntry();
@@ -133,3 +157,20 @@ signals:
 };
 
 #endif // DIALOG_H
+
+
+class DatasetModel : public QAbstractTableModel
+{
+    Q_OBJECT
+public:
+    DatasetModel(const std::vector<QStringList>& datasetContainer, QObject *parent = nullptr) :
+        QAbstractTableModel(parent), datasetContainerModel(datasetContainer){}
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+//    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+
+private:
+//    const QStringList& datasetContainerModel;
+    std::vector<QStringList> datasetContainerModel;
+};

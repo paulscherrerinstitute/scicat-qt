@@ -15,21 +15,21 @@ Dialog::Dialog(QWidget *parent)
     int indx;
     indx = ui->stackedWidget->indexOf(ui->stackedWidget->currentWidget());
 
-//    ui->nextSlideButton->setFlat(true);
-//    ui->nextSlideButton-->setS;
 
     // update number of slides/pages
     numSlides = ui->stackedWidget->count();
-    progressbarStep = (int) (100/(numSlides-1));
 
     // connect button signals to slots
     connect(ui->nextSlideButton, SIGNAL (clicked()), this, SLOT (nextSlide()));
-    connect(ui->previousSlideButton, SIGNAL (clicked()), this, SLOT (previousSlide()));
     connect(ui->addFilesDirectoriesButton, SIGNAL (clicked()), this, SLOT (fileDialogFilelisting()));
     connect(ui->clearButtonFilelisting, SIGNAL (clicked()), this, SLOT (clearFilelisting()));
     connect(ui->clearAllButtonFilelisting, SIGNAL (clicked()), this, SLOT (clearAllFilelisting()));
-    connect(ui->getPIButton, SIGNAL (clicked()), this, SLOT (getPI()));
     connect(ui->lineEditPgroup, SIGNAL (editingFinished()), this, SLOT (getPI()));
+    connect(ui->pushButtonNavigationPgroup, SIGNAL (clicked()), this, SLOT (goToPgroup()));
+    connect(ui->pushButtonNavigationFiles, SIGNAL (clicked()), this, SLOT (goToFiles()));
+    connect(ui->pushButtonNavigationMetadata, SIGNAL (clicked()), this, SLOT (goToMetadata()));
+    connect(ui->pushButtonNavigationSubmit, SIGNAL (clicked()), this, SLOT (goToSubmit()));
+
 
     // prepare function handles for nextSlideButton
     nextSlideButtonFunctions.push_back(&Dialog::PINextSlide);
@@ -37,14 +37,24 @@ Dialog::Dialog(QWidget *parent)
     nextSlideButtonFunctions.push_back(&Dialog::metadataNextSlide);
     nextSlideButtonFunctions.push_back(&Dialog::submitNextSlide);
 
-    //
+    // pgroup page
     ui->lineEditPIMail->setEnabled(false);
     ui->lineEditPIFirstname->setEnabled(false);
     ui->lineEditPILastname->setEnabled(false);
     ui->lineEditProposalID_2->setEnabled(false);
+
+    // metadata page
     ui->dateTimeEdit->setDateTime(QDateTime::currentDateTime());
 
+    // navigation buttons
+    navigationButtons.push_back(ui->pushButtonNavigationPgroup);
+    navigationButtons.push_back(ui->pushButtonNavigationFiles);
+    navigationButtons.push_back(ui->pushButtonNavigationMetadata);
+    navigationButtons.push_back(ui->pushButtonNavigationSubmit);
 
+    styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
+                                          "QPushButton:hover{background-color:rgb(0, 70, 91); border-radius:0px}; "
+                                          "QPushButton:!enabled{background-color:rgb(0, 45, 59); border-radius:0px; color:rgb(198, 198, 198)}";
 
 
 }
@@ -55,36 +65,100 @@ void Dialog::keyPressEvent(QKeyEvent *event){
     }
 }
 
+void Dialog::updateNavigationButton(){
+    // get current slide index
+    int slideIndex = ui->stackedWidget->currentIndex();
+    for (int ii=0; ii<(int)navigationButtons.size(); ++ii) {
+        if (ii==slideIndex+1 || ii==slideIndex){
+            // set to active
+            navigationButtons[ii]->setEnabled(true);
+        } else if (ii>slideIndex+1) {
+            // disable next steps
+            navigationButtons[ii]->setEnabled(false);
+        }
+    }
+    QPropertyAnimation *animationSlider = new QPropertyAnimation(ui->labelSlider, "geometry");
+    animationSlider->setDuration(80);
+    animationSlider->setStartValue(ui->labelSlider->geometry());
+    animationSlider->setEndValue(QRect(20,80+slideIndex*70,5,70));
+    animationSlider->start();
+
+}
+
+void Dialog::goToPgroup(){
+    goToPage(0);
+}
+
+void Dialog::goToFiles(){
+    if (checkPIInfo())
+        goToPage(1);
+}
+
+void Dialog::goToMetadata(){
+    if (checkPIInfo() && filelistingCheckAndUpdate()){
+        goToPage(2);
+    }
+}
+
+void Dialog::goToSubmit(){
+    if (checkPIInfo() && filelistingCheckAndUpdate() && checkMetadata()){
+        goToPage(3);
+    }
+}
+
+void Dialog::goToPage(int pageIndex){
+    int slideIndex = ui->stackedWidget->currentIndex();
+    std::cout << "current index: " << slideIndex << std::endl;
+    ui->stackedWidget->setCurrentIndex(pageIndex);
+    updateNavigationButton();
+}
+
 void Dialog::PINextSlide(){
     std::cout << "PI" << std::endl;
     if (checkPIInfo()){
         goToNextSlide();
     }
 }
-void Dialog::filelistingNextSlide(){
-    if (ui->filelistingListWidget->count()>0){
-        goToNextSlide();
-    } else {
-        QMessageBox::information(this, tr("Invalid entry"), tr("Please add at least one file/directory.") );
-    }
 
+bool Dialog::checkMetadata(){
+    return true;
+}
+
+bool Dialog::filelistingCheckAndUpdate(){
+    if (ui->filelistingListWidget->count()==0){
+        QMessageBox::information(this, tr("Invalid entry"), tr("Please add at least one file/directory.") );
+        return false;
+    }
     // prepare metadata entries
     ui->lineEditOwnerEmail->setText(QString::fromStdString(metadataContainer.PIemail));
     ui->lineEditOwner->setText(QString::fromStdString(metadataContainer.PIFirstname + " " + metadataContainer.PILastname));
     ui->lineEditOwnerGroup->setText(QString::fromStdString(metadataContainer.pgroup));
     ui->lineEditProposalID->setText(QString::fromStdString(metadataContainer.proposalID));
-//    curl -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22p17301%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=$SCICAT_TOKEN'
     auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22" + metadataContainer.pgroup + "%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=" + token + "'");
     auto delim = '}';
     std::vector<std::string> tmpVec = utils::split(tmp, delim);
-//    QAbstractItemModel datasetsModel;
-//    datasetsModel
-//    QTableView datasets;
-//    datasets.setModel()
-//    for (auto v:tmpVec){
-//        std::cout << v << std::endl;
-//    }
-//    std::cout << tmp << std::endl;
+
+    for (auto v: tmpVec) {
+        std::cout << v << std::endl;
+        QStringList tmpQStringList;
+        if ((v.find("datasetName")!=std::string::npos) && (v.find("pid")!=std::string::npos)){
+            tmpQStringList.push_back(QString::fromStdString(utils::extractFromJson(v, "datasetName")));
+            tmpQStringList.push_back(QString::fromStdString(utils::extractFromJson(v, "pid")));
+        }
+
+        if (tmpQStringList.size()==2)
+            datasetContainer.push_back(tmpQStringList);
+    }
+    auto datasets_m = new DatasetModel(datasetContainer);
+    ui->tableViewDatasetBrowser->setModel(datasets_m);
+
+    return true;
+}
+
+void Dialog::filelistingNextSlide(){
+    if (filelistingCheckAndUpdate()){
+        goToNextSlide();
+    }
 }
 void Dialog::metadataNextSlide(){
     std::cout << "metadata" << std::endl;
@@ -92,7 +166,21 @@ void Dialog::metadataNextSlide(){
 }
 void Dialog::submitNextSlide(){
     std::cout << "submit" << std::endl;
-    goToNextSlide();
+    QMessageBox msgBox;
+    msgBox.setText("Do you want to submit the dataset?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+    switch (ret){
+    case QMessageBox::Yes:
+        // run datasetIngestor
+        break;
+    case QMessageBox::No:
+        // no ingestion
+        break;
+    default:
+        break;
+    }
 }
 
 
@@ -104,14 +192,7 @@ void Dialog::nextSlide(){
 
 void Dialog::goToNextSlide(){
     ui->stackedWidget->setCurrentIndex(++currentSlideIndex);
-    ui->progressBar->setValue(progressbarStep*(currentSlideIndex));
-}
-
-void Dialog::previousSlide(){
-    // update currentSlideIndex
-    currentSlideIndex = ui->stackedWidget->indexOf(ui->stackedWidget->currentWidget());
-    ui->stackedWidget->setCurrentIndex(--currentSlideIndex);
-    ui->progressBar->setValue(progressbarStep*(currentSlideIndex));
+    updateNavigationButton();
 }
 
 bool Dialog::checkPgroup(){
@@ -136,11 +217,9 @@ bool Dialog::checkPgroup(){
 }
 
 bool Dialog::checkPIInfo(){
-    bool infoIsValid = true;
 
-
-
-    return infoIsValid;
+    std::cout << "checking PI" << std::endl;
+    return checkPgroup();
 
 }
 
@@ -338,26 +417,26 @@ void fileBrowser::setChildDirActive(){
 }
 
 
-int fileBrowser::countFilelistingEntries(QString path){
-    QDirIterator it(path , QDirIterator::Subdirectories); //QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot
-     if (it.hasNext()){
-         std::cout << "here" << std::endl;
-         std::cout << (it.fileName()).toStdString() << std::endl;
-     }
-    QDir dir(path);
-    dir.setFilter( QDir::AllEntries | QDir::NoDotAndDotDot );
-    int total_files = dir.count();
-    std::cout << total_files << std::endl;
-    return total_files;
-}
+//int fileBrowser::countFilelistingEntries(QString path){
+//    QDirIterator it(path , QDirIterator::Subdirectories); //QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot
+//     if (it.hasNext()){
+//         std::cout << "here" << std::endl;
+//         std::cout << (it.fileName()).toStdString() << std::endl;
+//     }
+//    QDir dir(path);
+//    dir.setFilter( QDir::AllEntries | QDir::NoDotAndDotDot );
+//    int total_files = dir.count();
+//    std::cout << total_files << std::endl;
+//    return total_files;
+//}
 
-void fileBrowser::updateFileCount(Ui::Dialog *baseUi){
-    int counter = 0;
-    for (int ii=0; ii<baseUi->filelistingListWidget->count(); ii++){
-        counter += countFilelistingEntries(baseUi->filelistingListWidget->item(ii)->text());
-    }
-    baseUi->filelistingCounter->setText("Files: " + QString::number(counter));
-}
+//void fileBrowser::updateFileCount(Ui::Dialog *baseUi){
+//    int counter = 0;
+//    for (int ii=0; ii<baseUi->filelistingListWidget->count(); ii++){
+//        counter += countFilelistingEntries(baseUi->filelistingListWidget->item(ii)->text());
+//    }
+//    baseUi->filelistingCounter->setText("Files: " + QString::number(counter));
+//}
 
 fileBrowser::~fileBrowser()
 {
@@ -401,12 +480,13 @@ void Login::getLoginData(){
             std::cout << tmp << std::endl;
             QMessageBox::information(this, tr("Connection error"), tr("Could not connect to SciCat") );
             accessGranted = false;
-//            throw std::runtime_error("Unexpected API response.");
         }
-        close();
-        baseUi->show();
-        baseUi->token = token;
-        std::cout << token << std::endl;
+        if (accessGranted){
+            close();
+            baseUi->show();
+            baseUi->token = token;
+            std::cout << token << std::endl;
+        }
 
     }
 
@@ -417,3 +497,39 @@ Login::~Login()
 {
     delete uiLogin;
 }
+
+
+int DatasetModel::rowCount(const QModelIndex &parent) const {
+    return datasetContainerModel.size();
+}
+int DatasetModel::columnCount(const QModelIndex &parent) const {
+    return 2;
+}
+
+QVariant DatasetModel::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid()){
+        return QVariant();
+    }
+    if (index.row() >= (int)datasetContainerModel.size()){
+        return QVariant();
+    }
+    if (index.column() >= 2){
+        return QVariant();
+    }
+    if (role == Qt::DisplayRole){
+        std::cout << index.row() << " " << index.column() << std::endl;
+        return datasetContainerModel[index.row()].at(index.column());
+    } else {
+        return QVariant();
+    }
+}
+
+
+
+
+
+
+
+
+
