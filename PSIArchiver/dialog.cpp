@@ -34,6 +34,13 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonNavigationSubmit, SIGNAL (clicked()), this, SLOT (goToSubmit()));
     connect(ui->pushButtonAddDatasets, SIGNAL (clicked()), this, SLOT (openDatasetBrowser()));
     connect(ui->comboBoxDatatype, SIGNAL (currentIndexChanged(int)), this, SLOT (comboBoxDatatypeChanged(int)));
+    connect(ui->metadataGuided, SIGNAL (currentChanged(int)), this, SLOT (updateMetadataBrowser()));
+    connect(ui->toolButtonPlus, SIGNAL(clicked()), this, SLOT(appendMetadataEntry()));
+    connect(ui->toolButtonMinus, SIGNAL(clicked()), this, SLOT(removeMetadataEntry()));
+//    connect(ui->lineEditOwner, SIGNAL (editingFinished()), this, SLOT(updateOwner()))
+
+    // warning label
+    ui->warningLabel->setVisible(false);
 
     // prepare function handles for nextSlideButton
     nextSlideButtonFunctions.push_back(&Dialog::PINextSlide);
@@ -70,17 +77,26 @@ Dialog::Dialog(QWidget *parent)
     ui->treeWidget->setColumnCount(2);
     ui->treeWidget->setColumnWidth(0, 150);
     ui->treeWidget->setColumnWidth(0, ui->treeWidget->width()-150);
-    addEntryMetadataTreeView("pincipalInvestigator", "mail");
-    addEntryMetadataTreeView("creationLocation", "/PSI/SLS/CSAXS");
-    addEntryMetadataTreeView("scientificMetadata");
+    ui->treeWidget->invisibleRootItem()->setFlags((Qt::ItemFlags)32);
 
-//    addEntryMetadataTreeView("scanNr", "", ui->treeWidget->i);
+    addEntryMetadataTreeView("scientificMetadata", "", nullptr, false, 1);
+    addEntryMetadataTreeView("sample", "", "scientificMetadata", false, 0);
+    addEntryMetadataTreeView("description", "", "sample", false, 0);
+    addEntryMetadataTreeView("name", "", "sample", false, 0);
+    addEntryMetadataTreeView("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), "sample", false, 0);
+
 
     styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
                                           "QPushButton:hover{background-color:rgb(0, 70, 91); border-radius:0px}; "
                                           "QPushButton:!enabled{background-color:rgb(0, 45, 59); border-radius:0px; color:rgb(198, 198, 198)}";
 
 
+}
+
+void Dialog::sendWarning(QString warningMsg){
+    ui->warningLabel->setText(warningMsg);
+    ui->warningLabel->setVisible(true);
+    QTimer::singleShot(5000, ui->warningLabel, &QLabel::hide);
 }
 
 void Dialog::keyPressEvent(QKeyEvent *event){
@@ -154,9 +170,9 @@ bool Dialog::filelistingCheckAndUpdate(){
         return false;
     }
     // prepare metadata entries
-    ui->lineEditOwnerEmail->setText(QString::fromStdString(metadataContainer.PIemail));
-    ui->lineEditOwner->setText(QString::fromStdString(metadataContainer.PIFirstname + " " + metadataContainer.PILastname));
-    ui->lineEditOwnerGroup->setText(QString::fromStdString(metadataContainer.pgroup));
+    ui->lineEditOwnerEmail->setText(QString::fromStdString(metadataContainer.ownerEmail));
+    ui->lineEditOwner->setText(QString::fromStdString(metadataContainer.owner));
+    ui->lineEditOwnerGroup->setText(QString::fromStdString(metadataContainer.ownerGroup));
     ui->lineEditProposalID->setText(QString::fromStdString(metadataContainer.proposalID));
     ui->lineEditInvestigator->setText(QString::fromStdString(metadataContainer.PIemail));
 
@@ -244,6 +260,12 @@ void Dialog::getPI(){
             metadataContainer.proposalAbstract = utils::extractFromJson(tmp, "abstract");
             metadataContainer.instrument = utils::extractFromJson(tmp, "instrument");
             metadataContainer.proposalID = utils::extractFromJson(tmp, "proposalId");
+
+            // set defaults for owner/ownergroup etc
+            metadataContainer.ownerGroup = metadataContainer.pgroup;
+            metadataContainer.owner = metadataContainer.PIFirstname + " " + metadataContainer.PILastname;
+            metadataContainer.ownerEmail = metadataContainer.PIemail;
+            metadataContainer.investigator = metadataContainer.PIemail;
 
             ui->lineEditPIMail->setText(QString::fromStdString(metadataContainer.PIemail));
             ui->lineEditPIFirstname->setText(QString::fromStdString(metadataContainer.PIFirstname));
@@ -353,30 +375,116 @@ void Dialog::openDatasetBrowser(){
 
 }
 
-void Dialog::addEntryMetadataTreeView(QString name, QString description, QTreeWidgetItem *parent){
-    QTreeWidgetItem *treeitem = new QTreeWidgetItem(ui->treeWidget);
+void Dialog::addEntryMetadataTreeView(QString name, QString description, QTreeWidgetItem *parent, bool setFocus, int flag){
+    QTreeWidgetItem *treeitem;
+    if (parent==nullptr){
+        treeitem = new QTreeWidgetItem(ui->treeWidget);
+    } else {
+        treeitem = new QTreeWidgetItem();
+    }
     treeitem->setText(0, name);
     treeitem->setText(1, description);
-
-//    if (parent!=nullptr){
-//        parent->addChild(treeitem);
-//    }
-
-    {
-        QTreeWidgetItem *treeitemChild = new QTreeWidgetItem();
-        treeitemChild->setText(0, "name");
-        treeitemChild->setText(1, "description");
-        treeitemChild->setFlags(treeitemChild->flags() | Qt::ItemIsEditable);
-        treeitem->addChild(treeitemChild);
+    if (flag==0){
+        treeitem->setFlags(treeitem->flags() ^ Qt::ItemIsDragEnabled);
+        treeitem->setFlags(treeitem->flags() ^ Qt::ItemIsDropEnabled);
+        treeitem->setFlags(treeitem->flags() | Qt::ItemIsEditable);
+    } else if (flag==1){
+        treeitem->setFlags(treeitem->flags() | Qt::ItemIsDropEnabled);
+        treeitem->setFlags(treeitem->flags() | Qt::ItemIsEditable);
+    } else {
+        treeitem->setFlags(treeitem->flags() | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled);
+        treeitem->setFlags(treeitem->flags() | Qt::ItemIsEditable);
     }
+
+    if (parent!=nullptr){
+        parent->addChild(treeitem);
+        if (setFocus){
+            parent->setExpanded(true);
+        }
+    }
+
+    if (setFocus){
+        treeitem->setSelected(true);
+        ui->treeWidget->editItem(treeitem, 0);
+    }
+
 }
 
+void Dialog::addEntryMetadataTreeView(QString name, QString description, QString parent, bool setFocus, int flag){
+    if (parent.length()==0){
+        addEntryMetadataTreeView(name, description, nullptr, setFocus, flag);
+        return;
+    }
 
+    auto res = ui->treeWidget->findItems(parent, Qt::MatchExactly|Qt::MatchRecursive, 0);
+    if (res.size()==0){
+        std::cout << parent.toStdString() << std::endl;
+        std::cout << "Could not find parent entry." << std::endl;
+        return;
+    }
+
+    addEntryMetadataTreeView(name, description, res[0], setFocus, flag);
+
+}
+
+void Dialog::addEntryMetadataTreeView(QString name, QString description){
+    addEntryMetadataTreeView(name, description, nullptr, false, 0);
+}
 
 void Dialog::comboBoxDatatypeChanged(int val){
         ui->lineEditInvestigator->setEnabled(!(bool)val);
         ui->textEditUsedSoftware->setEnabled(!(bool)val);
         ui->metadataGuided->setTabEnabled(1,!(bool)val);
+}
+
+void Dialog::updateMetadataBrowser(){
+    updateMetadataEntry("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), 0);
+    updateMetadataEntry("type", ui->comboBoxDatatype->currentText(), 0);
+    updateMetadataEntry("ownerGroup", QString::fromStdString(metadataContainer.ownerGroup), 0);
+    updateMetadataEntry("owner", QString::fromStdString(metadataContainer.owner), 0);
+    updateMetadataEntry("ownerEmail", QString::fromStdString(metadataContainer.ownerEmail), 0);
+    updateMetadataEntry("datasetName", QString::fromStdString(metadataContainer.datasetName), 0);
+
+}
+
+void Dialog::appendMetadataEntry(){
+    // check if item supports children
+    if (ui->treeWidget->currentItem()->flags().testFlag(Qt::ItemIsDropEnabled)){
+        addEntryMetadataTreeView("name", "value", ui->treeWidget->currentItem(), true, 2);
+    } else {
+        sendWarning("Cannot append child entry to protected field.");
+    }
+}
+
+void Dialog::removeMetadataEntry(){
+    // check if item is protected
+    if (ui->treeWidget->currentItem()->flags()>35){
+        std::cout << "here" << std::endl;
+        ui->treeWidget->removeItemWidget(ui->treeWidget->currentItem(), 0);
+        QModelIndexList indexList = ui->treeWidget->selectionModel()->selectedRows();
+        for (int ii=0; ii<indexList.size(); ii++){
+            ui->treeWidget->model()->removeRow(indexList[ii].row());
+        }
+    } else {
+        sendWarning("Cannot remove protected field.");
+    }
+
+}
+
+void Dialog::updateMetadataEntry(QString name, QString targetValue, int flag){
+    auto res = ui->treeWidget->findItems(name, Qt::MatchExactly, 0);
+    if (res.size()>0){
+        res[0]->setText(1, targetValue);
+        if (flag==0){
+            res[0]->setFlags((Qt::ItemFlags)35);
+        } else if (flag==1) {
+            res[0]->setFlags((Qt::ItemFlags)43);
+        } else {
+            res[0]->setFlags((Qt::ItemFlags)47);
+        }
+    } else {
+        addEntryMetadataTreeView(name, targetValue);
+    }
 }
 
 Dialog::~Dialog()

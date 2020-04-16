@@ -527,7 +527,16 @@ QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
         </rect>
        </property>
        <property name="dragDropMode">
-        <enum>QAbstractItemView::DragDrop</enum>
+        <enum>QAbstractItemView::InternalMove</enum>
+       </property>
+       <property name="defaultDropAction">
+        <enum>Qt::IgnoreAction</enum>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
        </property>
        <property name="columnCount">
         <number>2</number>
@@ -543,7 +552,7 @@ QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
         </property>
        </column>
       </widget>
-      <widget class="QToolButton" name="toolButton">
+      <widget class="QToolButton" name="toolButtonPlus">
        <property name="geometry">
         <rect>
          <x>610</x>
@@ -552,11 +561,15 @@ QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
          <height>34</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QToolButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px}
+QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}</string>
+       </property>
        <property name="text">
         <string>+</string>
        </property>
       </widget>
-      <widget class="QToolButton" name="toolButton_2">
+      <widget class="QToolButton" name="toolButtonMinus">
        <property name="geometry">
         <rect>
          <x>610</x>
@@ -565,34 +578,12 @@ QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
          <height>34</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QToolButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px}
+QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}</string>
+       </property>
        <property name="text">
         <string>-</string>
-       </property>
-      </widget>
-      <widget class="QToolButton" name="toolButton_3">
-       <property name="geometry">
-        <rect>
-         <x>610</x>
-         <y>120</y>
-         <width>41</width>
-         <height>34</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>up</string>
-       </property>
-      </widget>
-      <widget class="QToolButton" name="toolButton_4">
-       <property name="geometry">
-        <rect>
-         <x>610</x>
-         <y>160</y>
-         <width>41</width>
-         <height>34</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>down</string>
        </property>
       </widget>
      </widget>
@@ -810,6 +801,28 @@ QPushButton:!enabled{background-color:rgb(0, 45, 59); border-radius:0px; color:r
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:18pt; color:#ffffff;&quot;&gt;SciCat PSI&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
+  </widget>
+  <widget class="QLabel" name="warningLabel">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>560</y>
+     <width>381</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel{color:rgb(218, 0, 0)}</string>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
   </widget>
  </widget>
  <resources/>

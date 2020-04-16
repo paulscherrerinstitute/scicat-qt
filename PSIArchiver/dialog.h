@@ -12,6 +12,7 @@
 #include <QPropertyAnimation>
 #include <QTableWidgetItem>
 #include <QTreeWidgetItem>
+#include <QTimer>
 
 
 
@@ -53,6 +54,10 @@ struct metadataContainer_t {
     std::string keywords;
     std::string samplename;
     std::string sampleDescription;
+    std::string ownerGroup;
+    std::string owner;
+    std::string ownerEmail;
+    std::string investigator;
 };
 
 class Dialog : public QDialog
@@ -71,6 +76,7 @@ public:
     void keyPressEvent(QKeyEvent *event);
     std::vector<QStringList> datasetContainer;
     DatasetModel* datasets_m = new DatasetModel();
+    void sendWarning(QString warningMsg);
 
 private slots:
     void nextSlide();
@@ -86,6 +92,10 @@ private slots:
     void goToSubmit();
     void openDatasetBrowser();
     void comboBoxDatatypeChanged(int val);
+    void updateMetadataBrowser();
+    void appendMetadataEntry();
+    void removeMetadataEntry();
+
 
 
 private:
@@ -102,10 +112,13 @@ private:
     void goToPage(int pageIndex);
     bool filelistingCheckAndUpdate();
     bool checkMetadata();
-    void addEntryMetadataTreeView(QString name, QString description="", QTreeWidgetItem *parent=nullptr);
+    void addEntryMetadataTreeView(QString name, QString description, QTreeWidgetItem *parent, bool setFocus=false, int flag=2);
+    void addEntryMetadataTreeView(QString name, QString description, QString parent, bool setFocus=false, int flag=2);
+    void addEntryMetadataTreeView(QString name, QString description);
     metadataContainer_t metadataContainer;
     styleSheets_t styleSheetsContainer;
     std::vector<QPushButton *> navigationButtons;
+    void updateMetadataEntry(QString name, QString targetValue, int flag=2);
 
 
 
