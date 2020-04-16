@@ -9,6 +9,7 @@
 #include <chrono>
 #include <tuple>
 #include "pstream.h"
+#include <QDebug>
 
 namespace utils {
 
@@ -21,4 +22,5 @@ void split(const std::string& s, char delim, Out result);
 std::vector<std::string> split(const std::string& s, char delim);
 
 }
+
 #endif // ARCHIVERUTILS_H

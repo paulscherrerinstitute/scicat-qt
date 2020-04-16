@@ -4,6 +4,7 @@
 #include "qfiledialog.h"
 #include "QMessageBox"
 #include "ui_login.h"
+#include "ui_datasetbrowser.h"
 
 
 Dialog::Dialog(QWidget *parent)
@@ -24,12 +25,15 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->addFilesDirectoriesButton, SIGNAL (clicked()), this, SLOT (fileDialogFilelisting()));
     connect(ui->clearButtonFilelisting, SIGNAL (clicked()), this, SLOT (clearFilelisting()));
     connect(ui->clearAllButtonFilelisting, SIGNAL (clicked()), this, SLOT (clearAllFilelisting()));
+    connect(ui->clearButtonDatasets, SIGNAL (clicked()), this, SLOT (clearDatasets()));
+    connect(ui->clearAllButtonDatasets, SIGNAL (clicked()), this, SLOT (clearAllDatasets()));
     connect(ui->lineEditPgroup, SIGNAL (editingFinished()), this, SLOT (getPI()));
     connect(ui->pushButtonNavigationPgroup, SIGNAL (clicked()), this, SLOT (goToPgroup()));
     connect(ui->pushButtonNavigationFiles, SIGNAL (clicked()), this, SLOT (goToFiles()));
     connect(ui->pushButtonNavigationMetadata, SIGNAL (clicked()), this, SLOT (goToMetadata()));
     connect(ui->pushButtonNavigationSubmit, SIGNAL (clicked()), this, SLOT (goToSubmit()));
-
+    connect(ui->pushButtonAddDatasets, SIGNAL (clicked()), this, SLOT (openDatasetBrowser()));
+    connect(ui->comboBoxDatatype, SIGNAL (currentIndexChanged(int)), this, SLOT (comboBoxDatatypeChanged(int)));
 
     // prepare function handles for nextSlideButton
     nextSlideButtonFunctions.push_back(&Dialog::PINextSlide);
@@ -51,6 +55,26 @@ Dialog::Dialog(QWidget *parent)
     navigationButtons.push_back(ui->pushButtonNavigationFiles);
     navigationButtons.push_back(ui->pushButtonNavigationMetadata);
     navigationButtons.push_back(ui->pushButtonNavigationSubmit);
+
+    // dataset selection
+    ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableWidget->insertColumn(0);
+    ui->tableWidget->insertColumn(1);
+    ui->tableWidget->setColumnWidth(0, 200);
+    ui->tableWidget->setColumnWidth(1, 200);
+    ui->clearAllButtonDatasets->setEnabled(false);
+    ui->clearButtonDatasets->setEnabled(false);
+
+
+    // metadata editor
+    ui->treeWidget->setColumnCount(2);
+    ui->treeWidget->setColumnWidth(0, 150);
+    ui->treeWidget->setColumnWidth(0, ui->treeWidget->width()-150);
+    addEntryMetadataTreeView("pincipalInvestigator", "mail");
+    addEntryMetadataTreeView("creationLocation", "/PSI/SLS/CSAXS");
+    addEntryMetadataTreeView("scientificMetadata");
+
+//    addEntryMetadataTreeView("scanNr", "", ui->treeWidget->i);
 
     styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
                                           "QPushButton:hover{background-color:rgb(0, 70, 91); border-radius:0px}; "
@@ -108,13 +132,13 @@ void Dialog::goToSubmit(){
 
 void Dialog::goToPage(int pageIndex){
     int slideIndex = ui->stackedWidget->currentIndex();
-    std::cout << "current index: " << slideIndex << std::endl;
+    qDebug() <<  "current index: " << slideIndex;
     ui->stackedWidget->setCurrentIndex(pageIndex);
     updateNavigationButton();
 }
 
 void Dialog::PINextSlide(){
-    std::cout << "PI" << std::endl;
+    qDebug() << "PI";
     if (checkPIInfo()){
         goToNextSlide();
     }
@@ -134,23 +158,7 @@ bool Dialog::filelistingCheckAndUpdate(){
     ui->lineEditOwner->setText(QString::fromStdString(metadataContainer.PIFirstname + " " + metadataContainer.PILastname));
     ui->lineEditOwnerGroup->setText(QString::fromStdString(metadataContainer.pgroup));
     ui->lineEditProposalID->setText(QString::fromStdString(metadataContainer.proposalID));
-    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22" + metadataContainer.pgroup + "%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=" + token + "'");
-    auto delim = '}';
-    std::vector<std::string> tmpVec = utils::split(tmp, delim);
-
-    for (auto v: tmpVec) {
-        std::cout << v << std::endl;
-        QStringList tmpQStringList;
-        if ((v.find("datasetName")!=std::string::npos) && (v.find("pid")!=std::string::npos)){
-            tmpQStringList.push_back(QString::fromStdString(utils::extractFromJson(v, "datasetName")));
-            tmpQStringList.push_back(QString::fromStdString(utils::extractFromJson(v, "pid")));
-        }
-
-        if (tmpQStringList.size()==2)
-            datasetContainer.push_back(tmpQStringList);
-    }
-    auto datasets_m = new DatasetModel(datasetContainer);
-    ui->tableViewDatasetBrowser->setModel(datasets_m);
+    ui->lineEditInvestigator->setText(QString::fromStdString(metadataContainer.PIemail));
 
     return true;
 }
@@ -274,12 +282,24 @@ void Dialog::clearFilelisting(){
     }
     ui->filelistingListWidget->setUpdatesEnabled(true);
 
-//    fileBrowser::updateFileCount(ui);
+}
+
+void Dialog::clearAllDatasets(){
+    for (int ii=0; ii<ui->tableWidget->rowCount(); ++ii) {
+        ui->tableWidget->removeRow(ui->tableWidget->rowCount()-ii-1);
+    }
+}
+
+void Dialog::clearDatasets(){
+    QModelIndexList indexList = ui->tableWidget->selectionModel()->selectedRows();
+    for (int ii=0; ii<indexList.size(); ++ii) {
+        ui->tableWidget->removeRow(indexList[ii].row());
+    }
+
 }
 
 void Dialog::clearAllFilelisting(){
     ui->filelistingListWidget->clear();
-//    fileBrowser::updateFileCount(ui);
 }
 
 void Dialog::updateFilelistingDisplay(){
@@ -304,8 +324,64 @@ QStringList Dialog::openFileBrowser(){
     return fileName;
 }
 
+void Dialog::openDatasetBrowser(){
+    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22" + metadataContainer.pgroup + "%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=" + token + "'");
+    auto delim = '}';
+    std::vector<std::string> tmpVec = utils::split(tmp, delim);
+
+    datasetContainer.clear();
+    for (auto v: tmpVec) {
+        std::cout << v << std::endl;
+        QStringList tmpQStringList;
+        if ((v.find("datasetName")!=std::string::npos) && (v.find("pid")!=std::string::npos)){
+            tmpQStringList.push_back(QString::fromStdString(utils::extractFromJson(v, "datasetName")));
+            tmpQStringList.push_back(QString::fromStdString(utils::extractFromJson(v, "pid")));
+        }
+
+        if (tmpQStringList.size()==2)
+            datasetContainer.push_back(tmpQStringList);
+    }
+//    datasets_m->setContainer(datasetContainer);
+
+//    ui->tableViewDatasetBrowser->model
+
+    // open DatasetBrowser
+    DatasetBrowser* db = new DatasetBrowser(datasetContainer, this);
+    db->connectToUi(this);
+    db->exec();
+    delete db;
+
+}
+
+void Dialog::addEntryMetadataTreeView(QString name, QString description, QTreeWidgetItem *parent){
+    QTreeWidgetItem *treeitem = new QTreeWidgetItem(ui->treeWidget);
+    treeitem->setText(0, name);
+    treeitem->setText(1, description);
+
+//    if (parent!=nullptr){
+//        parent->addChild(treeitem);
+//    }
+
+    {
+        QTreeWidgetItem *treeitemChild = new QTreeWidgetItem();
+        treeitemChild->setText(0, "name");
+        treeitemChild->setText(1, "description");
+        treeitemChild->setFlags(treeitemChild->flags() | Qt::ItemIsEditable);
+        treeitem->addChild(treeitemChild);
+    }
+}
+
+
+
+void Dialog::comboBoxDatatypeChanged(int val){
+        ui->lineEditInvestigator->setEnabled(!(bool)val);
+        ui->textEditUsedSoftware->setEnabled(!(bool)val);
+        ui->metadataGuided->setTabEnabled(1,!(bool)val);
+}
+
 Dialog::~Dialog()
 {
+    delete datasets_m;
     delete ui;
 }
 
@@ -417,27 +493,6 @@ void fileBrowser::setChildDirActive(){
 }
 
 
-//int fileBrowser::countFilelistingEntries(QString path){
-//    QDirIterator it(path , QDirIterator::Subdirectories); //QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot
-//     if (it.hasNext()){
-//         std::cout << "here" << std::endl;
-//         std::cout << (it.fileName()).toStdString() << std::endl;
-//     }
-//    QDir dir(path);
-//    dir.setFilter( QDir::AllEntries | QDir::NoDotAndDotDot );
-//    int total_files = dir.count();
-//    std::cout << total_files << std::endl;
-//    return total_files;
-//}
-
-//void fileBrowser::updateFileCount(Ui::Dialog *baseUi){
-//    int counter = 0;
-//    for (int ii=0; ii<baseUi->filelistingListWidget->count(); ii++){
-//        counter += countFilelistingEntries(baseUi->filelistingListWidget->item(ii)->text());
-//    }
-//    baseUi->filelistingCounter->setText("Files: " + QString::number(counter));
-//}
-
 fileBrowser::~fileBrowser()
 {
     delete uiFileBrowser;
@@ -466,7 +521,7 @@ void Login::getLoginData(){
     QString uname = uiLogin->lineEditUsername->text();
     QString pword = uiLogin->lineEditPassword->text();
     std::string token;
-    auto tmp = utils::system_call("curl -s -X POST --header 'Content-Type: application/json'  -d '{\"username\":\"" + uiLogin->lineEditUsername->text().toStdString() + "\",\"password\":\"" + uiLogin->lineEditPassword->text().toStdString() + "\"}' 'https://dacat.psi.ch/api/v3/Users/login'");
+    auto tmp = utils::system_call("curl -s -X POST --header 'Content-Type: application/json'  -d '{\"username\":\"" + uiLogin->lineEditUsername->text().toStdString() + "\",\"password\":\"" + uiLogin->lineEditPassword->text().toStdString() + "\"}' 'https://dacat.psi.ch/auth/msad'");
     if ((tmp.compare("\"authentication error\"")==0) || (tmp.find("error") != std::string::npos)){
         QMessageBox::information(this, tr("Authentication error"), tr("Please check your username and password") );
         uiLogin->lineEditPassword->clear();
@@ -499,32 +554,48 @@ Login::~Login()
 }
 
 
-int DatasetModel::rowCount(const QModelIndex &parent) const {
-    return datasetContainerModel.size();
-}
-int DatasetModel::columnCount(const QModelIndex &parent) const {
-    return 2;
-}
-
-QVariant DatasetModel::data(const QModelIndex &index, int role) const
+DatasetBrowser::DatasetBrowser(const std::vector<QStringList>& datasetContainer, QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::DatasetBrowser)
 {
-    if (!index.isValid()){
-        return QVariant();
-    }
-    if (index.row() >= (int)datasetContainerModel.size()){
-        return QVariant();
-    }
-    if (index.column() >= 2){
-        return QVariant();
-    }
-    if (role == Qt::DisplayRole){
-        std::cout << index.row() << " " << index.column() << std::endl;
-        return datasetContainerModel[index.row()].at(index.column());
-    } else {
-        return QVariant();
-    }
+    ui->setupUi(this);
+    datasets_m->setContainer(datasetContainer);
+    ui->tableViewDatasetBrowser->setModel(datasets_m);
+    ui->tableViewDatasetBrowser->setColumnWidth(0, 200);
+    ui->tableViewDatasetBrowser->setColumnWidth(1, 200);
+    ui->tableViewDatasetBrowser->sortByColumn(0, Qt::SortOrder::AscendingOrder);
+    ui->tableViewDatasetBrowser->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    connect(ui->pushButton, SIGNAL (clicked()), this, SLOT (selectButton()));
 }
 
+void DatasetBrowser::selectButton(){
+    QModelIndexList indexList = ui->tableViewDatasetBrowser->selectionModel()->selectedRows();
+    std::cout << indexList.size() << std::endl;
+    for (int ii=0; ii<indexList.size(); ++ii) {
+        QStringList tmp;
+        baseUi->ui->tableWidget->insertRow(0);
+        for (int colIndx=0; colIndx<datasets_m->columnCount(); colIndx++) {
+            QTableWidgetItem *tmpItem = new QTableWidgetItem(datasets_m->data(indexList[ii].siblingAtColumn(colIndx),0).toString());
+            baseUi->ui->tableWidget->setItem(0,colIndx,tmpItem);
+            baseUi->ui->clearAllButtonDatasets->setEnabled(true);
+            baseUi->ui->clearButtonDatasets->setEnabled(true);
+        }
+
+    }
+    close();
+
+}
+
+void DatasetBrowser::connectToUi(Dialog *uiDialog){
+    baseUi = uiDialog;
+}
+
+DatasetBrowser::~DatasetBrowser()
+{
+    delete datasets_m;
+    delete ui;
+}
 
 
 

@@ -8,16 +8,22 @@
 #include <vector>
 #include <string>
 #include <QFileSystemModel>
-#include "archiverutils.h"
-#include <QAbstractTableModel>
 #include <QPainter>
 #include <QPropertyAnimation>
+#include <QTableWidgetItem>
+#include <QTreeWidgetItem>
+
+
+
+#include "archiverutils.h"
+#include "datasetmodel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
     class Dialog;
     class fileBrowser;
     class Login;
+    class DatasetBrowser;
 }
 QT_END_NAMESPACE
 
@@ -64,19 +70,22 @@ public:
     std::string token;
     void keyPressEvent(QKeyEvent *event);
     std::vector<QStringList> datasetContainer;
-
+    DatasetModel* datasets_m = new DatasetModel();
 
 private slots:
     void nextSlide();
     void fileDialogFilelisting();
     void clearAllFilelisting();
     void clearFilelisting();
+    void clearAllDatasets();
+    void clearDatasets();
     void getPI();
     void goToPgroup();
     void goToFiles();
     void goToMetadata();
     void goToSubmit();
-
+    void openDatasetBrowser();
+    void comboBoxDatatypeChanged(int val);
 
 
 private:
@@ -93,9 +102,11 @@ private:
     void goToPage(int pageIndex);
     bool filelistingCheckAndUpdate();
     bool checkMetadata();
+    void addEntryMetadataTreeView(QString name, QString description="", QTreeWidgetItem *parent=nullptr);
     metadataContainer_t metadataContainer;
     styleSheets_t styleSheetsContainer;
     std::vector<QPushButton *> navigationButtons;
+
 
 
 
@@ -156,21 +167,22 @@ signals:
 
 };
 
+class DatasetBrowser : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit DatasetBrowser(const std::vector<QStringList>& datasetContainer, QWidget *parent = nullptr);
+    ~DatasetBrowser();
+    void connectToUi(Dialog *uiDialog);
+private slots:
+    void selectButton();
+private:
+    Ui::DatasetBrowser *ui;
+    Dialog *baseUi;
+    DatasetModel* datasets_m = new DatasetModel();
+};
+
 #endif // DIALOG_H
 
 
-class DatasetModel : public QAbstractTableModel
-{
-    Q_OBJECT
-public:
-    DatasetModel(const std::vector<QStringList>& datasetContainer, QObject *parent = nullptr) :
-        QAbstractTableModel(parent), datasetContainerModel(datasetContainer){}
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex &index, int role) const override;
-//    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
-
-private:
-//    const QStringList& datasetContainerModel;
-    std::vector<QStringList> datasetContainerModel;
-};

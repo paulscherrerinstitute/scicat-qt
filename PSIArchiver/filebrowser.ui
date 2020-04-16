@@ -22,6 +22,11 @@
      <height>331</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">QColumnView::item{ selection-background-color: rgb(0, 153, 200)}
+QColumnView:hover{color: rgb(255, 255, 255)}
+QColumnView{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); border-style:solid}</string>
+   </property>
   </widget>
   <widget class="QPushButton" name="pushButtonFileBrowser">
    <property name="geometry">
@@ -31,6 +36,10 @@
      <width>88</width>
      <height>34</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px}
+QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}</string>
    </property>
    <property name="text">
     <string>Add</string>

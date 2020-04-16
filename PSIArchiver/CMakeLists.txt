@@ -37,8 +37,8 @@ if(ANDROID)
     archiverutils.cpp
     archiverutils.h
     pstream.h
-    datasetbrowser.cpp
-    datasetbrowser.h
+    datasetmodel.cpp
+    datasetmodel.h
     datasetbrowser.ui
   )
 else()
@@ -52,8 +52,8 @@ else()
     archiverutils.cpp
     archiverutils.h
     pstream.h
-    datasetbrowser.cpp
-    datasetbrowser.h
+    datasetmodel.cpp
+    datasetmodel.h
     datasetbrowser.ui
   )
 endif()

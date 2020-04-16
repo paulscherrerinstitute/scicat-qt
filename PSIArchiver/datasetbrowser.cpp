@@ -8,6 +8,10 @@ DatasetBrowser::DatasetBrowser(QWidget *parent) :
     ui->setupUi(this);
 }
 
+void DatasetBrowser::connectToUi(Ui::Dialog *ui){
+    baseUi = ui;
+}
+
 DatasetBrowser::~DatasetBrowser()
 {
     delete ui;
