@@ -13,7 +13,8 @@
 #include <QTableWidgetItem>
 #include <QTreeWidgetItem>
 #include <QTimer>
-
+#include <QMovie>
+#include <QThread>
 
 
 #include "archiverutils.h"
@@ -29,6 +30,7 @@ namespace Ui {
 QT_END_NAMESPACE
 
 class DatasetModel;
+class Ingestor;
 
 
 struct styleSheets_t {
@@ -77,6 +79,8 @@ public:
     std::vector<QStringList> datasetContainer;
     DatasetModel* datasets_m = new DatasetModel();
     void sendWarning(QString warningMsg);
+    QMovie *movie = new QMovie("/home/wakonig_k/Documents/rollout/Software/00-General/singleIngestGUI/PSIArchiver/ajax-loader.gif");
+;
 
 private slots:
     void nextSlide();
@@ -95,7 +99,9 @@ private slots:
     void updateMetadataBrowser();
     void appendMetadataEntry();
     void removeMetadataEntry();
-
+    void piChanged();
+    void ingestionFinished();
+    void restart();
 
 
 private:
@@ -119,6 +125,14 @@ private:
     styleSheets_t styleSheetsContainer;
     std::vector<QPushButton *> navigationButtons;
     void updateMetadataEntry(QString name, QString targetValue, int flag=2);
+    void startIngestion();
+    void setButtonsEnabled(bool enabled);
+    bool PIHasChanged = true;
+    Ingestor *ingestor_m;
+    void resetContent();
+    void quit();
+
+
 
 
 
@@ -197,5 +211,19 @@ private:
 };
 
 #endif // DIALOG_H
+
+class Ingestor : public QThread
+{
+  Q_OBJECT
+public:
+    Ingestor(){};
+    Ingestor(std::string commandIn);
+    void setCommand(std::string commandIn);
+protected:
+    void run();
+private:
+    std::string command;
+};
+
 
 

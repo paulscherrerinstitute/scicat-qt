@@ -20,6 +20,9 @@ Dialog::Dialog(QWidget *parent)
     // update number of slides/pages
     numSlides = ui->stackedWidget->count();
 
+    ui->stackedWidget->setCurrentIndex(0);
+    ui->metadataGuided->setCurrentIndex(0);
+
     // connect button signals to slots
     connect(ui->nextSlideButton, SIGNAL (clicked()), this, SLOT (nextSlide()));
     connect(ui->addFilesDirectoriesButton, SIGNAL (clicked()), this, SLOT (fileDialogFilelisting()));
@@ -37,6 +40,10 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->metadataGuided, SIGNAL (currentChanged(int)), this, SLOT (updateMetadataBrowser()));
     connect(ui->toolButtonPlus, SIGNAL(clicked()), this, SLOT(appendMetadataEntry()));
     connect(ui->toolButtonMinus, SIGNAL(clicked()), this, SLOT(removeMetadataEntry()));
+    connect(ui->lineEditPgroup, SIGNAL(editingFinished()), this, SLOT(piChanged()));
+    connect(ui->pushButtonRestart, SIGNAL(clicked()), this, SLOT(restart()));
+
+
 //    connect(ui->lineEditOwner, SIGNAL (editingFinished()), this, SLOT(updateOwner()))
 
     // warning label
@@ -47,6 +54,8 @@ Dialog::Dialog(QWidget *parent)
     nextSlideButtonFunctions.push_back(&Dialog::filelistingNextSlide);
     nextSlideButtonFunctions.push_back(&Dialog::metadataNextSlide);
     nextSlideButtonFunctions.push_back(&Dialog::submitNextSlide);
+    nextSlideButtonFunctions.push_back(&Dialog::quit);
+
 
     // pgroup page
     ui->lineEditPIMail->setEnabled(false);
@@ -84,6 +93,10 @@ Dialog::Dialog(QWidget *parent)
     addEntryMetadataTreeView("description", "", "sample", false, 0);
     addEntryMetadataTreeView("name", "", "sample", false, 0);
     addEntryMetadataTreeView("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), "sample", false, 0);
+
+
+
+    ui->pushButtonRestart->setVisible(false);
 
 
     styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
@@ -160,6 +173,10 @@ void Dialog::PINextSlide(){
     }
 }
 
+void Dialog::piChanged(){
+    PIHasChanged = true;
+}
+
 bool Dialog::checkMetadata(){
     return true;
 }
@@ -198,6 +215,9 @@ void Dialog::submitNextSlide(){
     switch (ret){
     case QMessageBox::Yes:
         // run datasetIngestor
+        ui->stackedWidget->setCurrentIndex(++currentSlideIndex);
+        ui->nextSlideButton->setText("Done");
+        startIngestion();
         break;
     case QMessageBox::No:
         // no ingestion
@@ -207,6 +227,54 @@ void Dialog::submitNextSlide(){
     }
 }
 
+void Dialog::setButtonsEnabled(bool enabled){
+    ui->nextSlideButton->setEnabled(enabled);
+    ui->pushButtonNavigationPgroup->setEnabled(enabled);
+    ui->pushButtonNavigationFiles->setEnabled(enabled);
+    ui->pushButtonNavigationMetadata->setEnabled(enabled);
+    ui->pushButtonNavigationSubmit->setEnabled(enabled);
+}
+
+void Dialog::startIngestion(){
+    ui->waitingCircle->setMovie(movie);
+    ui->waitingCircle->show();
+    movie->start();
+
+    // disable buttons
+    setButtonsEnabled(false);
+
+    // start ingestion
+    std::cout << "starting ingestion" << std::endl;
+    ingestor_m = new Ingestor("sleep 5;");
+    connect(ingestor_m, SIGNAL(finished()), this, SLOT(ingestionFinished()));
+
+    ingestor_m->start();
+
+}
+
+void Dialog::ingestionFinished(){
+    // ingestion finished, reenable buttons
+    movie->stop();
+    ui->waitingCircle->hide();
+    ui->pleaseWait->setText("Done");
+    ui->pushButtonRestart->setVisible(true);
+    ui->nextSlideButton->setEnabled(true);
+}
+
+void Dialog::resetContent(){
+    setButtonsEnabled(true);
+    filelistingContainer.clear();
+    clearAllDatasets();
+    clearAllFilelisting();
+    ui->metadataGuided->setCurrentIndex(0);
+    ui->nextSlideButton->setText("Next");
+}
+
+void Dialog::restart(){
+    resetContent();
+
+    goToPage(0); // go back to PI
+}
 
 void Dialog::nextSlide(){
     // update currentSlideIndex
@@ -241,9 +309,13 @@ bool Dialog::checkPgroup(){
 }
 
 bool Dialog::checkPIInfo(){
+    if (PIHasChanged){
+        std::cout << "checking PI" << std::endl;
+        PIHasChanged = false;
+        return checkPgroup();
+    }
 
-    std::cout << "checking PI" << std::endl;
-    return checkPgroup();
+    return true;
 
 }
 
@@ -342,7 +414,7 @@ QStringList Dialog::openFileBrowser(){
         fileName = dialog.selectedFiles();
     }
     std::cout << fileName[0].toStdString() << std::endl;
-//    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),"~/", QFileDialog::Directory);
+
     return fileName;
 }
 
@@ -460,9 +532,10 @@ void Dialog::removeMetadataEntry(){
     // check if item is protected
     if (ui->treeWidget->currentItem()->flags()>35){
         std::cout << "here" << std::endl;
-        ui->treeWidget->removeItemWidget(ui->treeWidget->currentItem(), 0);
+//        ui->treeWidget->removeItemWidget(ui->treeWidget->currentItem(), 0);
         QModelIndexList indexList = ui->treeWidget->selectionModel()->selectedRows();
         for (int ii=0; ii<indexList.size(); ii++){
+            std::cout << indexList[ii].row() << std::endl;
             ui->treeWidget->model()->removeRow(indexList[ii].row());
         }
     } else {
@@ -486,6 +559,11 @@ void Dialog::updateMetadataEntry(QString name, QString targetValue, int flag){
         addEntryMetadataTreeView(name, targetValue);
     }
 }
+
+void Dialog::quit(){
+    close();
+}
+
 
 Dialog::~Dialog()
 {
@@ -705,6 +783,14 @@ DatasetBrowser::~DatasetBrowser()
     delete ui;
 }
 
+
+Ingestor::Ingestor(std::string commandIn){
+    command = commandIn;
+}
+
+void Ingestor::run(){
+    utils::system_call(command);
+}
 
 
 

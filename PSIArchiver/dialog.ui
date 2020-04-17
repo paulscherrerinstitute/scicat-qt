@@ -32,7 +32,7 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
     <rect>
      <x>110</x>
      <y>80</y>
-     <width>691</width>
+     <width>693</width>
      <height>461</height>
     </rect>
    </property>
@@ -630,6 +630,67 @@ QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
      </layout>
     </widget>
    </widget>
+   <widget class="QWidget" name="finalPage">
+    <widget class="QPushButton" name="pushButtonRestart">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>390</y>
+       <width>88</width>
+       <height>34</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px}
+QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}</string>
+     </property>
+     <property name="text">
+      <string>Restart</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="waitingMessage" native="true">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>120</y>
+       <width>191</width>
+       <height>131</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QLabel" name="ingestingDatasets">
+        <property name="text">
+         <string>Ingesting datasets</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="waitingCircle">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="pleaseWait">
+        <property name="text">
+         <string>Please wait</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </widget>
   </widget>
   <widget class="QPushButton" name="nextSlideButton">
    <property name="geometry">
@@ -684,7 +745,8 @@ QPushButton:hover#nextSlideButton{background-color: rgb(244, 122, 0); color: rgb
     <property name="styleSheet">
      <string notr="true">QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}
 QPushButton:hover{background-color:rgb(0, 70, 91); border-radius:0px}
-QPushButton:!enabled{background-color:rgb(0, 45, 59); border-radius:0px; color:rgb(198, 198, 198)}</string>
+QPushButton:!enabled{background-color:rgb(0, 45, 59); border-radius:0px; color:rgb(112, 112, 112)}
+</string>
     </property>
     <property name="text">
      <string>pgroup</string>
