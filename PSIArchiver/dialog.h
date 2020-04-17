@@ -15,6 +15,7 @@
 #include <QTimer>
 #include <QMovie>
 #include <QThread>
+#include <QCompleter>
 
 
 #include "archiverutils.h"
@@ -80,7 +81,8 @@ public:
     DatasetModel* datasets_m = new DatasetModel();
     void sendWarning(QString warningMsg);
     QMovie *movie = new QMovie("/home/wakonig_k/Documents/rollout/Software/00-General/singleIngestGUI/PSIArchiver/ajax-loader.gif");
-;
+    void getAvailPgroups();
+
 
 private slots:
     void nextSlide();
@@ -131,6 +133,8 @@ private:
     Ingestor *ingestor_m;
     void resetContent();
     void quit();
+    QStringList availPgroups;
+    QCompleter *pgroupCompleter;
 
 
 

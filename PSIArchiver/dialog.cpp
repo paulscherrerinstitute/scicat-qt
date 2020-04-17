@@ -43,7 +43,6 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->lineEditPgroup, SIGNAL(editingFinished()), this, SLOT(piChanged()));
     connect(ui->pushButtonRestart, SIGNAL(clicked()), this, SLOT(restart()));
 
-
 //    connect(ui->lineEditOwner, SIGNAL (editingFinished()), this, SLOT(updateOwner()))
 
     // warning label
@@ -116,6 +115,23 @@ void Dialog::keyPressEvent(QKeyEvent *event){
     if (event->key() != Qt::Key_Escape){
         QDialog::keyPressEvent(event);
     }
+}
+
+void Dialog::getAvailPgroups(){
+    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Proposals?filter=%7B%22fields%22%3A%20%22ownerGroup%22%7D&access_token=" + token + "'");
+    auto delim = '}';
+    std::cout << tmp << std::endl;
+    std::vector<std::string> tmpVec = utils::split(tmp, delim);
+    for (auto v:tmpVec){
+        if (v.length()>5){
+            availPgroups.push_back(QString::fromStdString(utils::extractFromJson(v, "ownerGroup")));
+        }
+    }
+
+    // set autocomplete for pgroup selection
+    pgroupCompleter = new QCompleter(availPgroups, this);
+    pgroupCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    ui->lineEditPgroup->setCompleter(pgroupCompleter);
 }
 
 void Dialog::updateNavigationButton(){
@@ -363,18 +379,11 @@ void Dialog::fileDialogFilelisting(){
 }
 
 void Dialog::clearFilelisting(){
-    // get current item
-    std::cout << ui->filelistingListWidget->currentItem()->text().toStdString() << std::endl;
-    ui->filelistingListWidget->removeItemWidget(ui->filelistingListWidget->currentItem());
+    QModelIndexList indexList = ui->filelistingListWidget->selectionModel()->selectedRows();
 
-    ui->filelistingListWidget->setUpdatesEnabled(false);
-
-
-    QModelIndexList indexes;
-    while((indexes = ui->filelistingListWidget->selectionModel()->selectedIndexes()).size()) {
-        ui->filelistingListWidget->model()->removeRow(indexes.first().row());
+    for (int ii = 0; ii < indexList.size(); ++ii) {
+        ui->filelistingListWidget->model()->removeRow(indexList[ii].row());
     }
-    ui->filelistingListWidget->setUpdatesEnabled(true);
 
 }
 
@@ -724,9 +733,10 @@ void Login::getLoginData(){
         }
         if (accessGranted){
             close();
-            baseUi->show();
             baseUi->token = token;
-            std::cout << token << std::endl;
+            baseUi->getAvailPgroups();
+            baseUi->show();
+            qDebug() << QString::fromStdString(token);
         }
 
     }
