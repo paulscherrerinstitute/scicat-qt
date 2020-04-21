@@ -42,6 +42,7 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->toolButtonMinus, SIGNAL(clicked()), this, SLOT(removeMetadataEntry()));
     connect(ui->lineEditPgroup, SIGNAL(editingFinished()), this, SLOT(piChanged()));
     connect(ui->pushButtonRestart, SIGNAL(clicked()), this, SLOT(restart()));
+    connect(ui->lineEditDatasetName, SIGNAL(editingFinished()), this, SLOT(datasetNameCheck()));
 
 //    connect(ui->lineEditOwner, SIGNAL (editingFinished()), this, SLOT(updateOwner()))
 
@@ -94,7 +95,6 @@ Dialog::Dialog(QWidget *parent)
     addEntryMetadataTreeView("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), "sample", false, 0);
 
 
-
     ui->pushButtonRestart->setVisible(false);
 
 
@@ -117,10 +117,13 @@ void Dialog::keyPressEvent(QKeyEvent *event){
     }
 }
 
+void Dialog::datasetNameCheck(){
+    ui->lineEditDatasetName->setText(ui->lineEditDatasetName->text().replace(" ", "_"));
+}
+
 void Dialog::getAvailPgroups(){
     auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Proposals?filter=%7B%22fields%22%3A%20%22ownerGroup%22%7D&access_token=" + token + "'");
     auto delim = '}';
-    std::cout << tmp << std::endl;
     std::vector<std::string> tmpVec = utils::split(tmp, delim);
     for (auto v:tmpVec){
         if (v.length()>5){
@@ -194,6 +197,11 @@ void Dialog::piChanged(){
 }
 
 bool Dialog::checkMetadata(){
+    if (ui->lineEditDatasetName->text().isEmpty()){
+        QMessageBox::information(this, tr("Invalid entry"), tr("Dataset name cannot be empty.") );
+        return false;
+    }
+    metadataContainer.datasetName = ui->lineEditDatasetName->text();
     return true;
 }
 
@@ -209,20 +217,28 @@ bool Dialog::filelistingCheckAndUpdate(){
     ui->lineEditProposalID->setText(QString::fromStdString(metadataContainer.proposalID));
     ui->lineEditInvestigator->setText(QString::fromStdString(metadataContainer.PIemail));
 
+    filelistingContainer.clear();
+    for (int ii=0; ii<ui->filelistingListWidget->count(); ii++ ){
+        filelistingContainer.push_back(ui->filelistingListWidget->item(ii)->text());
+    }
+
     return true;
 }
 
 void Dialog::filelistingNextSlide(){
+    qDebug() << "filelisting";
     if (filelistingCheckAndUpdate()){
         goToNextSlide();
     }
 }
 void Dialog::metadataNextSlide(){
-    std::cout << "metadata" << std::endl;
-    goToNextSlide();
+    qDebug() << "metadata";
+    if (checkMetadata()){
+        goToNextSlide();
+    }
 }
 void Dialog::submitNextSlide(){
-    std::cout << "submit" << std::endl;
+    qDebug() << "submit";
     QMessageBox msgBox;
     msgBox.setText("Do you want to submit the dataset?");
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
@@ -260,10 +276,11 @@ void Dialog::startIngestion(){
     setButtonsEnabled(false);
 
     // start ingestion
-    std::cout << "starting ingestion" << std::endl;
+    qDebug() << "starting ingestion";
     ingestor_m = new Ingestor("sleep 5;");
     connect(ingestor_m, SIGNAL(finished()), this, SLOT(ingestionFinished()));
-
+    ingestor_m->connectToUi(this);
+    ingestor_m->prepareIngestion();
     ingestor_m->start();
 
 }
@@ -326,7 +343,7 @@ bool Dialog::checkPgroup(){
 
 bool Dialog::checkPIInfo(){
     if (PIHasChanged){
-        std::cout << "checking PI" << std::endl;
+        qDebug() << "checking PI";
         PIHasChanged = false;
         return checkPgroup();
     }
@@ -339,7 +356,6 @@ void Dialog::getPI(){
     if (Dialog::checkPgroup()){
         metadataContainer.pgroup = ui->lineEditPgroup->text().toStdString();
         auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Proposals?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.pgroup + "%22%7D%7D&access_token=" + token + "'");
-//        std::cout << tmp << std::endl;
         if (tmp.length()>5){
             metadataContainer.PIFirstname = utils::extractFromJson(tmp, "pi_firstname");
             metadataContainer.PILastname = utils::extractFromJson(tmp, "pi_lastname");
@@ -405,14 +421,6 @@ void Dialog::clearAllFilelisting(){
     ui->filelistingListWidget->clear();
 }
 
-void Dialog::updateFilelistingDisplay(){
-    ui->filelistingListWidget->clear();
-    for (uint containerIndex=0; containerIndex<filelistingContainer.size(); containerIndex++){
-        ui->filelistingListWidget->addItem(filelistingContainer[containerIndex]);
-    }
-
-}
-
 QStringList Dialog::openFileBrowser(){
     QFileDialog dialog(this);
     dialog.setFileMode(QFileDialog::AnyFile);
@@ -434,7 +442,7 @@ void Dialog::openDatasetBrowser(){
 
     datasetContainer.clear();
     for (auto v: tmpVec) {
-        std::cout << v << std::endl;
+        qDebug() << v;
         QStringList tmpQStringList;
         if ((v.find("datasetName")!=std::string::npos) && (v.find("pid")!=std::string::npos)){
             tmpQStringList.push_back(QString::fromStdString(utils::extractFromJson(v, "datasetName")));
@@ -499,8 +507,8 @@ void Dialog::addEntryMetadataTreeView(QString name, QString description, QString
 
     auto res = ui->treeWidget->findItems(parent, Qt::MatchExactly|Qt::MatchRecursive, 0);
     if (res.size()==0){
-        std::cout << parent.toStdString() << std::endl;
-        std::cout << "Could not find parent entry." << std::endl;
+        qDebug() << parent.toStdString();
+        qDebug() << "Could not find parent entry.";
         return;
     }
 
@@ -524,7 +532,7 @@ void Dialog::updateMetadataBrowser(){
     updateMetadataEntry("ownerGroup", QString::fromStdString(metadataContainer.ownerGroup), 0);
     updateMetadataEntry("owner", QString::fromStdString(metadataContainer.owner), 0);
     updateMetadataEntry("ownerEmail", QString::fromStdString(metadataContainer.ownerEmail), 0);
-    updateMetadataEntry("datasetName", QString::fromStdString(metadataContainer.datasetName), 0);
+    updateMetadataEntry("datasetName", metadataContainer.datasetName, 0);
 
 }
 
@@ -540,11 +548,9 @@ void Dialog::appendMetadataEntry(){
 void Dialog::removeMetadataEntry(){
     // check if item is protected
     if (ui->treeWidget->currentItem()->flags()>35){
-        std::cout << "here" << std::endl;
 //        ui->treeWidget->removeItemWidget(ui->treeWidget->currentItem(), 0);
         QModelIndexList indexList = ui->treeWidget->selectionModel()->selectedRows();
         for (int ii=0; ii<indexList.size(); ii++){
-            std::cout << indexList[ii].row() << std::endl;
             ui->treeWidget->model()->removeRow(indexList[ii].row());
         }
     } else {
@@ -597,10 +603,8 @@ fileBrowser::fileBrowser(QWidget *parent) :
     uiFileBrowser->columnView->setRootIndex(fileModel->index("/"));
     uiFileBrowser->columnView->selectionModel()->setCurrentIndex(fileModel->index("/home/wakonig_k"), QItemSelectionModel::Select);
     uiFileBrowser->columnView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-//    uiFileBrowser->columnView->show();
 
     connect(uiFileBrowser->pushButtonFileBrowser, SIGNAL (clicked()), this, SLOT (selectButton()));
-//    connect(uiFileBrowser->columnView->selectionModel(), SIGNAL (doubleClicked()), this, SLOT (setChildDirActive()));
     connect(uiFileBrowser->toolButtonUp, SIGNAL (clicked()), this, SLOT (setParentDirActive()));
     uiFileBrowser->columnView->selectionModel()->clearSelection();
 }
@@ -612,7 +616,6 @@ void fileBrowser::connectToUi(Ui::Dialog *ui){
 void fileBrowser::selectButton(){
     getCurrentEntry();
     appendEntry();
-//    updateFileCount(baseUi);
 
     close();
 }
@@ -644,7 +647,7 @@ void fileBrowser::getCurrentEntry(){
     filePathQList.clear();
     QModelIndex index = uiFileBrowser->columnView->currentIndex();
     QModelIndexList indexList = uiFileBrowser->columnView->selectionModel()->selection().indexes();
-    std::cout << indexList.size() << std::endl;
+    qDebug() << indexList.size();
     for (int ii=0; ii<indexList.size(); ++ii) {
         filePath = "/" + indexList[ii].data().toString().toStdString();
         QModelIndex parentIndex, parentIndexOld;
@@ -652,7 +655,7 @@ void fileBrowser::getCurrentEntry(){
         QString dataParentString;
         parentIndexOld = index;
         std::string parentStdString;
-        std::cout << filePath << std::endl;
+        qDebug() << filePath;
 
         while (true){
             parentIndex = uiFileBrowser->columnView->model()->parent(parentIndexOld);
@@ -679,12 +682,6 @@ void fileBrowser::setParentDirActive(){
     QModelIndex index = uiFileBrowser->columnView->currentIndex();
     QModelIndex parentIndex = uiFileBrowser->columnView->model()->parent(index);
     uiFileBrowser->columnView->setCurrentIndex(parentIndex);
-}
-
-
-void fileBrowser::setChildDirActive(){
-    std::cout << "Child" << std::endl;
-
 }
 
 
@@ -727,7 +724,6 @@ void Login::getLoginData(){
         } else if (tmp.find("id") != std::string::npos) {
             token = utils::extractFromJson(tmp, "id");
         } else {
-            std::cout << tmp << std::endl;
             QMessageBox::information(this, tr("Connection error"), tr("Could not connect to SciCat") );
             accessGranted = false;
         }
@@ -736,7 +732,7 @@ void Login::getLoginData(){
             baseUi->token = token;
             baseUi->getAvailPgroups();
             baseUi->show();
-            qDebug() << QString::fromStdString(token);
+            qDebug() << token;
         }
 
     }
@@ -794,8 +790,53 @@ DatasetBrowser::~DatasetBrowser()
 }
 
 
+void Ingestor::prepareIngestion(){
+
+    QString dirpath = baseUi->ingestionContainer.logPath + baseUi->metadataContainer.datasetName + QString::number(QDateTime::currentDateTime().toSecsSinceEpoch());
+    if (!QDir(dirpath).exists()){
+        qDebug()<<"Output directory does not exist";
+        if (!QDir().mkpath(dirpath)){
+            baseUi->sendWarning("Could not write to output directory.");
+        }
+    }
+
+    QFile metadataFile(QDir(dirpath).filePath(baseUi->ingestionContainer.filenameMetadata));
+    if (!metadataFile.open(QIODevice::WriteOnly)) {
+        baseUi->sendWarning("Could not open metadata file.");
+        return;
+    }
+
+    // prepare metadata file
+    QJsonObject metadata;
+    metadata["principalInvestigator"] = QString::fromStdString(baseUi->metadataContainer.PIemail);
+    metadata["owner"] = QString::fromStdString(baseUi->metadataContainer.owner);
+    metadata["ownerGroup"] = QString::fromStdString(baseUi->metadataContainer.ownerGroup);
+    metadata["datasetName"] = baseUi->metadataContainer.datasetName;
+    qDebug() << baseUi->metadataContainer.datasetName;
+
+    QJsonDocument saveDoc(metadata);
+    metadataFile.write(saveDoc.toJson());
+    metadataFile.close();
+
+    QFile filelistingFile(QDir(dirpath).filePath(baseUi->ingestionContainer.filenameFilelisting));
+    if (!filelistingFile.open(QIODevice::WriteOnly | QIODevice::Text)){
+        baseUi->sendWarning("Could not open filelisting file.");
+        return;
+    }
+
+    QTextStream out(&filelistingFile);
+    for (auto v:baseUi->filelistingContainer){
+        out << v << "\n";
+    }
+    filelistingFile.close();
+}
+
 Ingestor::Ingestor(std::string commandIn){
     command = commandIn;
+}
+
+void Ingestor::connectToUi(Dialog *uiDialog){
+    baseUi = uiDialog;
 }
 
 void Ingestor::run(){

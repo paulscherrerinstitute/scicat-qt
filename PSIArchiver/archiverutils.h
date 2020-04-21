@@ -23,4 +23,10 @@ std::vector<std::string> split(const std::string& s, char delim);
 
 }
 
+inline QDebug operator<<(QDebug out, const std::string& str)
+{
+    out << QString::fromStdString(str);
+    return out;
+}
+
 #endif // ARCHIVERUTILS_H

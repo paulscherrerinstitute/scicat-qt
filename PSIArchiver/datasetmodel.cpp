@@ -77,7 +77,6 @@ void DatasetModel::sort(int column, Qt::SortOrder order) {
 void DatasetModel::appendData(const std::vector<QStringList>& newDatasetContainer){
     for (auto v:newDatasetContainer){
         datasetContainerModel.push_back(v);
-        std::cout << v.at(0).toStdString() << std::endl;
     }
     QModelIndex top = createIndex(0,0,nullptr);
     QModelIndex bottom = createIndex(datasetContainerModel.size(),1,nullptr);
@@ -94,6 +93,5 @@ void DatasetModel::appendData(const QStringList newDatasetContainer){
 void DatasetModel::emitDataChanged(){
     QModelIndex top = createIndex(0,0,nullptr);
     QModelIndex bottom = createIndex(datasetContainerModel.size(),1,nullptr);
-    std::cout << "emitDataChanged: " << datasetContainerModel.size() << std::endl;
     emit dataChanged(top, bottom);
 }

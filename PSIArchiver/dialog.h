@@ -16,6 +16,8 @@
 #include <QMovie>
 #include <QThread>
 #include <QCompleter>
+#include <QJsonDocument>
+#include <QFile>
 
 
 #include "archiverutils.h"
@@ -33,7 +35,6 @@ QT_END_NAMESPACE
 class DatasetModel;
 class Ingestor;
 
-
 struct styleSheets_t {
     QString buttonNavigation;
     QString buttonNotActive;
@@ -49,7 +50,7 @@ struct metadataContainer_t {
     std::string instrument;
     std::string pgroup;
     std::string type;
-    std::string datasetName;
+    QString datasetName;
     std::string sourceFolder;
     std::string creationLocation;
     std::string inputDatasets;
@@ -63,6 +64,14 @@ struct metadataContainer_t {
     std::string investigator;
 };
 
+struct ingestionIO_t {
+    QString binaryPath = "datasetIngestor";
+    QString logPath = QDir::homePath() + "/.scicat/log/";
+    QString filenameFilelisting = "filelisting.txt";
+    QString filenameMetadata = "metadata.json";
+    bool deleteLog = false;
+};
+
 class Dialog : public QDialog
 {
     Q_OBJECT
@@ -72,9 +81,7 @@ public:
     ~Dialog();
     Ui::Dialog *ui;
     int numSlides, progressbarStep;
-    std::vector<QString> filelistingContainer;
     QStringList openFileBrowser();
-    void updateFilelistingDisplay();
     std::string token;
     void keyPressEvent(QKeyEvent *event);
     std::vector<QStringList> datasetContainer;
@@ -82,6 +89,9 @@ public:
     void sendWarning(QString warningMsg);
     QMovie *movie = new QMovie("/home/wakonig_k/Documents/rollout/Software/00-General/singleIngestGUI/PSIArchiver/ajax-loader.gif");
     void getAvailPgroups();
+    ingestionIO_t ingestionContainer;
+    metadataContainer_t metadataContainer;
+    std::vector<QString> filelistingContainer;
 
 
 private slots:
@@ -104,6 +114,7 @@ private slots:
     void piChanged();
     void ingestionFinished();
     void restart();
+    void datasetNameCheck();
 
 
 private:
@@ -123,7 +134,6 @@ private:
     void addEntryMetadataTreeView(QString name, QString description, QTreeWidgetItem *parent, bool setFocus=false, int flag=2);
     void addEntryMetadataTreeView(QString name, QString description, QString parent, bool setFocus=false, int flag=2);
     void addEntryMetadataTreeView(QString name, QString description);
-    metadataContainer_t metadataContainer;
     styleSheets_t styleSheetsContainer;
     std::vector<QPushButton *> navigationButtons;
     void updateMetadataEntry(QString name, QString targetValue, int flag=2);
@@ -135,6 +145,8 @@ private:
     void quit();
     QStringList availPgroups;
     QCompleter *pgroupCompleter;
+    std::string savePath = "~/scicat/log/";
+    
 
 
 
@@ -159,7 +171,6 @@ public:
 private slots:
     void getCurrentEntry();
     void setParentDirActive();
-    void setChildDirActive();
     void selectButton();
 
 
@@ -223,10 +234,13 @@ public:
     Ingestor(){};
     Ingestor(std::string commandIn);
     void setCommand(std::string commandIn);
+    void prepareIngestion();
+    void connectToUi(Dialog *uiDialog);
 protected:
     void run();
 private:
     std::string command;
+    Dialog *baseUi;
 };
 
 
