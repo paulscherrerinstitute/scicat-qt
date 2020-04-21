@@ -146,6 +146,7 @@ private:
     QStringList availPgroups;
     QCompleter *pgroupCompleter;
     std::string savePath = "~/scicat/log/";
+    void updateItemFlag(QTreeWidgetItem *item, int flag);
     
 
 

@@ -88,11 +88,11 @@ Dialog::Dialog(QWidget *parent)
     ui->treeWidget->setColumnWidth(0, ui->treeWidget->width()-150);
     ui->treeWidget->invisibleRootItem()->setFlags((Qt::ItemFlags)32);
 
-    addEntryMetadataTreeView("scientificMetadata", "", nullptr, false, 1);
-    addEntryMetadataTreeView("sample", "", "scientificMetadata", false, 0);
-    addEntryMetadataTreeView("description", "", "sample", false, 0);
-    addEntryMetadataTreeView("name", "", "sample", false, 0);
-    addEntryMetadataTreeView("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), "sample", false, 0);
+    addEntryMetadataTreeView("scientificMetadata", "", nullptr, false, 2);
+    addEntryMetadataTreeView("sample", "", "scientificMetadata", false, 1);
+    addEntryMetadataTreeView("description", "", "sample", false, 1);
+    addEntryMetadataTreeView("name", "", "sample", false, 1);
+    addEntryMetadataTreeView("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), "sample", false, 1);
 
 
     ui->pushButtonRestart->setVisible(false);
@@ -152,7 +152,7 @@ void Dialog::updateNavigationButton(){
     QPropertyAnimation *animationSlider = new QPropertyAnimation(ui->labelSlider, "geometry");
     animationSlider->setDuration(80);
     animationSlider->setStartValue(ui->labelSlider->geometry());
-    animationSlider->setEndValue(QRect(20,80+slideIndex*70,5,70));
+    animationSlider->setEndValue(QRect(0,0+slideIndex*70,5,70));
     animationSlider->start();
 
 }
@@ -473,17 +473,7 @@ void Dialog::addEntryMetadataTreeView(QString name, QString description, QTreeWi
     }
     treeitem->setText(0, name);
     treeitem->setText(1, description);
-    if (flag==0){
-        treeitem->setFlags(treeitem->flags() ^ Qt::ItemIsDragEnabled);
-        treeitem->setFlags(treeitem->flags() ^ Qt::ItemIsDropEnabled);
-        treeitem->setFlags(treeitem->flags() | Qt::ItemIsEditable);
-    } else if (flag==1){
-        treeitem->setFlags(treeitem->flags() | Qt::ItemIsDropEnabled);
-        treeitem->setFlags(treeitem->flags() | Qt::ItemIsEditable);
-    } else {
-        treeitem->setFlags(treeitem->flags() | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled);
-        treeitem->setFlags(treeitem->flags() | Qt::ItemIsEditable);
-    }
+    updateItemFlag(treeitem, flag);
 
     if (parent!=nullptr){
         parent->addChild(treeitem);
@@ -539,7 +529,7 @@ void Dialog::updateMetadataBrowser(){
 void Dialog::appendMetadataEntry(){
     // check if item supports children
     if (ui->treeWidget->currentItem()->flags().testFlag(Qt::ItemIsDropEnabled)){
-        addEntryMetadataTreeView("name", "value", ui->treeWidget->currentItem(), true, 2);
+        addEntryMetadataTreeView("name", "value", ui->treeWidget->currentItem(), true, 4);
     } else {
         sendWarning("Cannot append child entry to protected field.");
     }
@@ -547,29 +537,44 @@ void Dialog::appendMetadataEntry(){
 
 void Dialog::removeMetadataEntry(){
     // check if item is protected
-    if (ui->treeWidget->currentItem()->flags()>35){
+//    qDebug()<<ui->treeWidget->currentItem()->flags();
+    qDebug()<<ui->treeWidget->currentItem()->flags();
+    if (ui->treeWidget->currentItem()->flags()>43){
 //        ui->treeWidget->removeItemWidget(ui->treeWidget->currentItem(), 0);
+
+
         QModelIndexList indexList = ui->treeWidget->selectionModel()->selectedRows();
-        for (int ii=0; ii<indexList.size(); ii++){
-            ui->treeWidget->model()->removeRow(indexList[ii].row());
-        }
+//        ui->treeWidget->selectionModel()
+            qDebug() << ui->treeWidget->model()->data(indexList[0]);
+            qDebug() << indexList[0].row();
+//            ui->treeWidget->model()->removeRow(indexList[ii].row());
+            ui->treeWidget->currentItem()->parent()->removeChild(ui->treeWidget->currentItem());
+//        }
     } else {
         sendWarning("Cannot remove protected field.");
     }
 
 }
 
+void Dialog::updateItemFlag(QTreeWidgetItem *item, int flag){
+    if (flag==0){
+        item->setFlags((Qt::ItemFlags)33); // selectable, enabled
+    } else if (flag==1) {
+        item->setFlags((Qt::ItemFlags)35); // selectable, enabled, editable
+    } else if (flag==2) {
+        item->setFlags((Qt::ItemFlags)41); // selectable, enabled, dropenabled
+    } else if (flag==3) {
+        item->setFlags((Qt::ItemFlags)43); // selectable, enabled, dropenabled, editable
+    } else {
+        item->setFlags((Qt::ItemFlags)47); // selectable, enabled, dropenabled, dragenabled, editable
+    }
+}
+
 void Dialog::updateMetadataEntry(QString name, QString targetValue, int flag){
     auto res = ui->treeWidget->findItems(name, Qt::MatchExactly, 0);
     if (res.size()>0){
         res[0]->setText(1, targetValue);
-        if (flag==0){
-            res[0]->setFlags((Qt::ItemFlags)35);
-        } else if (flag==1) {
-            res[0]->setFlags((Qt::ItemFlags)43);
-        } else {
-            res[0]->setFlags((Qt::ItemFlags)47);
-        }
+        updateItemFlag(res[0], flag);
     } else {
         addEntryMetadataTreeView(name, targetValue);
     }
@@ -596,12 +601,11 @@ fileBrowser::fileBrowser(QWidget *parent) :
 {
     uiFileBrowser->setupUi(this);
 
-    QString sPath = "/";
     fileModel = new QFileSystemModel(this);
-    fileModel->setRootPath(sPath);
+    fileModel->setRootPath(QDir::rootPath());
     uiFileBrowser->columnView->setModel(fileModel);
-    uiFileBrowser->columnView->setRootIndex(fileModel->index("/"));
-    uiFileBrowser->columnView->selectionModel()->setCurrentIndex(fileModel->index("/home/wakonig_k"), QItemSelectionModel::Select);
+    uiFileBrowser->columnView->setRootIndex(fileModel->index(QDir::rootPath()));
+    uiFileBrowser->columnView->selectionModel()->setCurrentIndex(fileModel->index(QDir::homePath()), QItemSelectionModel::Select);
     uiFileBrowser->columnView->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
     connect(uiFileBrowser->pushButtonFileBrowser, SIGNAL (clicked()), this, SLOT (selectButton()));
@@ -732,6 +736,7 @@ void Login::getLoginData(){
             baseUi->token = token;
             baseUi->getAvailPgroups();
             baseUi->show();
+            baseUi->ui->labelSlider->setGeometry(QRect(0,0,5,70));
             qDebug() << token;
         }
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.11.2, 2020-04-20T23:30:42. -->
+<!-- Written by QtCreator 4.11.2, 2020-04-21T12:14:44. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -130,12 +130,13 @@
    </valuemap>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.1">
     <valuelist type="QVariantList" key="CMake.Configuration">
+     <value type="QString">CMAKE_AR:FILEPATH=/home/wakonig_k/Downloads/gcc-8.4.0/bin/x86_64-pc-linux-gnu-gcc-ar</value>
      <value type="QString">CMAKE_BUILD_TYPE:STRING=Release</value>
-     <value type="QString">CMAKE_CXX_COMPILER:STRING=/usr/bin/g++</value>
+     <value type="QString">CMAKE_CXX_COMPILER:STRING=/home/wakonig_k/Downloads/gcc-8.4.0/bin/g++</value>
      <value type="QString">CMAKE_CXX_COMPILER_AR:FILEPATH=/usr/bin/gcc-ar</value>
      <value type="QString">CMAKE_CXX_COMPILER_RANLIB:FILEPATH=/usr/bin/gcc-ranlib</value>
      <value type="QString">CMAKE_CXX_FLAGS:STRING=</value>
-     <value type="QString">CMAKE_C_COMPILER:STRING=/usr/bin/gcc</value>
+     <value type="QString">CMAKE_C_COMPILER:STRING=/home/wakonig_k/Downloads/gcc-8.4.0/bin/g++</value>
      <value type="QString">CMAKE_PREFIX_PATH:STRING=%{Qt:QT_INSTALL_PREFIX}</value>
      <value type="QString">QT_QMAKE_EXECUTABLE:STRING=%{Qt:qmakeExecutable}</value>
     </valuelist>
