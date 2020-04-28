@@ -18,6 +18,9 @@
 #include <QCompleter>
 #include <QJsonDocument>
 #include <QFile>
+#include <QJsonArray>
+#include <QLabel>
+#include <QSequentialAnimationGroup>
 
 
 #include "archiverutils.h"
@@ -54,14 +57,15 @@ struct metadataContainer_t {
     std::string sourceFolder;
     std::string creationLocation;
     std::string inputDatasets;
-    std::string usedSoftware;
+    QString usedSoftware;
     std::string keywords;
     std::string samplename;
     std::string sampleDescription;
     std::string ownerGroup;
     std::string owner;
     std::string ownerEmail;
-    std::string investigator;
+    QString investigator;
+    QString description;
 };
 
 struct ingestionIO_t {
@@ -87,11 +91,16 @@ public:
     std::vector<QStringList> datasetContainer;
     DatasetModel* datasets_m = new DatasetModel();
     void sendWarning(QString warningMsg);
-    QMovie *movie = new QMovie("/home/wakonig_k/Documents/rollout/Software/00-General/singleIngestGUI/PSIArchiver/ajax-loader.gif");
+    QMovie *movie = new QMovie(":/images/ajax-loader.gif");
     void getAvailPgroups();
     ingestionIO_t ingestionContainer;
     metadataContainer_t metadataContainer;
     std::vector<QString> filelistingContainer;
+    QLabel *labelSlider;
+    bool archiveCollapsed = false;
+    QPropertyAnimation *animationNavigationButtons;
+    QPropertyAnimation *animationCover;
+    QSequentialAnimationGroup *navigationAnimationGroup;
 
 
 private slots:
@@ -115,6 +124,11 @@ private slots:
     void ingestionFinished();
     void restart();
     void datasetNameCheck();
+    void investigatorChanged();
+    void descriptionChanged();
+    void usedSoftwareChanged();
+    void goToArchive();
+    void goToRetrieve();
 
 
 private:
@@ -147,6 +161,7 @@ private:
     QCompleter *pgroupCompleter;
     std::string savePath = "~/scicat/log/";
     void updateItemFlag(QTreeWidgetItem *item, int flag);
+    void toggleNavigationBar();
     
 
 
@@ -226,8 +241,6 @@ private:
     DatasetModel* datasets_m = new DatasetModel();
 };
 
-#endif // DIALOG_H
-
 class Ingestor : public QThread
 {
   Q_OBJECT
@@ -243,6 +256,13 @@ private:
     std::string command;
     Dialog *baseUi;
 };
+
+QString extractSourceFolder(std::vector<QString> container);
+QJsonObject treeModel2Json(QTreeWidgetItem *item);
+#endif // DIALOG_H
+
+
+
 
 
 

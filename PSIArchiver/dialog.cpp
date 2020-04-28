@@ -17,6 +17,28 @@ Dialog::Dialog(QWidget *parent)
     indx = ui->stackedWidget->indexOf(ui->stackedWidget->currentWidget());
 
 
+    navigationAnimationGroup = new QSequentialAnimationGroup;
+    animationNavigationButtons = new QPropertyAnimation(ui->frameRetrieve, "geometry");
+    animationCover = new QPropertyAnimation(ui->frameRetrieveButtons, "geometry");
+
+    animationNavigationButtons->setDuration(800);
+    auto startRect = ui->frameRetrieve->geometry();
+    animationNavigationButtons->setStartValue(QRect(startRect.left(),300,startRect.width(),startRect.height()));
+
+    animationCover->setDuration(800);
+//    auto retrieveCoverLoc = ui->frameRetrieveButtons->geometry();
+    auto retrieveButtonLoc = ui->pushButtonGoToRetrieve->geometry();
+    animationCover->setStartValue(QRect(retrieveButtonLoc.left(),retrieveButtonLoc.bottom(),retrieveButtonLoc.width(),0));
+    animationNavigationButtons->setEndValue(QRect(startRect.left(),29,startRect.width(),startRect.height()));
+    animationNavigationButtons->setEasingCurve(QEasingCurve::OutExpo);
+
+    animationCover->setEndValue(QRect(retrieveButtonLoc.left(), retrieveButtonLoc.bottom(), retrieveButtonLoc.width(), 140));
+    animationCover->setEasingCurve(QEasingCurve::OutExpo);
+
+    navigationAnimationGroup->addAnimation(animationNavigationButtons);
+    navigationAnimationGroup->addAnimation(animationCover);
+
+
     // update number of slides/pages
     numSlides = ui->stackedWidget->count();
 
@@ -43,7 +65,11 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->lineEditPgroup, SIGNAL(editingFinished()), this, SLOT(piChanged()));
     connect(ui->pushButtonRestart, SIGNAL(clicked()), this, SLOT(restart()));
     connect(ui->lineEditDatasetName, SIGNAL(editingFinished()), this, SLOT(datasetNameCheck()));
-
+    connect(ui->lineEditInvestigator, SIGNAL(editingFinished()), this, SLOT(investigatorChanged()));
+    connect(ui->textEditDescription, SIGNAL(textChanged()), this, SLOT(descriptionChanged()));
+    connect(ui->textEditUsedSoftware, SIGNAL(textChanged()), this, SLOT(usedSoftwareChanged()));
+    connect(ui->pushButtonGoToArchive, SIGNAL(clicked()), this, SLOT(goToArchive()));
+    connect(ui->pushButtonGoToRetrieve, SIGNAL(clicked()), this, SLOT(goToRetrieve()));
 //    connect(ui->lineEditOwner, SIGNAL (editingFinished()), this, SLOT(updateOwner()))
 
     // warning label
@@ -78,6 +104,7 @@ Dialog::Dialog(QWidget *parent)
     ui->tableWidget->insertColumn(1);
     ui->tableWidget->setColumnWidth(0, 200);
     ui->tableWidget->setColumnWidth(1, 200);
+    ui->tableWidget->setHorizontalHeaderLabels(QStringList({"Name", "ID"}));
     ui->clearAllButtonDatasets->setEnabled(false);
     ui->clearButtonDatasets->setEnabled(false);
 
@@ -87,6 +114,7 @@ Dialog::Dialog(QWidget *parent)
     ui->treeWidget->setColumnWidth(0, 150);
     ui->treeWidget->setColumnWidth(0, ui->treeWidget->width()-150);
     ui->treeWidget->invisibleRootItem()->setFlags((Qt::ItemFlags)32);
+    ui->treeWidget->setHeaderLabels(QStringList({"Name", "Value"}));
 
     addEntryMetadataTreeView("scientificMetadata", "", nullptr, false, 2);
     addEntryMetadataTreeView("sample", "", "scientificMetadata", false, 1);
@@ -94,9 +122,13 @@ Dialog::Dialog(QWidget *parent)
     addEntryMetadataTreeView("name", "", "sample", false, 1);
     addEntryMetadataTreeView("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), "sample", false, 1);
 
+    labelSlider = new QLabel(this);
+    labelSlider->setGeometry(QRect(0,0,5,70));
+    labelSlider->setStyleSheet("QLabel{background-color: rgb(0, 153, 200)}");
 
     ui->pushButtonRestart->setVisible(false);
-
+    if (!movie->isValid())
+        return;
 
     styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
                                           "QPushButton:hover{background-color:rgb(0, 70, 91); border-radius:0px}; "
@@ -111,6 +143,28 @@ void Dialog::sendWarning(QString warningMsg){
     QTimer::singleShot(5000, ui->warningLabel, &QLabel::hide);
 }
 
+void Dialog::toggleNavigationBar(){
+
+
+    navigationAnimationGroup->setDirection((QAbstractAnimation::Direction)archiveCollapsed);
+
+    navigationAnimationGroup->start();
+    archiveCollapsed = !archiveCollapsed;
+
+}
+
+void Dialog::goToArchive(){
+    if (archiveCollapsed){
+        toggleNavigationBar();
+    }
+}
+
+void Dialog::goToRetrieve(){
+    if (!archiveCollapsed){
+        toggleNavigationBar();
+    }
+}
+
 void Dialog::keyPressEvent(QKeyEvent *event){
     if (event->key() != Qt::Key_Escape){
         QDialog::keyPressEvent(event);
@@ -119,6 +173,19 @@ void Dialog::keyPressEvent(QKeyEvent *event){
 
 void Dialog::datasetNameCheck(){
     ui->lineEditDatasetName->setText(ui->lineEditDatasetName->text().replace(" ", "_"));
+}
+
+void Dialog::investigatorChanged(){
+    metadataContainer.investigator = ui->lineEditInvestigator->text();
+}
+
+void Dialog::descriptionChanged(){
+    metadataContainer.description = ui->textEditDescription->toPlainText();
+    qDebug()<<metadataContainer.description;
+}
+
+void Dialog::usedSoftwareChanged(){
+    metadataContainer.usedSoftware = ui->textEditUsedSoftware->toPlainText();
 }
 
 void Dialog::getAvailPgroups(){
@@ -149,10 +216,10 @@ void Dialog::updateNavigationButton(){
             navigationButtons[ii]->setEnabled(false);
         }
     }
-    QPropertyAnimation *animationSlider = new QPropertyAnimation(ui->labelSlider, "geometry");
+    QPropertyAnimation *animationSlider = new QPropertyAnimation(labelSlider, "geometry");
     animationSlider->setDuration(80);
-    animationSlider->setStartValue(ui->labelSlider->geometry());
-    animationSlider->setEndValue(QRect(0,0+slideIndex*70,5,70));
+    animationSlider->setStartValue(labelSlider->geometry());
+    animationSlider->setEndValue(QRect(0,77+slideIndex*70,5,70));
     animationSlider->start();
 
 }
@@ -199,6 +266,8 @@ void Dialog::piChanged(){
 bool Dialog::checkMetadata(){
     if (ui->lineEditDatasetName->text().isEmpty()){
         QMessageBox::information(this, tr("Invalid entry"), tr("Dataset name cannot be empty.") );
+        ui->metadataGuided->setCurrentIndex(0);
+        ui->labelDatasetName->setFocus();
         return false;
     }
     metadataContainer.datasetName = ui->lineEditDatasetName->text();
@@ -369,7 +438,7 @@ void Dialog::getPI(){
             metadataContainer.ownerGroup = metadataContainer.pgroup;
             metadataContainer.owner = metadataContainer.PIFirstname + " " + metadataContainer.PILastname;
             metadataContainer.ownerEmail = metadataContainer.PIemail;
-            metadataContainer.investigator = metadataContainer.PIemail;
+            metadataContainer.investigator = QString::fromStdString(metadataContainer.PIemail);
 
             ui->lineEditPIMail->setText(QString::fromStdString(metadataContainer.PIemail));
             ui->lineEditPIFirstname->setText(QString::fromStdString(metadataContainer.PIFirstname));
@@ -404,8 +473,9 @@ void Dialog::clearFilelisting(){
 }
 
 void Dialog::clearAllDatasets(){
-    for (int ii=0; ii<ui->tableWidget->rowCount(); ++ii) {
-        ui->tableWidget->removeRow(ui->tableWidget->rowCount()-ii-1);
+    int rowCount = ui->tableWidget->rowCount();
+    for (int ii=0; ii<rowCount; ++ii) {
+        ui->tableWidget->removeRow(ui->tableWidget->rowCount()-1);
     }
 }
 
@@ -517,19 +587,21 @@ void Dialog::comboBoxDatatypeChanged(int val){
 }
 
 void Dialog::updateMetadataBrowser(){
-    updateMetadataEntry("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), 0);
-    updateMetadataEntry("type", ui->comboBoxDatatype->currentText(), 0);
-    updateMetadataEntry("ownerGroup", QString::fromStdString(metadataContainer.ownerGroup), 0);
-    updateMetadataEntry("owner", QString::fromStdString(metadataContainer.owner), 0);
-    updateMetadataEntry("ownerEmail", QString::fromStdString(metadataContainer.ownerEmail), 0);
-    updateMetadataEntry("datasetName", metadataContainer.datasetName, 0);
+//    updateMetadataEntry("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), 0);
+//    updateMetadataEntry("type", ui->comboBoxDatatype->currentText(), 0);
+//    updateMetadataEntry("ownerGroup", QString::fromStdString(metadataContainer.ownerGroup), 0);
+//    updateMetadataEntry("owner", QString::fromStdString(metadataContainer.owner), 0);
+//    updateMetadataEntry("ownerEmail", QString::fromStdString(metadataContainer.ownerEmail), 0);
+//    updateMetadataEntry("datasetName", metadataContainer.datasetName, 0);
 
 }
 
 void Dialog::appendMetadataEntry(){
     // check if item supports children
     if (ui->treeWidget->currentItem()->flags().testFlag(Qt::ItemIsDropEnabled)){
+        ui->treeWidget->currentItem()->setData(1,0,"");
         addEntryMetadataTreeView("name", "value", ui->treeWidget->currentItem(), true, 4);
+
     } else {
         sendWarning("Cannot append child entry to protected field.");
     }
@@ -537,17 +609,11 @@ void Dialog::appendMetadataEntry(){
 
 void Dialog::removeMetadataEntry(){
     // check if item is protected
-//    qDebug()<<ui->treeWidget->currentItem()->flags();
     qDebug()<<ui->treeWidget->currentItem()->flags();
     if (ui->treeWidget->currentItem()->flags()>43){
-//        ui->treeWidget->removeItemWidget(ui->treeWidget->currentItem(), 0);
-
-
         QModelIndexList indexList = ui->treeWidget->selectionModel()->selectedRows();
-//        ui->treeWidget->selectionModel()
             qDebug() << ui->treeWidget->model()->data(indexList[0]);
             qDebug() << indexList[0].row();
-//            ui->treeWidget->model()->removeRow(indexList[ii].row());
             ui->treeWidget->currentItem()->parent()->removeChild(ui->treeWidget->currentItem());
 //        }
     } else {
@@ -589,6 +655,8 @@ Dialog::~Dialog()
 {
     delete datasets_m;
     delete ui;
+    delete animationNavigationButtons;
+    delete animationCover;
 }
 
 
@@ -736,7 +804,7 @@ void Login::getLoginData(){
             baseUi->token = token;
             baseUi->getAvailPgroups();
             baseUi->show();
-            baseUi->ui->labelSlider->setGeometry(QRect(0,0,5,70));
+            baseUi->labelSlider->setGeometry(QRect(0,47,5,70));
             qDebug() << token;
         }
 
@@ -813,11 +881,42 @@ void Ingestor::prepareIngestion(){
 
     // prepare metadata file
     QJsonObject metadata;
-    metadata["principalInvestigator"] = QString::fromStdString(baseUi->metadataContainer.PIemail);
-    metadata["owner"] = QString::fromStdString(baseUi->metadataContainer.owner);
-    metadata["ownerGroup"] = QString::fromStdString(baseUi->metadataContainer.ownerGroup);
-    metadata["datasetName"] = baseUi->metadataContainer.datasetName;
-    qDebug() << baseUi->metadataContainer.datasetName;
+    bool isRawData = (bool) baseUi->ui->comboBoxDatatype->currentIndex();
+    if (isRawData){
+        qDebug() << "Preparing metadata file for raw data";
+        metadata["principalInvestigator"] = QString::fromStdString(baseUi->metadataContainer.PIemail); // this should be changed in the future; there is no need to save it as std::string
+//        metadata["creationLocation"] = baseUi->metadataContainer.creationLocation;
+        metadata["owner"] = QString::fromStdString(baseUi->metadataContainer.owner);
+        metadata["ownerGroup"] = QString::fromStdString(baseUi->metadataContainer.ownerGroup);
+        metadata["ownerEmail"] = QString::fromStdString(baseUi->metadataContainer.ownerEmail);
+        metadata["datasetName"] = baseUi->metadataContainer.datasetName;
+        metadata["type"] = "raw";
+        metadata["description"] = baseUi->metadataContainer.description;
+        auto res = baseUi->ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
+        QJsonArray scMetadata;
+        for (int ii=0; ii<res.size(); ii++){
+            qDebug() << res[ii]->childCount();
+            scMetadata.push_back(treeModel2Json(res[ii]));
+        }
+        metadata["scientificMetadata"] = scMetadata;
+        qDebug() << baseUi->metadataContainer.datasetName;
+    } else {
+        qDebug() << "Preparing metadata file for derived data";
+        metadata["sourceFolder"] = extractSourceFolder(baseUi->filelistingContainer);
+        metadata["owner"] = QString::fromStdString(baseUi->metadataContainer.owner);
+        metadata["type"] = "raw";
+        metadata["ownerGroup"] = QString::fromStdString(baseUi->metadataContainer.ownerGroup);
+        metadata["creationTime"] = baseUi->ui->dateTimeEdit->dateTime().toString(Qt::ISODate);
+        metadata["investigator"] = baseUi->metadataContainer.investigator;
+        auto dsmodel = baseUi->ui->tableWidget->model();
+        QStringList inputDatasetsList;
+        for (int ii=0; ii<dsmodel->rowCount(); ii++){
+            inputDatasetsList.push_back(dsmodel->data(dsmodel->index(ii,1), Qt::DisplayRole).toString());
+        }
+        metadata["inputDatasets"] = QJsonArray::fromStringList(inputDatasetsList);
+        metadata["usedSoftware"] = baseUi->metadataContainer.usedSoftware;
+    }
+
 
     QJsonDocument saveDoc(metadata);
     metadataFile.write(saveDoc.toJson());
@@ -850,6 +949,47 @@ void Ingestor::run(){
 
 
 
+QString extractSourceFolder(std::vector<QString> container){
+// a quick and dirty solution... not very efficient though
+
+    QString lPath = "/";
+    int ii=1;
+    bool entryIsValid = true;
+    QString subdir;
+    while (ii<container[0].length()){
+        for (auto v:container){
+            if (v.length()==ii){
+                entryIsValid = false;
+            }
+        }
+        if (!entryIsValid){
+            break;
+        }
+        if (container[0][ii]=='/'){
+            lPath.push_back(subdir);
+            subdir.clear();
+        }
+        subdir.push_back(container[0][ii]);
+        ii++;
+    }
+    return lPath;
+
+}
+
+QJsonObject treeModel2Json(QTreeWidgetItem *item){
+    QJsonObject retObj;
+    for (int ii=0; ii<item->childCount(); ii++){
+        QJsonObject tmpObject;
+        if (item->child(ii)->childCount()>0){
+            tmpObject = treeModel2Json(item->child(ii));
+            retObj.insert(item->child(ii)->data(0,0).toString(), tmpObject);
+        } else {
+            retObj.insert(item->child(ii)->data(0,0).toString(), item->child(ii)->data(1,0).toString());
+        }
+    }
+
+    return retObj;
+}
 
 
 

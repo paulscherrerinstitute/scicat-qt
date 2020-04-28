@@ -10,7 +10,7 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
+set ( RESOURCES  psiArchiverResources.qrc)
 # QtCreator supports the following variables for Android, which are identical to qmake Android variables.
 # Check http://doc.qt.io/qt-5/deployment-android.html for more information.
 # They need to be set before the find_package(Qt5 ...) call.
@@ -25,6 +25,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #endif()
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
+QT5_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
 
 if(ANDROID)
   add_library(PSIArchiver SHARED
@@ -55,6 +56,7 @@ else()
     datasetmodel.cpp
     datasetmodel.h
     datasetbrowser.ui
+    ${RES_SOURCES}
   )
 endif()
 

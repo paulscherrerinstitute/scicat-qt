@@ -95,3 +95,17 @@ void DatasetModel::emitDataChanged(){
     QModelIndex bottom = createIndex(datasetContainerModel.size(),1,nullptr);
     emit dataChanged(top, bottom);
 }
+
+QVariant DatasetModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
+        if (section == 0) {
+            return QString("Name");
+        } else if (section == 1) {
+            return QString("ID");
+        }
+    }
+    return QVariant();
+}
+
+
+

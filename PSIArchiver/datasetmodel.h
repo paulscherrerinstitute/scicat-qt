@@ -21,6 +21,7 @@ public:
     void appendData(const std::vector<QStringList>& newDatasetContainer);
     void appendData(const QStringList newDatasetContainer);
     void emitDataChanged();
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
 private:
     std::vector<QStringList> datasetContainerModel;
