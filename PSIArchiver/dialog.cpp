@@ -796,7 +796,7 @@ void Login::getLoginData(){
         } else if (tmp.find("id") != std::string::npos) {
             token = utils::extractFromJson(tmp, "id");
         } else {
-            QMessageBox::information(this, tr("Connection error"), tr("Could not connect to SciCat") );
+            QMessageBox::information(this, tr("Connection error"), tr("Could not connect to SciCat.\nPlease make sure that you are within the PSI intranet and try again.") );
             accessGranted = false;
         }
         if (accessGranted){

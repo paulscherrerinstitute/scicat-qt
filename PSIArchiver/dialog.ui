@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>814</width>
     <height>681</height>
    </rect>
   </property>
@@ -46,10 +46,16 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
    <item>
     <widget class="QFrame" name="frame_2">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
      </property>
      <property name="styleSheet">
       <string notr="true">QFrame#frame_2{background-color:rgba(0, 153, 200, 0.8); border:0px}
@@ -61,11 +67,8 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QFormLayout" name="formLayout_2">
-      <property name="horizontalSpacing">
-       <number>0</number>
-      </property>
-      <property name="verticalSpacing">
+     <layout class="QHBoxLayout" name="horizontalLayout_10">
+      <property name="spacing">
        <number>0</number>
       </property>
       <property name="leftMargin">
@@ -80,7 +83,7 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <item row="0" column="0">
+      <item>
        <widget class="QLabel" name="label">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -90,7 +93,7 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
         </property>
         <property name="minimumSize">
          <size>
-          <width>114</width>
+          <width>126</width>
           <height>47</height>
          </size>
         </property>
@@ -105,18 +108,24 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <spacer name="horizontalSpacer_11">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+      <item>
+       <widget class="QLabel" name="label_7">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <property name="sizeHint" stdset="0">
+        <property name="minimumSize">
          <size>
-          <width>40</width>
-          <height>20</height>
+          <width>0</width>
+          <height>0</height>
          </size>
         </property>
-       </spacer>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -566,6 +575,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             </spacer>
            </item>
           </layout>
+          <zorder>frameRetrieveButtons</zorder>
+          <zorder>retrievalCover</zorder>
+          <zorder>pushButtonGoToRetrieve</zorder>
          </widget>
         </item>
         <item>
@@ -582,6 +594,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
          </spacer>
         </item>
        </layout>
+       <zorder>frame_3</zorder>
+       <zorder>frameRetrieve</zorder>
+       <zorder>pushButtonGoToArchive</zorder>
       </widget>
      </item>
      <item>

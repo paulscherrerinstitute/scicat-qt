@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Select input datasets</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
@@ -53,7 +53,7 @@ QTableView QTableCornerButton::section  { background-color: rgba(0, 153, 200, 0.
 QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}</string>
      </property>
      <property name="text">
-      <string>PushButton</string>
+      <string>Add datasets</string>
      </property>
     </widget>
    </item>
