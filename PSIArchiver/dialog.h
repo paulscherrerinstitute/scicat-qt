@@ -43,6 +43,10 @@ struct styleSheets_t {
     QString buttonNotActive;
 };
 
+struct defaultSettings_t {
+    bool investigatorIsPI = false;
+};
+
 struct metadataContainer_t {
     std::string PIemail;
     std::string PIFirstname;
@@ -101,6 +105,10 @@ public:
     QPropertyAnimation *animationNavigationButtons;
     QPropertyAnimation *animationCover;
     QSequentialAnimationGroup *navigationAnimationGroup;
+    void toggleNavigationBar(int duration);
+    defaultSettings_t defaultSettings;
+    void updateRetrieveList();
+    QStringList retrieveContainer;
 
 
 private slots:
@@ -161,7 +169,7 @@ private:
     QCompleter *pgroupCompleter;
     std::string savePath = "~/scicat/log/";
     void updateItemFlag(QTreeWidgetItem *item, int flag);
-    void toggleNavigationBar();
+
     
 
 

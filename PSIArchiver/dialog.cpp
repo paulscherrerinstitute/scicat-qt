@@ -122,18 +122,28 @@ Dialog::Dialog(QWidget *parent)
     addEntryMetadataTreeView("name", "", "sample", false, 1);
     addEntryMetadataTreeView("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), "sample", false, 1);
 
-    labelSlider = new QLabel(this);
-    labelSlider->setGeometry(QRect(0,0,5,70));
-    labelSlider->setStyleSheet("QLabel{background-color: rgb(0, 153, 200)}");
+//    labelSlider = new QLabel(this);
+//    labelSlider->setGeometry(QRect(0,ui->pushButtonNavigationPgroup->geometry().top()+79,5,ui->pushButtonNavigationPgroup->geometry().height()));
+//    labelSlider->setStyleSheet("QLabel{background-color: rgb(0, 153, 200)}");
 
     ui->pushButtonRestart->setVisible(false);
     if (!movie->isValid())
         return;
 
+
+    ui->tableWidgetRetriever->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableWidgetRetriever->insertColumn(0);
+    ui->tableWidgetRetriever->insertColumn(1);
+    ui->tableWidgetRetriever->insertColumn(2);
+    ui->tableWidgetRetriever->setColumnWidth(0, 200);
+    ui->tableWidgetRetriever->setColumnWidth(1, 200);
+    ui->tableWidgetRetriever->setColumnWidth(2, 200);
+    ui->tableWidgetRetriever->setHorizontalHeaderLabels(QStringList({"Name", "Retrievable", "Status"}));
+
+
     styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
                                           "QPushButton:hover{background-color:rgb(0, 70, 91); border-radius:0px}; "
                                           "QPushButton:!enabled{background-color:rgb(0, 45, 59); border-radius:0px; color:rgb(198, 198, 198)}";
-
 
 }
 
@@ -143,11 +153,12 @@ void Dialog::sendWarning(QString warningMsg){
     QTimer::singleShot(5000, ui->warningLabel, &QLabel::hide);
 }
 
-void Dialog::toggleNavigationBar(){
+void Dialog::toggleNavigationBar(int duration){
 
 
     navigationAnimationGroup->setDirection((QAbstractAnimation::Direction)archiveCollapsed);
-
+    animationNavigationButtons->setDuration(duration);
+    animationCover->setDuration(duration);
     navigationAnimationGroup->start();
     archiveCollapsed = !archiveCollapsed;
 
@@ -155,13 +166,15 @@ void Dialog::toggleNavigationBar(){
 
 void Dialog::goToArchive(){
     if (archiveCollapsed){
-        toggleNavigationBar();
+        toggleNavigationBar(800);
     }
 }
 
 void Dialog::goToRetrieve(){
     if (!archiveCollapsed){
-        toggleNavigationBar();
+        toggleNavigationBar(800);
+        updateRetrieveList();
+        ui->stackedWidget->setCurrentIndex(5);
     }
 }
 
@@ -216,11 +229,11 @@ void Dialog::updateNavigationButton(){
             navigationButtons[ii]->setEnabled(false);
         }
     }
-    QPropertyAnimation *animationSlider = new QPropertyAnimation(labelSlider, "geometry");
-    animationSlider->setDuration(80);
-    animationSlider->setStartValue(labelSlider->geometry());
-    animationSlider->setEndValue(QRect(0,77+slideIndex*70,5,70));
-    animationSlider->start();
+//    QPropertyAnimation *animationSlider = new QPropertyAnimation(labelSlider, "geometry");
+//    animationSlider->setDuration(80);
+//    animationSlider->setStartValue(labelSlider->geometry());
+//    animationSlider->setEndValue(QRect(0,ui->pushButtonNavigationPgroup->geometry().top()+79+slideIndex*70,5,ui->pushButtonNavigationPgroup->geometry().height()));
+//    animationSlider->start();
 
 }
 
@@ -284,7 +297,7 @@ bool Dialog::filelistingCheckAndUpdate(){
     ui->lineEditOwner->setText(QString::fromStdString(metadataContainer.owner));
     ui->lineEditOwnerGroup->setText(QString::fromStdString(metadataContainer.ownerGroup));
     ui->lineEditProposalID->setText(QString::fromStdString(metadataContainer.proposalID));
-    ui->lineEditInvestigator->setText(QString::fromStdString(metadataContainer.PIemail));
+    ui->lineEditInvestigator->setText(metadataContainer.investigator);
 
     filelistingContainer.clear();
     for (int ii=0; ii<ui->filelistingListWidget->count(); ii++ ){
@@ -438,8 +451,8 @@ void Dialog::getPI(){
             metadataContainer.ownerGroup = metadataContainer.pgroup;
             metadataContainer.owner = metadataContainer.PIFirstname + " " + metadataContainer.PILastname;
             metadataContainer.ownerEmail = metadataContainer.PIemail;
-            metadataContainer.investigator = QString::fromStdString(metadataContainer.PIemail);
-
+            auto tmpUser = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Users/userInfos?access_token=" + token + "'");
+            defaultSettings.investigatorIsPI ? metadataContainer.investigator=QString::fromStdString(metadataContainer.PIemail) : metadataContainer.investigator=QString::fromStdString(utils::extractFromJson(tmpUser, "currentUserEmail"));
             ui->lineEditPIMail->setText(QString::fromStdString(metadataContainer.PIemail));
             ui->lineEditPIFirstname->setText(QString::fromStdString(metadataContainer.PIFirstname));
             ui->lineEditPILastname->setText(QString::fromStdString(metadataContainer.PILastname));
@@ -522,9 +535,6 @@ void Dialog::openDatasetBrowser(){
         if (tmpQStringList.size()==2)
             datasetContainer.push_back(tmpQStringList);
     }
-//    datasets_m->setContainer(datasetContainer);
-
-//    ui->tableViewDatasetBrowser->model
 
     // open DatasetBrowser
     DatasetBrowser* db = new DatasetBrowser(datasetContainer, this);
@@ -646,6 +656,38 @@ void Dialog::updateMetadataEntry(QString name, QString targetValue, int flag){
     }
 }
 
+void Dialog::updateRetrieveList(){
+    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%22" + metadataContainer.pgroup + "%22%7D%2C%20%22fields%22%3A%7B%22datasetlifecycle%22%3A%22true%22%2C%20%22datasetName%22%3A%20%22true%22%7D%7D&access_token=" + token + "'");
+    auto delim = '}';
+    retrieveContainer.clear();
+    std::vector<std::string> tmpVec = utils::split(tmp, delim);
+    for (auto v : tmpVec) {
+        qDebug() << v;
+        QStringList tmpQStringList;
+        if ((v.find("datasetName")!=std::string::npos) && (v.find("retrievable")!=std::string::npos) && (v.find("retrieveStatusMessage")!=std::string::npos)){
+            ui->tableWidgetRetriever->insertRow(0);
+            QTableWidgetItem *tmpItemDataset = new QTableWidgetItem(QString::fromStdString(utils::extractFromJson(v, "datasetName")));
+            ui->tableWidgetRetriever->setItem(0,0,tmpItemDataset);
+            QTableWidgetItem *tmpItemRetrievable = new QTableWidgetItem(QString::fromStdString(utils::extractFromJson(v, "retrievable")));
+            ui->tableWidgetRetriever->setItem(0,1,tmpItemRetrievable);
+            QTableWidgetItem *tmpItemStatus = new QTableWidgetItem(QString::fromStdString(utils::extractFromJson(v, "retrieveStatusMessage")));
+            ui->tableWidgetRetriever->setItem(0,2,tmpItemStatus);
+        }
+        if (tmpQStringList.size()==3)
+            datasetContainer.push_back(tmpQStringList);
+    }
+
+
+//    // open DatasetBrowser
+//    DatasetBrowser* db = new DatasetBrowser(datasetContainer, this);
+//    db->connectToUi(this);
+//    db->exec();
+//    delete db;
+
+}
+
+
+
 void Dialog::quit(){
     close();
 }
@@ -677,7 +719,6 @@ fileBrowser::fileBrowser(QWidget *parent) :
     uiFileBrowser->columnView->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
     connect(uiFileBrowser->pushButtonFileBrowser, SIGNAL (clicked()), this, SLOT (selectButton()));
-    connect(uiFileBrowser->toolButtonUp, SIGNAL (clicked()), this, SLOT (setParentDirActive()));
     uiFileBrowser->columnView->selectionModel()->clearSelection();
 }
 
@@ -785,6 +826,7 @@ void Login::getLoginData(){
     QString uname = uiLogin->lineEditUsername->text();
     QString pword = uiLogin->lineEditPassword->text();
     std::string token;
+    baseUi->toggleNavigationBar(1);
     auto tmp = utils::system_call("curl -s -X POST --header 'Content-Type: application/json'  -d '{\"username\":\"" + uiLogin->lineEditUsername->text().toStdString() + "\",\"password\":\"" + uiLogin->lineEditPassword->text().toStdString() + "\"}' 'https://dacat.psi.ch/auth/msad'");
     if ((tmp.compare("\"authentication error\"")==0) || (tmp.find("error") != std::string::npos)){
         QMessageBox::information(this, tr("Authentication error"), tr("Please check your username and password") );
@@ -801,10 +843,19 @@ void Login::getLoginData(){
         }
         if (accessGranted){
             close();
+            baseUi->toggleNavigationBar(1);
             baseUi->token = token;
             baseUi->getAvailPgroups();
             baseUi->show();
-            baseUi->labelSlider->setGeometry(QRect(0,47,5,70));
+            qDebug() << (baseUi->navigationAnimationGroup->state()==QAbstractAnimation::Running);
+//            while (baseUi->navigationAnimationGroup->state()==QAbstractAnimation::Running){
+//                sleep(1);
+//            }
+//            baseUi->toggleNavigationBar(1);
+
+
+
+//            baseUi->labelSlider->setGeometry(QRect(0,47,5,70));
             qDebug() << token;
         }
 
@@ -843,9 +894,9 @@ void DatasetBrowser::selectButton(){
         for (int colIndx=0; colIndx<datasets_m->columnCount(); colIndx++) {
             QTableWidgetItem *tmpItem = new QTableWidgetItem(datasets_m->data(indexList[ii].siblingAtColumn(colIndx),0).toString());
             baseUi->ui->tableWidget->setItem(0,colIndx,tmpItem);
-            baseUi->ui->clearAllButtonDatasets->setEnabled(true);
-            baseUi->ui->clearButtonDatasets->setEnabled(true);
         }
+        baseUi->ui->clearAllButtonDatasets->setEnabled(true);
+        baseUi->ui->clearButtonDatasets->setEnabled(true);
 
     }
     close();
