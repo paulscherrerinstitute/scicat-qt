@@ -1,5 +1,15 @@
 <RCC>
     <qresource prefix="/images">
         <file>ajax-loader.gif</file>
+        <file>scicat-logo-white.png</file>
+        <file>login-not-active.svg</file>
+        <file>login.svg</file>
+        <file>login-active.svg</file>
+        <file>archive-active.svg</file>
+        <file>archive-not-active.svg</file>
+        <file>archive.svg</file>
+        <file>retrieve-active.svg</file>
+        <file>retrieve-not-active.svg</file>
+        <file>retrieve.svg</file>
     </qresource>
 </RCC>

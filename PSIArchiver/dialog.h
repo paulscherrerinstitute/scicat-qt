@@ -21,6 +21,8 @@
 #include <QJsonArray>
 #include <QLabel>
 #include <QSequentialAnimationGroup>
+#include <QBitmap>
+#include <QDateTime>
 
 
 #include "archiverutils.h"
@@ -101,14 +103,12 @@ public:
     metadataContainer_t metadataContainer;
     std::vector<QString> filelistingContainer;
     QLabel *labelSlider;
-    bool archiveCollapsed = false;
-    QPropertyAnimation *animationNavigationButtons;
-    QPropertyAnimation *animationCover;
-    QSequentialAnimationGroup *navigationAnimationGroup;
-    void toggleNavigationBar(int duration);
+    void toggleNavigationBar(int section);
     defaultSettings_t defaultSettings;
     void updateRetrieveList();
     QStringList retrieveContainer;
+    int secID=-1;
+    void updateNavigationIcons(int targetID);
 
 
 private slots:
@@ -125,7 +125,6 @@ private slots:
     void goToSubmit();
     void openDatasetBrowser();
     void comboBoxDatatypeChanged(int val);
-    void updateMetadataBrowser();
     void appendMetadataEntry();
     void removeMetadataEntry();
     void piChanged();
@@ -189,8 +188,6 @@ public:
     ~fileBrowser();
     void connectToUi(Ui::Dialog *ui);
     bool removeDuplicates = true;
-//    static void updateFileCount(Ui::Dialog *baseUi);
-//    static int countFilelistingEntries(QString path);
 
 private slots:
     void getCurrentEntry();

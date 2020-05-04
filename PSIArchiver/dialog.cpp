@@ -12,31 +12,38 @@ Dialog::Dialog(QWidget *parent)
     , ui(new Ui::Dialog)
 {
 
+    QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+
     ui->setupUi(this);
     int indx;
     indx = ui->stackedWidget->indexOf(ui->stackedWidget->currentWidget());
 
+    QPixmap pixmap(":/images/scicat-logo-white.png");
+    pixmap = pixmap.scaledToHeight(60);
+    ui->labelLogo->setPixmap(pixmap);
+    ui->labelLogo->setMask(pixmap.mask());
 
-    navigationAnimationGroup = new QSequentialAnimationGroup;
-    animationNavigationButtons = new QPropertyAnimation(ui->frameRetrieve, "geometry");
-    animationCover = new QPropertyAnimation(ui->frameRetrieveButtons, "geometry");
+//    navigationAnimationGroup = new QSequentialAnimationGroup;
+//    animationNavigationButtons = new QPropertyAnimation(ui->frameRetrieve, "geometry");
+//    animationCover = new QPropertyAnimation(ui->frameRetrieveButtons, "geometry");
 
-    animationNavigationButtons->setDuration(800);
-    auto startRect = ui->frameRetrieve->geometry();
-    animationNavigationButtons->setStartValue(QRect(startRect.left(),300,startRect.width(),startRect.height()));
+//    animationNavigationButtons->setDuration(800);
+//    auto startRect = ui->frameRetrieve->geometry();
+//    animationNavigationButtons->setStartValue(QRect(startRect.left(),300,startRect.width(),startRect.height()));
 
-    animationCover->setDuration(800);
-//    auto retrieveCoverLoc = ui->frameRetrieveButtons->geometry();
-    auto retrieveButtonLoc = ui->pushButtonGoToRetrieve->geometry();
-    animationCover->setStartValue(QRect(retrieveButtonLoc.left(),retrieveButtonLoc.bottom(),retrieveButtonLoc.width(),0));
-    animationNavigationButtons->setEndValue(QRect(startRect.left(),29,startRect.width(),startRect.height()));
-    animationNavigationButtons->setEasingCurve(QEasingCurve::OutExpo);
+//    animationCover->setDuration(800);
+////    auto retrieveCoverLoc = ui->frameRetrieveButtons->geometry();
+//    auto retrieveButtonLoc = ui->pushButtonGoToRetrieve->geometry();
+//    animationCover->setStartValue(QRect(retrieveButtonLoc.left(),retrieveButtonLoc.bottom(),retrieveButtonLoc.width(),0));
+//    animationNavigationButtons->setEndValue(QRect(startRect.left(),29,startRect.width(),startRect.height()));
+//    animationNavigationButtons->setEasingCurve(QEasingCurve::OutExpo);
 
-    animationCover->setEndValue(QRect(retrieveButtonLoc.left(), retrieveButtonLoc.bottom(), retrieveButtonLoc.width(), 140));
-    animationCover->setEasingCurve(QEasingCurve::OutExpo);
+//    animationCover->setEndValue(QRect(retrieveButtonLoc.left(), retrieveButtonLoc.bottom(), retrieveButtonLoc.width(), 140));
+//    animationCover->setEasingCurve(QEasingCurve::OutExpo);
 
-    navigationAnimationGroup->addAnimation(animationNavigationButtons);
-    navigationAnimationGroup->addAnimation(animationCover);
+//    navigationAnimationGroup->addAnimation(animationNavigationButtons);
+//    navigationAnimationGroup->addAnimation(animationCover);
+
 
 
     // update number of slides/pages
@@ -59,7 +66,6 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonNavigationSubmit, SIGNAL (clicked()), this, SLOT (goToSubmit()));
     connect(ui->pushButtonAddDatasets, SIGNAL (clicked()), this, SLOT (openDatasetBrowser()));
     connect(ui->comboBoxDatatype, SIGNAL (currentIndexChanged(int)), this, SLOT (comboBoxDatatypeChanged(int)));
-    connect(ui->metadataGuided, SIGNAL (currentChanged(int)), this, SLOT (updateMetadataBrowser()));
     connect(ui->toolButtonPlus, SIGNAL(clicked()), this, SLOT(appendMetadataEntry()));
     connect(ui->toolButtonMinus, SIGNAL(clicked()), this, SLOT(removeMetadataEntry()));
     connect(ui->lineEditPgroup, SIGNAL(editingFinished()), this, SLOT(piChanged()));
@@ -89,8 +95,6 @@ Dialog::Dialog(QWidget *parent)
     ui->lineEditPILastname->setEnabled(false);
     ui->lineEditProposalID_2->setEnabled(false);
 
-    // metadata page
-    ui->dateTimeEdit->setDateTime(QDateTime::currentDateTime());
 
     // navigation buttons
     navigationButtons.push_back(ui->pushButtonNavigationPgroup);
@@ -130,7 +134,9 @@ Dialog::Dialog(QWidget *parent)
     if (!movie->isValid())
         return;
 
-
+//    ui->pushButtonNavigationPgroup->setIcon(QIcon(":/images/login.svg"));
+//    ui->pushButtonNavigationPgroup->setIconSize(QSize(70,70));
+//    ui->pushButtonGoToArchive->setIcon(QIcon(":/images/login.svg"));
     ui->tableWidgetRetriever->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidgetRetriever->insertColumn(0);
     ui->tableWidgetRetriever->insertColumn(1);
@@ -153,29 +159,58 @@ void Dialog::sendWarning(QString warningMsg){
     QTimer::singleShot(5000, ui->warningLabel, &QLabel::hide);
 }
 
-void Dialog::toggleNavigationBar(int duration){
+void Dialog::toggleNavigationBar(int section){
+    if (secID==section){
+        // already there; just toggle the navigation buttons
+        ui->stackedWidgetNavigationButtons->setVisible(!(ui->stackedWidgetNavigationButtons->isVisible()));
+    } else {
+        ui->stackedWidgetNavigationButtons->setCurrentIndex(section);
+        secID=section;
+    }
+}
 
+void Dialog::updateNavigationIcons(int targetID){
+    if (secID!=targetID){
+        switch (secID) {
+        case 0:
 
-    navigationAnimationGroup->setDirection((QAbstractAnimation::Direction)archiveCollapsed);
-    animationNavigationButtons->setDuration(duration);
-    animationCover->setDuration(duration);
-    navigationAnimationGroup->start();
-    archiveCollapsed = !archiveCollapsed;
+            ui->pushButtonNavigationPgroup->setIcon(QIcon(":/images/login-not-active.svg"));
+            ui->pushButtonNavigationPgroup->setIconSize(QSize(50,50));
 
+        case 1:
+            ui->pushButtonGoToArchive->setIcon(QIcon(":/images/archive-not-active.svg"));
+        case 2:
+            ui->pushButtonGoToRetrieve->setIcon(QIcon(":/images/retrieve-not-active.svg"));
+
+        }
+        switch (targetID) {
+        case 0:
+            ui->pushButtonNavigationPgroup->setIcon(QIcon(":/images/login-active.svg"));
+        case 1:
+            ui->pushButtonGoToArchive->setIcon(QIcon(":/images/archive-active.svg"));
+        case 2:
+            ui->pushButtonGoToRetrieve->setIcon(QIcon(":/images/retrieve-active.svg"));
+
+        }
+
+    }
 }
 
 void Dialog::goToArchive(){
-    if (archiveCollapsed){
-        toggleNavigationBar(800);
+    if (secID!=1){
+        updateNavigationIcons(1);
+    }
+    toggleNavigationBar(1);
+    if ((ui->stackedWidget->currentIndex()>4) || (ui->stackedWidget->currentIndex()==0)){
+        ui->stackedWidget->setCurrentIndex(1);
     }
 }
 
 void Dialog::goToRetrieve(){
-    if (!archiveCollapsed){
-        toggleNavigationBar(800);
-        updateRetrieveList();
-        ui->stackedWidget->setCurrentIndex(5);
-    }
+    toggleNavigationBar(2);
+    updateRetrieveList();
+    ui->stackedWidget->setCurrentIndex(5);
+
 }
 
 void Dialog::keyPressEvent(QKeyEvent *event){
@@ -239,6 +274,7 @@ void Dialog::updateNavigationButton(){
 
 void Dialog::goToPgroup(){
     goToPage(0);
+    toggleNavigationBar(0);
 }
 
 void Dialog::goToFiles(){
@@ -596,24 +632,18 @@ void Dialog::comboBoxDatatypeChanged(int val){
         ui->metadataGuided->setTabEnabled(1,!(bool)val);
 }
 
-void Dialog::updateMetadataBrowser(){
-//    updateMetadataEntry("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), 0);
-//    updateMetadataEntry("type", ui->comboBoxDatatype->currentText(), 0);
-//    updateMetadataEntry("ownerGroup", QString::fromStdString(metadataContainer.ownerGroup), 0);
-//    updateMetadataEntry("owner", QString::fromStdString(metadataContainer.owner), 0);
-//    updateMetadataEntry("ownerEmail", QString::fromStdString(metadataContainer.ownerEmail), 0);
-//    updateMetadataEntry("datasetName", metadataContainer.datasetName, 0);
-
-}
-
 void Dialog::appendMetadataEntry(){
     // check if item supports children
-    if (ui->treeWidget->currentItem()->flags().testFlag(Qt::ItemIsDropEnabled)){
-        ui->treeWidget->currentItem()->setData(1,0,"");
-        addEntryMetadataTreeView("name", "value", ui->treeWidget->currentItem(), true, 4);
+    if (ui->treeWidget->selectedItems().size()>0){
+        if (ui->treeWidget->currentItem()->flags().testFlag(Qt::ItemIsDropEnabled)){
+            ui->treeWidget->currentItem()->setData(1,0,"");
+            addEntryMetadataTreeView("name", "value", ui->treeWidget->currentItem(), true, 4);
 
+        } else {
+            sendWarning("Cannot append child entry to protected field.");
+        }
     } else {
-        sendWarning("Cannot append child entry to protected field.");
+        addEntryMetadataTreeView("name", "value", "scientificMetadata", true, 4);
     }
 }
 
@@ -673,16 +703,7 @@ void Dialog::updateRetrieveList(){
             QTableWidgetItem *tmpItemStatus = new QTableWidgetItem(QString::fromStdString(utils::extractFromJson(v, "retrieveStatusMessage")));
             ui->tableWidgetRetriever->setItem(0,2,tmpItemStatus);
         }
-        if (tmpQStringList.size()==3)
-            datasetContainer.push_back(tmpQStringList);
     }
-
-
-//    // open DatasetBrowser
-//    DatasetBrowser* db = new DatasetBrowser(datasetContainer, this);
-//    db->connectToUi(this);
-//    db->exec();
-//    delete db;
 
 }
 
@@ -697,8 +718,6 @@ Dialog::~Dialog()
 {
     delete datasets_m;
     delete ui;
-    delete animationNavigationButtons;
-    delete animationCover;
 }
 
 
@@ -826,7 +845,6 @@ void Login::getLoginData(){
     QString uname = uiLogin->lineEditUsername->text();
     QString pword = uiLogin->lineEditPassword->text();
     std::string token;
-    baseUi->toggleNavigationBar(1);
     auto tmp = utils::system_call("curl -s -X POST --header 'Content-Type: application/json'  -d '{\"username\":\"" + uiLogin->lineEditUsername->text().toStdString() + "\",\"password\":\"" + uiLogin->lineEditPassword->text().toStdString() + "\"}' 'https://dacat.psi.ch/auth/msad'");
     if ((tmp.compare("\"authentication error\"")==0) || (tmp.find("error") != std::string::npos)){
         QMessageBox::information(this, tr("Authentication error"), tr("Please check your username and password") );
@@ -843,19 +861,9 @@ void Login::getLoginData(){
         }
         if (accessGranted){
             close();
-            baseUi->toggleNavigationBar(1);
             baseUi->token = token;
             baseUi->getAvailPgroups();
             baseUi->show();
-            qDebug() << (baseUi->navigationAnimationGroup->state()==QAbstractAnimation::Running);
-//            while (baseUi->navigationAnimationGroup->state()==QAbstractAnimation::Running){
-//                sleep(1);
-//            }
-//            baseUi->toggleNavigationBar(1);
-
-
-
-//            baseUi->labelSlider->setGeometry(QRect(0,47,5,70));
             qDebug() << token;
         }
 
@@ -957,7 +965,6 @@ void Ingestor::prepareIngestion(){
         metadata["owner"] = QString::fromStdString(baseUi->metadataContainer.owner);
         metadata["type"] = "raw";
         metadata["ownerGroup"] = QString::fromStdString(baseUi->metadataContainer.ownerGroup);
-        metadata["creationTime"] = baseUi->ui->dateTimeEdit->dateTime().toString(Qt::ISODate);
         metadata["investigator"] = baseUi->metadataContainer.investigator;
         auto dsmodel = baseUi->ui->tableWidget->model();
         QStringList inputDatasetsList;
