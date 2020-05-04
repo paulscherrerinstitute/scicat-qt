@@ -23,6 +23,7 @@
 #include <QSequentialAnimationGroup>
 #include <QBitmap>
 #include <QDateTime>
+#include <QPushButton>
 
 
 #include "archiverutils.h"
@@ -47,6 +48,20 @@ struct styleSheets_t {
 
 struct defaultSettings_t {
     bool investigatorIsPI = false;
+};
+
+struct inputDatasets_t {
+    bool inputDatasetTabIsVisible = true;
+    QWidget *tab = nullptr;
+//    QIndex tabindex;
+    QString tabLabel;
+};
+
+struct retrieveContainer_t {
+    QString pid;
+    QString name;
+    QString retrieved = "false";
+    QString retrievable;
 };
 
 struct metadataContainer_t {
@@ -82,6 +97,23 @@ struct ingestionIO_t {
     bool deleteLog = false;
 };
 
+class ButtonHoverWatcher : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ButtonHoverWatcher(QObject * parent = Q_NULLPTR);
+    virtual bool eventFilter(QObject * watched, QEvent * event) Q_DECL_OVERRIDE;
+    void setIcons(std::vector<std::string> icons);
+    void setButtonIsActive(bool val);
+private:
+    std::vector<QIcon> iconsVector;
+    bool buttonIsActive=false;
+signals:
+    void buttonIsActiveStatus(int value);
+
+};
+
+
 class Dialog : public QDialog
 {
     Q_OBJECT
@@ -106,9 +138,13 @@ public:
     void toggleNavigationBar(int section);
     defaultSettings_t defaultSettings;
     void updateRetrieveList();
-    QStringList retrieveContainer;
     int secID=-1;
     void updateNavigationIcons(int targetID);
+    ButtonHoverWatcher *pgroupWatcher = new ButtonHoverWatcher;
+    ButtonHoverWatcher *archiveWatcher = new ButtonHoverWatcher;
+    ButtonHoverWatcher *retrieveWatcher = new ButtonHoverWatcher;
+    void json2TreeModel(QTreeWidgetItem *item, QJsonObject &inObj);
+
 
 
 private slots:
@@ -136,6 +172,8 @@ private slots:
     void usedSoftwareChanged();
     void goToArchive();
     void goToRetrieve();
+    void exportMetadata();
+    void importMetadata();
 
 
 private:
@@ -168,6 +206,10 @@ private:
     QCompleter *pgroupCompleter;
     std::string savePath = "~/scicat/log/";
     void updateItemFlag(QTreeWidgetItem *item, int flag);
+    std::vector<std::string> loginIcons;
+    std::vector<std::string> archiveIcons;
+    std::vector<std::string> retrieveIcons;
+    inputDatasets_t inputDatasetsContainer;
 
     
 
@@ -264,10 +306,8 @@ private:
 
 QString extractSourceFolder(std::vector<QString> container);
 QJsonObject treeModel2Json(QTreeWidgetItem *item);
+
 #endif // DIALOG_H
-
-
-
 
 
 

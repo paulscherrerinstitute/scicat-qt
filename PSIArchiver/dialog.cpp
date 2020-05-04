@@ -15,35 +15,11 @@ Dialog::Dialog(QWidget *parent)
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     ui->setupUi(this);
-    int indx;
-    indx = ui->stackedWidget->indexOf(ui->stackedWidget->currentWidget());
 
     QPixmap pixmap(":/images/scicat-logo-white.png");
-    pixmap = pixmap.scaledToHeight(60);
+    pixmap = pixmap.scaledToHeight(50);
     ui->labelLogo->setPixmap(pixmap);
     ui->labelLogo->setMask(pixmap.mask());
-
-//    navigationAnimationGroup = new QSequentialAnimationGroup;
-//    animationNavigationButtons = new QPropertyAnimation(ui->frameRetrieve, "geometry");
-//    animationCover = new QPropertyAnimation(ui->frameRetrieveButtons, "geometry");
-
-//    animationNavigationButtons->setDuration(800);
-//    auto startRect = ui->frameRetrieve->geometry();
-//    animationNavigationButtons->setStartValue(QRect(startRect.left(),300,startRect.width(),startRect.height()));
-
-//    animationCover->setDuration(800);
-////    auto retrieveCoverLoc = ui->frameRetrieveButtons->geometry();
-//    auto retrieveButtonLoc = ui->pushButtonGoToRetrieve->geometry();
-//    animationCover->setStartValue(QRect(retrieveButtonLoc.left(),retrieveButtonLoc.bottom(),retrieveButtonLoc.width(),0));
-//    animationNavigationButtons->setEndValue(QRect(startRect.left(),29,startRect.width(),startRect.height()));
-//    animationNavigationButtons->setEasingCurve(QEasingCurve::OutExpo);
-
-//    animationCover->setEndValue(QRect(retrieveButtonLoc.left(), retrieveButtonLoc.bottom(), retrieveButtonLoc.width(), 140));
-//    animationCover->setEasingCurve(QEasingCurve::OutExpo);
-
-//    navigationAnimationGroup->addAnimation(animationNavigationButtons);
-//    navigationAnimationGroup->addAnimation(animationCover);
-
 
 
     // update number of slides/pages
@@ -51,6 +27,7 @@ Dialog::Dialog(QWidget *parent)
 
     ui->stackedWidget->setCurrentIndex(0);
     ui->metadataGuided->setCurrentIndex(0);
+    ui->stackedWidgetNavigationButtons->setCurrentIndex(0);
 
     // connect button signals to slots
     connect(ui->nextSlideButton, SIGNAL (clicked()), this, SLOT (nextSlide()));
@@ -76,7 +53,8 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->textEditUsedSoftware, SIGNAL(textChanged()), this, SLOT(usedSoftwareChanged()));
     connect(ui->pushButtonGoToArchive, SIGNAL(clicked()), this, SLOT(goToArchive()));
     connect(ui->pushButtonGoToRetrieve, SIGNAL(clicked()), this, SLOT(goToRetrieve()));
-//    connect(ui->lineEditOwner, SIGNAL (editingFinished()), this, SLOT(updateOwner()))
+    connect(ui->pushButtonExportMetadata, SIGNAL(clicked()), this, SLOT(exportMetadata()));
+    connect(ui->pushButtonImportMetadata, SIGNAL(clicked()), this, SLOT(importMetadata()));
 
     // warning label
     ui->warningLabel->setVisible(false);
@@ -126,25 +104,43 @@ Dialog::Dialog(QWidget *parent)
     addEntryMetadataTreeView("name", "", "sample", false, 1);
     addEntryMetadataTreeView("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), "sample", false, 1);
 
-//    labelSlider = new QLabel(this);
-//    labelSlider->setGeometry(QRect(0,ui->pushButtonNavigationPgroup->geometry().top()+79,5,ui->pushButtonNavigationPgroup->geometry().height()));
-//    labelSlider->setStyleSheet("QLabel{background-color: rgb(0, 153, 200)}");
-
     ui->pushButtonRestart->setVisible(false);
     if (!movie->isValid())
         return;
 
-//    ui->pushButtonNavigationPgroup->setIcon(QIcon(":/images/login.svg"));
-//    ui->pushButtonNavigationPgroup->setIconSize(QSize(70,70));
-//    ui->pushButtonGoToArchive->setIcon(QIcon(":/images/login.svg"));
+    ui->pushButtonNavigationPgroup->setIcon(QIcon(":/images/login.svg"));
+    ui->pushButtonNavigationPgroup->setIconSize(QSize(50,50));
+
+    loginIcons.push_back(":/images/login.svg");
+    loginIcons.push_back(":/images/login-active.svg");
+    loginIcons.push_back(":/images/login-not-active.svg");
+
+    archiveIcons.push_back(":/images/archive.svg");
+    archiveIcons.push_back(":/images/archive-active.svg");
+    archiveIcons.push_back(":/images/archive-not-active.svg");
+
+    retrieveIcons.push_back(":/images/retrieve.svg");
+    retrieveIcons.push_back(":/images/retrieve-active.svg");
+    retrieveIcons.push_back(":/images/retrieve-not-active.svg");
+
+    pgroupWatcher->setIcons(loginIcons);
+    archiveWatcher->setIcons(archiveIcons);
+    retrieveWatcher->setIcons(retrieveIcons);
+
+    ui->pushButtonNavigationPgroup->installEventFilter(pgroupWatcher);
+    ui->pushButtonGoToArchive->installEventFilter(archiveWatcher);
+    ui->pushButtonGoToRetrieve->installEventFilter(retrieveWatcher);
+
+
+
     ui->tableWidgetRetriever->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidgetRetriever->insertColumn(0);
     ui->tableWidgetRetriever->insertColumn(1);
     ui->tableWidgetRetriever->insertColumn(2);
     ui->tableWidgetRetriever->setColumnWidth(0, 200);
-    ui->tableWidgetRetriever->setColumnWidth(1, 200);
-    ui->tableWidgetRetriever->setColumnWidth(2, 200);
-    ui->tableWidgetRetriever->setHorizontalHeaderLabels(QStringList({"Name", "Retrievable", "Status"}));
+    ui->tableWidgetRetriever->setColumnWidth(1, 100);
+    ui->tableWidgetRetriever->setColumnWidth(2, 100);
+    ui->tableWidgetRetriever->setHorizontalHeaderLabels(QStringList({"Name", "Retrievable", "Retrieved"}));
 
 
     styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
@@ -171,25 +167,51 @@ void Dialog::toggleNavigationBar(int section){
 
 void Dialog::updateNavigationIcons(int targetID){
     if (secID!=targetID){
-        switch (secID) {
-        case 0:
 
+        switch (secID) {
+        case 0:{
             ui->pushButtonNavigationPgroup->setIcon(QIcon(":/images/login-not-active.svg"));
             ui->pushButtonNavigationPgroup->setIconSize(QSize(50,50));
+            pgroupWatcher->setButtonIsActive(false);
+            break;
+        }
 
-        case 1:
+        case 1: {
             ui->pushButtonGoToArchive->setIcon(QIcon(":/images/archive-not-active.svg"));
-        case 2:
+            ui->pushButtonGoToArchive->setIconSize(QSize(50,50));
+            archiveWatcher->setButtonIsActive(false);
+            break;
+        }
+
+        case 2:{
             ui->pushButtonGoToRetrieve->setIcon(QIcon(":/images/retrieve-not-active.svg"));
+            ui->pushButtonGoToRetrieve->setIconSize(QSize(50,50));
+            retrieveWatcher->setButtonIsActive(false);
+            break;
+        }
 
         }
         switch (targetID) {
-        case 0:
+        case 0:{
             ui->pushButtonNavigationPgroup->setIcon(QIcon(":/images/login-active.svg"));
-        case 1:
+            ui->pushButtonNavigationPgroup->setIconSize(QSize(50,50));
+            pgroupWatcher->setButtonIsActive(true);
+            break;
+        }
+        case 1: {
             ui->pushButtonGoToArchive->setIcon(QIcon(":/images/archive-active.svg"));
-        case 2:
+            ui->pushButtonGoToArchive->setIconSize(QSize(50,50));
+            archiveWatcher->setButtonIsActive(true);
+            break;
+        }
+        case 2: {
             ui->pushButtonGoToRetrieve->setIcon(QIcon(":/images/retrieve-active.svg"));
+            ui->pushButtonGoToRetrieve->setIconSize(QSize(50,50));
+            retrieveWatcher->setButtonIsActive(true);
+            break;
+        }
+
+
 
         }
 
@@ -207,6 +229,9 @@ void Dialog::goToArchive(){
 }
 
 void Dialog::goToRetrieve(){
+    if (secID!=2){
+        updateNavigationIcons(2);
+    }
     toggleNavigationBar(2);
     updateRetrieveList();
     ui->stackedWidget->setCurrentIndex(5);
@@ -264,15 +289,13 @@ void Dialog::updateNavigationButton(){
             navigationButtons[ii]->setEnabled(false);
         }
     }
-//    QPropertyAnimation *animationSlider = new QPropertyAnimation(labelSlider, "geometry");
-//    animationSlider->setDuration(80);
-//    animationSlider->setStartValue(labelSlider->geometry());
-//    animationSlider->setEndValue(QRect(0,ui->pushButtonNavigationPgroup->geometry().top()+79+slideIndex*70,5,ui->pushButtonNavigationPgroup->geometry().height()));
-//    animationSlider->start();
 
 }
 
 void Dialog::goToPgroup(){
+    if (secID!=0){
+        updateNavigationIcons(0);
+    }
     goToPage(0);
     toggleNavigationBar(0);
 }
@@ -626,10 +649,85 @@ void Dialog::addEntryMetadataTreeView(QString name, QString description){
     addEntryMetadataTreeView(name, description, nullptr, false, 0);
 }
 
+void Dialog::exportMetadata(){
+    auto fileName = QFileDialog::getSaveFileName(this,tr("Export scientific metadata"), QDir(QDir::homePath()).filePath(QString::fromStdString(metadataContainer.pgroup + "_scientificMetadata.json")), tr("json files (*.json)"));
+    auto res = ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
+    QJsonArray scMetadata;
+    for (int ii=0; ii<res.size(); ii++){
+        qDebug() << res[ii]->childCount();
+        scMetadata.push_back(treeModel2Json(res[ii]));
+    }
+    QJsonObject metadata;
+    metadata["scientificMetadata"] = scMetadata;
+    QJsonDocument saveDoc(metadata);
+    QFile metadataFile(fileName);
+    if (!metadataFile.open(QIODevice::WriteOnly)) {
+        sendWarning("Could not export metadata file.");
+        return;
+    }
+    metadataFile.write(saveDoc.toJson());
+    metadataFile.close();
+
+}
+
+void Dialog::json2TreeModel(QTreeWidgetItem *item, QJsonObject &inObj){
+    for (auto v:inObj){
+        qDebug() << v.isArray();
+        qDebug() << v;
+        if (v.isArray()){
+            for (int ii=0; ii<v.toArray().size(); ii++){
+                qDebug() << v.toArray()[ii].isObject();
+                auto entries = v.toArray()[ii];
+                if (entries.isObject()){
+                    if (entries.toObject().size()==1){
+                        addEntryMetadataTreeView(entries.toObject().keys()[0],entries.toObject().value(entries.toObject().keys()[0]).toString(),item, false, 4);
+                    } else {
+//                        json2TreeModel()
+                    }
+                } else {
+                    qDebug() << entries;
+//                    json2TreeModel(item, entries.toObject());
+                }
+
+            }
+
+        }
+        v.toArray().size();
+    }
+}
+
+void Dialog::importMetadata(){
+
+    auto fileName = QFileDialog::getOpenFileName(this,tr("Import scientific metadata"), QDir::homePath(), tr("json files (*.json)"));
+    QFile importFile(fileName);
+    if (!importFile.open(QIODevice::ReadOnly | QIODevice::Text)){
+        sendWarning("Could not open metadata file.");
+        return;
+    }
+    QString val = importFile.readAll();
+    importFile.close();
+
+
+    QJsonDocument importJsonFile = QJsonDocument::fromJson(val.toUtf8());
+    auto jsonObj = importJsonFile.object();
+    ui->treeWidget->clear();
+    json2TreeModel(nullptr, jsonObj);
+}
+
 void Dialog::comboBoxDatatypeChanged(int val){
         ui->lineEditInvestigator->setEnabled(!(bool)val);
         ui->textEditUsedSoftware->setEnabled(!(bool)val);
-        ui->metadataGuided->setTabEnabled(1,!(bool)val);
+
+        // hide input datasets tab if not needed:
+        // store tab widget in container and remove it
+        if ((bool)val){
+            inputDatasetsContainer.tab = ui->metadataGuided->widget(1);
+            inputDatasetsContainer.tabLabel = ui->metadataGuided->tabText(1);
+            ui->metadataGuided->removeTab(1);
+        } else {
+            ui->metadataGuided->insertTab(1,inputDatasetsContainer.tab, inputDatasetsContainer.tabLabel);
+        }
+
 }
 
 void Dialog::appendMetadataEntry(){
@@ -687,23 +785,48 @@ void Dialog::updateMetadataEntry(QString name, QString targetValue, int flag){
 }
 
 void Dialog::updateRetrieveList(){
-    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%22" + metadataContainer.pgroup + "%22%7D%2C%20%22fields%22%3A%7B%22datasetlifecycle%22%3A%22true%22%2C%20%22datasetName%22%3A%20%22true%22%7D%7D&access_token=" + token + "'");
-    auto delim = '}';
-    retrieveContainer.clear();
-    std::vector<std::string> tmpVec = utils::split(tmp, delim);
-    for (auto v : tmpVec) {
-        qDebug() << v;
-        QStringList tmpQStringList;
-        if ((v.find("datasetName")!=std::string::npos) && (v.find("retrievable")!=std::string::npos) && (v.find("retrieveStatusMessage")!=std::string::npos)){
-            ui->tableWidgetRetriever->insertRow(0);
-            QTableWidgetItem *tmpItemDataset = new QTableWidgetItem(QString::fromStdString(utils::extractFromJson(v, "datasetName")));
-            ui->tableWidgetRetriever->setItem(0,0,tmpItemDataset);
-            QTableWidgetItem *tmpItemRetrievable = new QTableWidgetItem(QString::fromStdString(utils::extractFromJson(v, "retrievable")));
-            ui->tableWidgetRetriever->setItem(0,1,tmpItemRetrievable);
-            QTableWidgetItem *tmpItemStatus = new QTableWidgetItem(QString::fromStdString(utils::extractFromJson(v, "retrieveStatusMessage")));
-            ui->tableWidgetRetriever->setItem(0,2,tmpItemStatus);
+    auto currentDatasets = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.ownerGroup + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + token + "'");
+    auto successfulJobs = utils::system_call("curl -s -X GET --header 'Accept: application/json' 'https://dacat.psi.ch/api/v3/Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22Klaus.Wakonig%40psi.ch%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'");
+
+    // get all 'finishedSuccessful' jobs
+    // sadly, there seems to be no option to filter the jobs by pgroup, so we have to query all and select the ones from the current account
+    QJsonDocument successfulJobsJson = QJsonDocument::fromJson(QString::fromStdString(successfulJobs).toUtf8());
+    std::vector<QString>finishedSuccessfulPIDs;
+    for (auto v:successfulJobsJson.array()){
+        if (v.toObject().find("jobStatusMessage").value().toString().compare("finishedSuccessful")==0){
+            auto datasetListArray = v.toObject().take("datasetList").toArray();
+            for (int ii=0; ii<datasetListArray.size(); ii++) {
+                finishedSuccessfulPIDs.push_back(datasetListArray.at(ii).toObject().find("pid").value().toString());
+            }
         }
     }
+
+    QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(QString::fromStdString(currentDatasets).toUtf8());
+    std::vector<retrieveContainer_t> retrieveContainer;
+    for (auto v : currentDatasetsJson.array()){
+        retrieveContainer_t tmp;
+        tmp.pid = v.toObject().find("pid").value().toString();
+        tmp.name = v.toObject().find("datasetName").value().toString();
+        bool retrievableBool = v.toObject().find("datasetlifecycle").value().toObject().find("retrievable").value().toBool();
+        retrievableBool ? tmp.retrievable="true" : tmp.retrievable="false";
+        if (std::find(finishedSuccessfulPIDs.begin(), finishedSuccessfulPIDs.end(), tmp.pid) != finishedSuccessfulPIDs.end()) {
+          tmp.retrieved = "true";
+        }
+        retrieveContainer.push_back(tmp);
+    }
+
+
+    for (auto v : retrieveContainer) {
+        ui->tableWidgetRetriever->insertRow(0);
+        QTableWidgetItem *tmpItemDataset = new QTableWidgetItem(v.name);
+        ui->tableWidgetRetriever->setItem(0,0,tmpItemDataset);
+        QTableWidgetItem *tmpItemRetrievable = new QTableWidgetItem(v.retrievable);
+        ui->tableWidgetRetriever->setItem(0,1,tmpItemRetrievable);
+        QTableWidgetItem *tmpItemStatus = new QTableWidgetItem(v.retrieved);
+        ui->tableWidgetRetriever->setItem(0,2,tmpItemStatus);
+    }
+
+
 
 }
 
@@ -963,7 +1086,7 @@ void Ingestor::prepareIngestion(){
         qDebug() << "Preparing metadata file for derived data";
         metadata["sourceFolder"] = extractSourceFolder(baseUi->filelistingContainer);
         metadata["owner"] = QString::fromStdString(baseUi->metadataContainer.owner);
-        metadata["type"] = "raw";
+        metadata["type"] = "derived";
         metadata["ownerGroup"] = QString::fromStdString(baseUi->metadataContainer.ownerGroup);
         metadata["investigator"] = baseUi->metadataContainer.investigator;
         auto dsmodel = baseUi->ui->tableWidget->model();
@@ -1049,6 +1172,51 @@ QJsonObject treeModel2Json(QTreeWidgetItem *item){
     return retObj;
 }
 
+ButtonHoverWatcher::ButtonHoverWatcher(QObject * parent) :
+    QObject(parent)
+{}
 
+bool ButtonHoverWatcher::eventFilter(QObject * watched, QEvent * event)
+{
+    QPushButton * button = qobject_cast<QPushButton*>(watched);
+    if (!button) {
+        return false;
+    }
+
+    if (!buttonIsActive){
+        if (event->type() == QEvent::Enter) {
+            // The push button is hovered by mouse
+            button->setIcon(iconsVector[0]);
+            button->setIconSize(QSize(50,50));
+            return true;
+        }
+
+        if (event->type() == QEvent::Leave){
+            // The push button is not hovered by mouse
+            button->setIcon(iconsVector[2]);
+            button->setIconSize(QSize(50,50));
+            return true;
+        }
+
+    } else {
+        button->setIcon(iconsVector[1]);
+        button->setIconSize(QSize(50,50));
+    }
+
+
+    return false;
+}
+
+void ButtonHoverWatcher::setIcons(std::vector<std::string> icons){
+    iconsVector.clear();
+    for (uint ii=0; ii<icons.size(); ii++){
+        iconsVector.push_back(QIcon(icons[ii].c_str()));
+    }
+
+}
+
+void ButtonHoverWatcher::setButtonIsActive(bool val){
+    buttonIsActive = val;
+}
 
 
