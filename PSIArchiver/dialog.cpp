@@ -25,9 +25,15 @@ Dialog::Dialog(QWidget *parent)
     // update number of slides/pages
     numSlides = ui->stackedWidget->count();
 
+    //initialize UI
     ui->stackedWidget->setCurrentIndex(0);
     ui->metadataGuided->setCurrentIndex(0);
     ui->stackedWidgetNavigationButtons->setCurrentIndex(0);
+    ui->nextSlideButton->hide();
+    ui->pushButtonRetrieveData->hide();
+    ui->pushButtonArchiveData->hide();
+
+
 
     // connect button signals to slots
     connect(ui->nextSlideButton, SIGNAL (clicked()), this, SLOT (nextSlide()));
@@ -55,6 +61,8 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonGoToRetrieve, SIGNAL(clicked()), this, SLOT(goToRetrieve()));
     connect(ui->pushButtonExportMetadata, SIGNAL(clicked()), this, SLOT(exportMetadata()));
     connect(ui->pushButtonImportMetadata, SIGNAL(clicked()), this, SLOT(importMetadata()));
+    connect(ui->pushButtonArchiveData, SIGNAL(clicked()), this, SLOT(goToArchive()));
+    connect(ui->pushButtonRetrieveData, SIGNAL(clicked()), this, SLOT(goToRetrieve()));
 
     // warning label
     ui->warningLabel->setVisible(false);
@@ -226,6 +234,7 @@ void Dialog::goToArchive(){
     if ((ui->stackedWidget->currentIndex()>4) || (ui->stackedWidget->currentIndex()==0)){
         ui->stackedWidget->setCurrentIndex(1);
     }
+    ui->nextSlideButton->show();
 }
 
 void Dialog::goToRetrieve(){
@@ -235,6 +244,7 @@ void Dialog::goToRetrieve(){
     toggleNavigationBar(2);
     updateRetrieveList();
     ui->stackedWidget->setCurrentIndex(5);
+    ui->nextSlideButton->show();
 
 }
 
@@ -298,11 +308,14 @@ void Dialog::goToPgroup(){
     }
     goToPage(0);
     toggleNavigationBar(0);
+    ui->nextSlideButton->hide();
+
 }
 
 void Dialog::goToFiles(){
-    if (checkPIInfo())
+    if (checkPIInfo()){
         goToPage(1);
+    }
 }
 
 void Dialog::goToMetadata(){
@@ -447,7 +460,7 @@ void Dialog::resetContent(){
 void Dialog::restart(){
     resetContent();
 
-    goToPage(0); // go back to PI
+    goToPgroup(); // go back to PI
 }
 
 void Dialog::nextSlide(){
@@ -486,6 +499,7 @@ bool Dialog::checkPIInfo(){
     if (PIHasChanged){
         qDebug() << "checking PI";
         PIHasChanged = false;
+
         return checkPgroup();
     }
 
@@ -524,6 +538,10 @@ void Dialog::getPI(){
         ui->lineEditPIFirstname->setEnabled(true);
         ui->lineEditPILastname->setEnabled(true);
         ui->lineEditProposalID_2->setEnabled(true);
+
+        ui->pushButtonArchiveData->show();
+        ui->pushButtonRetrieveData->show();
+
     }
 }
 
