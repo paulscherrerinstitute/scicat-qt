@@ -293,6 +293,21 @@ QPushButton:!enabled{border-image:url(&quot;:/images/retrieve-not-active.svg&quo
           </property>
          </spacer>
         </item>
+        <item>
+         <widget class="QPushButton" name="pushButtonSettings">
+          <property name="styleSheet">
+           <string notr="true">QPushButton{border-image:url(&quot;:/images/settings-not-active.svg&quot;); background-repeat: no-repeat; width:50px; height:50px; padding:0px}
+QPushButton:hover{border-image:url(&quot;:/images/settings.svg&quot;); background-repeat: no-repeat; width:50px; height:50px}
+QPushButton:!enabled{border-image:url(&quot;:/images/settings-not-active.svg&quot;); background-repeat: no-repeat; width:50px; height:50px}
+
+
+</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -1147,7 +1162,7 @@ QListWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); borde
                        <property name="minimumSize">
                         <size>
                          <width>54</width>
-                         <height>28</height>
+                         <height>34</height>
                         </size>
                        </property>
                        <property name="styleSheet">
