@@ -24,7 +24,8 @@
 #include <QBitmap>
 #include <QDateTime>
 #include <QPushButton>
-
+#include <QSettings>
+#include <QCoreApplication>
 
 #include "archiverutils.h"
 #include "datasetmodel.h"
@@ -35,6 +36,7 @@ namespace Ui {
     class fileBrowser;
     class Login;
     class DatasetBrowser;
+    class Settings;
 }
 QT_END_NAMESPACE
 
@@ -48,6 +50,13 @@ struct styleSheets_t {
 
 struct defaultSettings_t {
     bool investigatorIsPI = false;
+    QString binaryPath = "datasetIngestor";
+    QString logPath = QDir::homePath() + "/.scicat/log/";
+    QString filenameFilelisting = "filelisting.txt";
+    QString filenameMetadata = "metadata.json";
+    bool deleteLog = false;
+    QString server = "https://dacat.psi.ch/api/v3/";
+
 };
 
 struct inputDatasets_t {
@@ -63,6 +72,13 @@ struct retrieveContainer_t {
     QString retrieved = "false";
     QString retrievable;
 };
+
+
+inline void updateSettingsContainer(QSettings &settingsContainer, const QString &key, const QVariant &value){
+    if (!settingsContainer.contains(key)){
+        settingsContainer.setValue(key, value);
+    }
+}
 
 inline QDebug operator<<(QDebug out, const retrieveContainer_t& container)
 {
@@ -93,14 +109,7 @@ struct metadataContainer_t {
     std::string ownerEmail;
     QString investigator;
     QString description;
-};
-
-struct ingestionIO_t {
-    QString binaryPath = "datasetIngestor";
-    QString logPath = QDir::homePath() + "/.scicat/log/";
-    QString filenameFilelisting = "filelisting.txt";
-    QString filenameMetadata = "metadata.json";
-    bool deleteLog = false;
+    QString userMail;
 };
 
 class ButtonHoverWatcher : public QObject
@@ -137,7 +146,6 @@ public:
     void sendWarning(QString warningMsg);
     QMovie *movie = new QMovie(":/images/ajax-loader.gif");
     void getAvailPgroups();
-    ingestionIO_t ingestionContainer;
     metadataContainer_t metadataContainer;
     std::vector<QString> filelistingContainer;
     QLabel *labelSlider;
@@ -150,6 +158,7 @@ public:
     ButtonHoverWatcher *archiveWatcher = new ButtonHoverWatcher;
     ButtonHoverWatcher *retrieveWatcher = new ButtonHoverWatcher;
     void json2TreeModel(QTreeWidgetItem *item, QJsonObject &inObj);
+
 
 
 
@@ -180,6 +189,8 @@ private slots:
     void goToRetrieve();
     void exportMetadata();
     void importMetadata();
+    void openSettings();
+
 
 
 private:
@@ -316,6 +327,24 @@ private:
     std::string command;
     Dialog *baseUi;
 };
+
+class Settings : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit Settings(QWidget *parent = nullptr);
+    ~Settings();
+    void connectToUi(Dialog *uiDialog);
+public slots:
+    void updateSettings();
+    void toggleAdvancedSettings(int val);
+
+private:
+    Ui::Settings *ui;
+    Dialog *baseUi;
+};
+
 
 QString extractSourceFolder(std::vector<QString> container);
 QJsonObject treeModel2Json(QTreeWidgetItem *item);

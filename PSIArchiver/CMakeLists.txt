@@ -57,6 +57,7 @@ else()
     datasetmodel.cpp
     datasetmodel.h
     datasetbrowser.ui
+    settings.ui
     ${RES_SOURCES}
   )
 endif()

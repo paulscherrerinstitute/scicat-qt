@@ -11,5 +11,7 @@
         <file>retrieve-active.svg</file>
         <file>retrieve-not-active.svg</file>
         <file>retrieve.svg</file>
+        <file>settings.svg</file>
+        <file>settings-not-active.svg</file>
     </qresource>
 </RCC>
