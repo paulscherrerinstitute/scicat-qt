@@ -64,6 +64,12 @@ struct retrieveContainer_t {
     QString retrievable;
 };
 
+inline QDebug operator<<(QDebug out, const retrieveContainer_t& container)
+{
+    out << container.pid << " " << container.name << " " << container.retrievable << " " << container.retrieved;
+    return out;
+}
+
 struct metadataContainer_t {
     std::string PIemail;
     std::string PIFirstname;
@@ -199,6 +205,8 @@ private:
     void startIngestion();
     void setButtonsEnabled(bool enabled);
     bool PIHasChanged = true;
+    bool PIIsValid = false;
+    bool pgroupIsValid = false;
     Ingestor *ingestor_m;
     void resetContent();
     void quit();
@@ -210,6 +218,11 @@ private:
     std::vector<std::string> archiveIcons;
     std::vector<std::string> retrieveIcons;
     inputDatasets_t inputDatasetsContainer;
+    int numPagesArchive = 3;
+    int numPagesRetrieve = 1;
+    int numPagesLogin = 1;
+    bool ingested = false;
+
 
     
 

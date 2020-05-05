@@ -71,7 +71,6 @@ Dialog::Dialog(QWidget *parent)
     nextSlideButtonFunctions.push_back(&Dialog::PINextSlide);
     nextSlideButtonFunctions.push_back(&Dialog::filelistingNextSlide);
     nextSlideButtonFunctions.push_back(&Dialog::metadataNextSlide);
-    nextSlideButtonFunctions.push_back(&Dialog::submitNextSlide);
     nextSlideButtonFunctions.push_back(&Dialog::quit);
 
 
@@ -112,7 +111,7 @@ Dialog::Dialog(QWidget *parent)
     addEntryMetadataTreeView("name", "", "sample", false, 1);
     addEntryMetadataTreeView("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), "sample", false, 1);
 
-    ui->pushButtonRestart->setVisible(false);
+    ui->waitingCircle->setText("Dummy");
     if (!movie->isValid())
         return;
 
@@ -227,25 +226,31 @@ void Dialog::updateNavigationIcons(int targetID){
 }
 
 void Dialog::goToArchive(){
-    if (secID!=1){
-        updateNavigationIcons(1);
+    if (checkPIInfo()){
+        if (secID!=1){
+            updateNavigationIcons(1);
+        }
+        toggleNavigationBar(1);
+        if ((ui->stackedWidget->currentIndex()>(numPagesArchive+numPagesLogin-1)) || (ui->stackedWidget->currentIndex()==0)){
+                ui->stackedWidget->setCurrentIndex(numPagesLogin);
+        }
+        ui->nextSlideButton->show();
     }
-    toggleNavigationBar(1);
-    if ((ui->stackedWidget->currentIndex()>4) || (ui->stackedWidget->currentIndex()==0)){
-        ui->stackedWidget->setCurrentIndex(1);
-    }
-    ui->nextSlideButton->show();
 }
 
 void Dialog::goToRetrieve(){
-    if (secID!=2){
-        updateNavigationIcons(2);
-    }
-    toggleNavigationBar(2);
-    updateRetrieveList();
-    ui->stackedWidget->setCurrentIndex(5);
-    ui->nextSlideButton->show();
+    if (checkPIInfo()){
+        if (secID!=2){
+            updateNavigationIcons(2);
+        }
+        toggleNavigationBar(2);
+        ui->stackedWidget->setCurrentIndex(numPagesLogin+numPagesArchive);
+        ui->nextSlideButton->show();
+        qApp->processEvents();
+        updateRetrieveList();
 
+
+    }
 }
 
 void Dialog::keyPressEvent(QKeyEvent *event){
@@ -314,19 +319,22 @@ void Dialog::goToPgroup(){
 
 void Dialog::goToFiles(){
     if (checkPIInfo()){
-        goToPage(1);
+        goToPage(numPagesLogin);
     }
 }
 
 void Dialog::goToMetadata(){
     if (checkPIInfo() && filelistingCheckAndUpdate()){
-        goToPage(2);
+        goToPage(numPagesLogin+1);
     }
 }
 
 void Dialog::goToSubmit(){
     if (checkPIInfo() && filelistingCheckAndUpdate() && checkMetadata()){
-        goToPage(3);
+        goToPage(numPagesLogin+2);
+        ui->pushButtonRestart->setText("Submit job");
+        ui->waitingMessage->hide();
+        ui->nextSlideButton->setText("Done");
     }
 }
 
@@ -380,37 +388,10 @@ bool Dialog::filelistingCheckAndUpdate(){
 }
 
 void Dialog::filelistingNextSlide(){
-    qDebug() << "filelisting";
-    if (filelistingCheckAndUpdate()){
-        goToNextSlide();
-    }
+    goToMetadata();
 }
 void Dialog::metadataNextSlide(){
-    qDebug() << "metadata";
-    if (checkMetadata()){
-        goToNextSlide();
-    }
-}
-void Dialog::submitNextSlide(){
-    qDebug() << "submit";
-    QMessageBox msgBox;
-    msgBox.setText("Do you want to submit the dataset?");
-    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    msgBox.setDefaultButton(QMessageBox::Yes);
-    int ret = msgBox.exec();
-    switch (ret){
-    case QMessageBox::Yes:
-        // run datasetIngestor
-        ui->stackedWidget->setCurrentIndex(++currentSlideIndex);
-        ui->nextSlideButton->setText("Done");
-        startIngestion();
-        break;
-    case QMessageBox::No:
-        // no ingestion
-        break;
-    default:
-        break;
-    }
+    goToSubmit();
 }
 
 void Dialog::setButtonsEnabled(bool enabled){
@@ -422,6 +403,7 @@ void Dialog::setButtonsEnabled(bool enabled){
 }
 
 void Dialog::startIngestion(){
+    ui->waitingMessage->show();
     ui->waitingCircle->setMovie(movie);
     ui->waitingCircle->show();
     movie->start();
@@ -444,8 +426,9 @@ void Dialog::ingestionFinished(){
     movie->stop();
     ui->waitingCircle->hide();
     ui->pleaseWait->setText("Done");
-    ui->pushButtonRestart->setVisible(true);
     ui->nextSlideButton->setEnabled(true);
+    ingested = true;
+    ui->pushButtonRestart->setText("Restart");
 }
 
 void Dialog::resetContent(){
@@ -455,12 +438,17 @@ void Dialog::resetContent(){
     clearAllFilelisting();
     ui->metadataGuided->setCurrentIndex(0);
     ui->nextSlideButton->setText("Next");
+    ingested = false;
 }
 
 void Dialog::restart(){
-    resetContent();
+    if (ingested){
+        resetContent();
+        goToPgroup(); // go back to PI
+    } else {
+        startIngestion();
+    }
 
-    goToPgroup(); // go back to PI
 }
 
 void Dialog::nextSlide(){
@@ -475,7 +463,7 @@ void Dialog::goToNextSlide(){
 }
 
 bool Dialog::checkPgroup(){
-    bool pgroupIsValid = true;
+    pgroupIsValid = true;
     if (ui->lineEditPgroup->text().size()==0){
         QMessageBox::information(this, tr("Error"), tr("pgroup cannot be empty") );
         pgroupIsValid = false;
@@ -496,11 +484,11 @@ bool Dialog::checkPgroup(){
 }
 
 bool Dialog::checkPIInfo(){
-    if (PIHasChanged){
+    if ((PIHasChanged) || (!PIIsValid)){
         qDebug() << "checking PI";
         PIHasChanged = false;
-
-        return checkPgroup();
+        PIIsValid = checkPgroup(); // this should also check the PI info, not only the pgroup
+        return PIIsValid;
     }
 
     return true;
@@ -830,10 +818,14 @@ void Dialog::updateRetrieveList(){
         if (std::find(finishedSuccessfulPIDs.begin(), finishedSuccessfulPIDs.end(), tmp.pid) != finishedSuccessfulPIDs.end()) {
           tmp.retrieved = "true";
         }
+//        qDebug() << tmp;
         retrieveContainer.push_back(tmp);
     }
 
 
+    ui->tableWidgetRetriever->setRowCount(0);
+    ui->tableWidgetRetriever->clear();
+    ui->tableWidgetRetriever->setSortingEnabled(false);
     for (auto v : retrieveContainer) {
         ui->tableWidgetRetriever->insertRow(0);
         QTableWidgetItem *tmpItemDataset = new QTableWidgetItem(v.name);
@@ -842,9 +834,9 @@ void Dialog::updateRetrieveList(){
         ui->tableWidgetRetriever->setItem(0,1,tmpItemRetrievable);
         QTableWidgetItem *tmpItemStatus = new QTableWidgetItem(v.retrieved);
         ui->tableWidgetRetriever->setItem(0,2,tmpItemStatus);
+        qDebug() << v;
     }
-
-
+    ui->tableWidgetRetriever->setSortingEnabled(true);
 
 }
 
