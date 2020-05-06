@@ -437,7 +437,7 @@ void Dialog::startIngestion(){
         arguments << "--autoarchive";
     }
 
-    arguments << "--noninteractive" << "--allowexistingsource" << "--token" + QString::fromStdString(token);
+    arguments << "--noninteractive" << "--allowexistingsource" << "--token " + QString::fromStdString(token);
 
     // start ingestion
     qDebug() << "starting ingestion";
