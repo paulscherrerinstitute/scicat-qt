@@ -40,7 +40,9 @@ Dialog::Dialog(QWidget *parent)
     updateSettingsContainer(settingsContainer, "filenameFilelisting", defaultSettings.filenameFilelisting);
     updateSettingsContainer(settingsContainer, "filenameMetadata", defaultSettings.filenameMetadata);
     updateSettingsContainer(settingsContainer, "deleteLog", defaultSettings.deleteLog);
-    updateSettingsContainer(settingsContainer, "server", defaultSettings.server);
+    updateSettingsContainer(settingsContainer, "serverID", defaultSettings.serverID);
+    updateSettingsContainer(settingsContainer, "printIngestion", defaultSettings.printIngestion);
+    updateSettingsContainer(settingsContainer, "disableSystemCalls", defaultSettings.disableSystemCalls);
 
 
 
@@ -289,7 +291,7 @@ void Dialog::usedSoftwareChanged(){
 
 void Dialog::getAvailPgroups(){
     QSettings settingsContainer("PSI", "SciCat");
-    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + settingsContainer.value("server", defaultSettings.server).toString().toStdString() + "/Proposals?filter=%7B%22fields%22%3A%20%22ownerGroup%22%7D&access_token=" + token + "'");
+    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals?filter=%7B%22fields%22%3A%20%22ownerGroup%22%7D&access_token=" + token + "'");
     auto delim = '}';
     std::vector<std::string> tmpVec = utils::split(tmp, delim);
     for (auto v:tmpVec){
@@ -415,6 +417,8 @@ void Dialog::setButtonsEnabled(bool enabled){
 }
 
 void Dialog::startIngestion(){
+    QSettings settingsContainer("PSI", "SciCat");
+
     ui->waitingMessage->show();
     ui->waitingCircle->setMovie(movie);
     ui->waitingCircle->show();
@@ -423,24 +427,69 @@ void Dialog::startIngestion(){
     // disable buttons
     setButtonsEnabled(false);
 
+    // compile ingestion command
+    QStringList arguments;
+
+    if (ui->checkBoxIngest->isChecked()>0){
+        arguments << "--ingest";
+    }
+    if (ui->checkBoxArchive->isChecked()>0){
+        arguments << "--autoarchive";
+    }
+
+    arguments << "--noninteractive" << "--allowexistingsource" << "--token" + QString::fromStdString(token);
+
     // start ingestion
     qDebug() << "starting ingestion";
-    ingestor_m = new Ingestor("sleep 5;");
-    connect(ingestor_m, SIGNAL(finished()), this, SLOT(ingestionFinished()));
-    ingestor_m->connectToUi(this);
-    ingestor_m->prepareIngestion();
-    ingestor_m->start();
+//    ingestor_m = new Ingestor(cmd);
+    ingestion = new QProcess(this);
+    ingestion->setProcessChannelMode(QProcess::MergedChannels);
+    connect(ingestion, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(ingestionFinished(int)));
+    connect(ingestion, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(ingestionFailed(QProcess::ProcessError)));
+    connect(ingestion, SIGNAL(readyReadStandardOutput()), this, SLOT(readIngestionOutput()));
+
+    if (settingsContainer.value("printIngestion", defaultSettings.printIngestion).toBool()){
+        qDebug() << settingsContainer.value("binaryPath", defaultSettings.binaryPath).toString() << " " << arguments;
+    }
+    if (!settingsContainer.value("disableSystemCalls", defaultSettings.disableSystemCalls).toBool()){
+        ingestion->start(settingsContainer.value("binaryPath", defaultSettings.binaryPath).toString(), arguments);
+//        ingestion->start("ls ./");
+    } else {
+        ingestion->finished(0, QProcess::NormalExit);
+    }
+
+
 
 }
 
-void Dialog::ingestionFinished(){
-    // ingestion finished, reenable buttons
+void Dialog::ingestionFailed(QProcess::ProcessError error){
+    ui->plainTextEdit->appendPlainText("Error: " + (QString) error);
+    ui->plainTextEdit->appendPlainText(ingestion->errorString());
+    qDebug() << "Error: " << error;
+    ingestionFinished(1);
+}
+
+void Dialog::readIngestionOutput(){
+    while(ingestion->canReadLine()){
+        ui->plainTextEdit->appendPlainText(ingestion->readLine());
+    }
+
+}
+
+void Dialog::ingestionFinished(int exitCode){
     movie->stop();
     ui->waitingCircle->hide();
-    ui->pleaseWait->setText("Done");
     ui->nextSlideButton->setEnabled(true);
     ingested = true;
     ui->pushButtonRestart->setText("Restart");
+
+    if (exitCode==0){
+        // ingestion finished, reenable buttons
+        ui->pleaseWait->setText("Done.");
+    } else {
+        ui->pleaseWait->setText("Ingestion failed.");
+    }
+
 }
 
 void Dialog::resetContent(){
@@ -487,7 +536,7 @@ bool Dialog::checkPgroup(){
     }
 
     // check if user has access to the given pgroup
-    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + settingsContainer.value("server", defaultSettings.server).toString().toStdString() + "/Proposals?filter=%7B%22fields%22%3A%20%22ownerGroup%22%7D&access_token=" + token + "'");
+    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals?filter=%7B%22fields%22%3A%20%22ownerGroup%22%7D&access_token=" + token + "'");
     if (pgroupIsValid && (tmp.find(ui->lineEditPgroup->text().toStdString())==std::string::npos)){
         auto msg = "Cannot access pgroup " + ui->lineEditPgroup->text().toStdString() + ". Permission denied.";
         QMessageBox::information(this, tr("Error"), tr(msg.c_str()));
@@ -513,7 +562,7 @@ void Dialog::getPI(){
     QSettings settingsContainer("PSI", "SciCat");
     if (Dialog::checkPgroup()){
         metadataContainer.pgroup = ui->lineEditPgroup->text().toStdString();
-        auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + settingsContainer.value("server", defaultSettings.server).toString().toStdString() + "/Proposals?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.pgroup + "%22%7D%7D&access_token=" + token + "'");
+        auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.pgroup + "%22%7D%7D&access_token=" + token + "'");
         if (tmp.length()>5){
             metadataContainer.PIFirstname = utils::extractFromJson(tmp, "pi_firstname");
             metadataContainer.PILastname = utils::extractFromJson(tmp, "pi_lastname");
@@ -527,7 +576,7 @@ void Dialog::getPI(){
             metadataContainer.ownerGroup = metadataContainer.pgroup;
             metadataContainer.owner = metadataContainer.PIFirstname + " " + metadataContainer.PILastname;
             metadataContainer.ownerEmail = metadataContainer.PIemail;
-            auto tmpUser = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + settingsContainer.value("server", defaultSettings.server).toString().toStdString() + "/Users/userInfos?access_token=" + token + "'");
+            auto tmpUser = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Users/userInfos?access_token=" + token + "'");
 
             settingsContainer.value("investigatorIsPI", defaultSettings.investigatorIsPI).toBool() ? metadataContainer.investigator=QString::fromStdString(metadataContainer.PIemail) : metadataContainer.investigator=QString::fromStdString(utils::extractFromJson(tmpUser, "currentUserEmail"));
             ui->lineEditPIMail->setText(QString::fromStdString(metadataContainer.PIemail));
@@ -601,7 +650,7 @@ QStringList Dialog::openFileBrowser(){
 
 void Dialog::openDatasetBrowser(){
     QSettings settingsContainer("PSI", "SciCat");
-    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + settingsContainer.value("server", defaultSettings.server).toString().toStdString() + "/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22" + metadataContainer.pgroup + "%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=" + token + "'");
+    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22" + metadataContainer.pgroup + "%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=" + token + "'");
     auto delim = '}';
     std::vector<std::string> tmpVec = utils::split(tmp, delim);
 
@@ -809,9 +858,9 @@ void Dialog::updateMetadataEntry(QString name, QString targetValue, int flag){
 
 void Dialog::updateRetrieveList(){
     QSettings settingsContainer("PSI", "SciCat");
-    auto currentDatasets = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + settingsContainer.value("server", defaultSettings.server).toString().toStdString() + "/Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.ownerGroup + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + token + "'");
-    auto successfulJobs = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + settingsContainer.value("server", defaultSettings.server).toString().toStdString() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'");
-//    qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + settingsContainer.value("server", defaultSettings.server).toString().toStdString() + "/Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'";
+    auto currentDatasets = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.ownerGroup + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + token + "'");
+    auto successfulJobs = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'");
+//    qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'";
     // get all 'finishedSuccessful' jobs
     // sadly, there seems to be no option to filter the jobs by pgroup, so we have to query all and select the ones from the current account
     QJsonDocument successfulJobsJson = QJsonDocument::fromJson(QString::fromStdString(successfulJobs).toUtf8());
@@ -1018,9 +1067,9 @@ void Login::getLoginData(){
             accessGranted = false;
         }
         if (accessGranted){
-            auto tmpUserInfo = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + settingsContainer.value("server", baseUi->defaultSettings.server).toString().toStdString() + "/Users/userInfos?access_token=" + token + "'");
+            auto tmpUserInfo = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "/Users/userInfos?access_token=" + token + "'");
             baseUi->metadataContainer.userMail = QString::fromStdString(utils::extractFromJson(tmpUserInfo, "currentUserEmail"));
-            qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + settingsContainer.value("server", baseUi->defaultSettings.server).toString().toStdString() + "Users/userInfos?access_token=" + token + "'";
+            qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "Users/userInfos?access_token=" + token + "'";
             qDebug() << baseUi->metadataContainer.userMail;
             qDebug() << tmpUserInfo;
             close();
@@ -1093,10 +1142,15 @@ Settings::Settings(QWidget *parent) :
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(updateSettings()));
     connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(close()));
     connect(ui->checkBoxEnableAdvanced, SIGNAL(stateChanged(int)), this, SLOT(toggleAdvancedSettings(int)));
+    connect(ui->comboBoxServer, SIGNAL(currentIndexChanged(int)), this, SLOT(updateServerURL(int)));
 
     toggleAdvancedSettings(0);
     ui->tabWidget->setCurrentIndex(0);
 
+}
+
+void Settings::updateServerURL(int val){
+    ui->lineEditServer->setText(baseUi->defaultSettings.serverList[val]);
 }
 
 void Settings::updateSettings(){
@@ -1106,6 +1160,10 @@ void Settings::updateSettings(){
     settingsContainer.setValue("filenameMetadata", ui->lineEditMetadataFile->text());
     settingsContainer.setValue("logPath", ui->lineEditLogPath->text());
     settingsContainer.setValue("deleteLog", (bool) ui->checkBoxDeleteLog->checkState());
+    settingsContainer.setValue("printIngestion", (bool) ui->checkBoxPrintCalls->checkState());
+    settingsContainer.setValue("disableSystemCalls", (bool) ui->checkBoxSystemCalls->checkState());
+    settingsContainer.setValue("serverID", ui->comboBoxServer->currentIndex());
+
 
     close();
 }
@@ -1121,6 +1179,7 @@ void Settings::toggleAdvancedSettings(int val){
 
 void Settings::connectToUi(Dialog *uiDialog){
     baseUi = uiDialog;
+    ui->lineEditServer->setEnabled(false);
 
     //update UI
     QSettings settingsContainer("PSI", "SciCat");
@@ -1128,6 +1187,10 @@ void Settings::connectToUi(Dialog *uiDialog){
     ui->lineEditFilelistingFile->setText(settingsContainer.value("filenameFilelisting").toString());
     ui->lineEditLogPath->setText(settingsContainer.value("logPath").toString());
     ui->checkBoxDeleteLog->setChecked(settingsContainer.value("deleteLog").toBool());
+    ui->checkBoxPrintCalls->setChecked(settingsContainer.value("printIngestion").toBool());
+    ui->checkBoxSystemCalls->setChecked(settingsContainer.value("disableSystemCalls").toBool());
+    ui->comboBoxServer->setCurrentIndex(settingsContainer.value("serverID").toInt());
+    updateServerURL(settingsContainer.value("serverID").toInt());
 
 
 }
@@ -1209,7 +1272,7 @@ void Ingestor::prepareIngestion(){
     filelistingFile.close();
 }
 
-Ingestor::Ingestor(std::string commandIn){
+Ingestor::Ingestor(const QString &commandIn){
     command = commandIn;
 }
 
@@ -1218,7 +1281,7 @@ void Ingestor::connectToUi(Dialog *uiDialog){
 }
 
 void Ingestor::run(){
-    utils::system_call(command);
+    utils::system_call(command.toStdString());
 }
 
 

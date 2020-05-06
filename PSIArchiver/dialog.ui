@@ -624,7 +624,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             <enum>QFrame::Sunken</enum>
            </property>
            <property name="currentIndex">
-            <number>1</number>
+            <number>3</number>
            </property>
            <widget class="QWidget" name="startPage">
             <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -1883,7 +1883,7 @@ QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
              </property>
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
-               <widget class="QCheckBox" name="checkBox">
+               <widget class="QCheckBox" name="checkBoxIngest">
                 <property name="text">
                  <string>Ingest data to data catalogue</string>
                 </property>
@@ -1893,7 +1893,7 @@ QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="checkBox_2">
+               <widget class="QCheckBox" name="checkBoxArchive">
                 <property name="text">
                  <string>Archive data </string>
                 </property>
@@ -1962,6 +1962,16 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
                </widget>
               </item>
              </layout>
+            </widget>
+            <widget class="QPlainTextEdit" name="plainTextEdit">
+             <property name="geometry">
+              <rect>
+               <x>460</x>
+               <y>210</y>
+               <width>171</width>
+               <height>161</height>
+              </rect>
+             </property>
             </widget>
            </widget>
            <widget class="QWidget" name="retrieverPage">

@@ -26,6 +26,7 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QCoreApplication>
+#include <QProcess>
 
 #include "archiverutils.h"
 #include "datasetmodel.h"
@@ -38,7 +39,8 @@ namespace Ui {
     class DatasetBrowser;
     class Settings;
 }
-QT_END_NAMESPACE
+
+
 
 class DatasetModel;
 class Ingestor;
@@ -55,8 +57,10 @@ struct defaultSettings_t {
     QString filenameFilelisting = "filelisting.txt";
     QString filenameMetadata = "metadata.json";
     bool deleteLog = false;
-    QString server = "https://dacat.psi.ch/api/v3/";
-
+    QStringList serverList = {"https://dacat.psi.ch/api/v3/", "https://dacat-qa.psi.ch/api/v3/", "https://dacat-development.psi.ch/api/v3/"};
+    uint serverID = 0;
+    bool printIngestion = true;
+    bool disableSystemCalls = true;
 };
 
 struct inputDatasets_t {
@@ -179,7 +183,7 @@ private slots:
     void appendMetadataEntry();
     void removeMetadataEntry();
     void piChanged();
-    void ingestionFinished();
+    void ingestionFinished(int exitCode);
     void restart();
     void datasetNameCheck();
     void investigatorChanged();
@@ -190,6 +194,8 @@ private slots:
     void exportMetadata();
     void importMetadata();
     void openSettings();
+    void readIngestionOutput();
+    void ingestionFailed(QProcess::ProcessError error);
 
 
 
@@ -233,6 +239,7 @@ private:
     int numPagesRetrieve = 1;
     int numPagesLogin = 1;
     bool ingested = false;
+    QProcess *ingestion;
 
 
     
@@ -317,14 +324,14 @@ class Ingestor : public QThread
   Q_OBJECT
 public:
     Ingestor(){};
-    Ingestor(std::string commandIn);
-    void setCommand(std::string commandIn);
+    Ingestor(const QString& commandIn);
+    void setCommand(const QString& commandIn);
     void prepareIngestion();
     void connectToUi(Dialog *uiDialog);
 protected:
     void run();
 private:
-    std::string command;
+    QString command;
     Dialog *baseUi;
 };
 
@@ -339,6 +346,7 @@ public:
 public slots:
     void updateSettings();
     void toggleAdvancedSettings(int val);
+    void updateServerURL(int val);
 
 private:
     Ui::Settings *ui;
