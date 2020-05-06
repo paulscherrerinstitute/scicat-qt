@@ -110,6 +110,9 @@ Dialog::Dialog(QWidget *parent)
     ui->clearAllButtonDatasets->setEnabled(false);
     ui->clearButtonDatasets->setEnabled(false);
 
+    ui->lineEditCreationLocation->hide();
+    ui->labelCreationLocation->hide();
+
 
     // metadata editor
     ui->treeWidget->setColumnCount(2);
@@ -377,11 +380,22 @@ bool Dialog::checkMetadata(){
         ui->labelDatasetName->setFocus();
         return false;
     }
+    // raw data requires creationLocation
+    if (ui->comboBoxDatatype->currentIndex()==1){
+        if (ui->lineEditDatasetName->text().isEmpty()){
+            QMessageBox::information(this, tr("Invalid entry"), tr("Dataset name cannot be empty.") );
+            ui->metadataGuided->setCurrentIndex(0);
+            ui->labelDatasetName->setFocus();
+            return false;
+        }
+    }
     metadataContainer.datasetName = ui->lineEditDatasetName->text();
     return true;
 }
 
 bool Dialog::filelistingCheckAndUpdate(){
+    QSettings settingsContainer("PSI", "SciCat");
+
     if (ui->filelistingListWidget->count()==0){
         QMessageBox::information(this, tr("Invalid entry"), tr("Please add at least one file/directory.") );
         return false;
@@ -392,6 +406,9 @@ bool Dialog::filelistingCheckAndUpdate(){
     ui->lineEditOwnerGroup->setText(QString::fromStdString(metadataContainer.ownerGroup));
     ui->lineEditProposalID->setText(QString::fromStdString(metadataContainer.proposalID));
     ui->lineEditInvestigator->setText(metadataContainer.investigator);
+    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals/" + QString::fromStdString(metadataContainer.proposalID).replace("/", "%2F").toStdString() + "?access_token=" + token + "'");
+    metadataContainer.creationLocation = QString::fromStdString(utils::extractFromJson(tmp, "instrument"));
+    ui->lineEditCreationLocation->setText(metadataContainer.creationLocation);
 
     filelistingContainer.clear();
     for (int ii=0; ii<ui->filelistingListWidget->count(); ii++ ){
@@ -436,16 +453,19 @@ void Dialog::prepareIngestion(){
     // prepare metadata file
     QJsonObject metadata;
     bool isRawData = (bool) ui->comboBoxDatatype->currentIndex();
+    auto sourceFolder = extractSourceFolder(filelistingContainer);
+    metadata["sourceFolder"] = sourceFolder;
+    metadata["owner"] = QString::fromStdString(metadataContainer.owner);
+    metadata["ownerGroup"] = QString::fromStdString(metadataContainer.ownerGroup);
+    metadata["ownerEmail"] = QString::fromStdString(metadataContainer.ownerEmail);
+    metadata["description"] = metadataContainer.description;
+
     if (isRawData){
         qDebug() << "Preparing metadata file for raw data";
         metadata["principalInvestigator"] = QString::fromStdString(metadataContainer.PIemail); // this should be changed in the future; there is no need to save it as std::string
-//        metadata["creationLocation"] = baseUi->metadataContainer.creationLocation;
-        metadata["owner"] = QString::fromStdString(metadataContainer.owner);
-        metadata["ownerGroup"] = QString::fromStdString(metadataContainer.ownerGroup);
-        metadata["ownerEmail"] = QString::fromStdString(metadataContainer.ownerEmail);
+        metadata["creationLocation"] = metadataContainer.creationLocation;
         metadata["datasetName"] = metadataContainer.datasetName;
         metadata["type"] = "raw";
-        metadata["description"] = metadataContainer.description;
         auto res = ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
         QJsonArray scMetadata;
         for (int ii=0; ii<res.size(); ii++){
@@ -456,10 +476,7 @@ void Dialog::prepareIngestion(){
         qDebug() << metadataContainer.datasetName;
     } else {
         qDebug() << "Preparing metadata file for derived data";
-        metadata["sourceFolder"] = extractSourceFolder(filelistingContainer);
-        metadata["owner"] = QString::fromStdString(metadataContainer.owner);
         metadata["type"] = "derived";
-        metadata["ownerGroup"] = QString::fromStdString(metadataContainer.ownerGroup);
         metadata["investigator"] = metadataContainer.investigator;
         auto dsmodel = ui->tableWidget->model();
         QStringList inputDatasetsList;
@@ -483,7 +500,7 @@ void Dialog::prepareIngestion(){
 
     QTextStream out(&filelistingFile);
     for (auto v:filelistingContainer){
-        out << v << "\n";
+        out << v.remove(sourceFolder) << "\n";
     }
     filelistingFile.close();
 }
@@ -860,17 +877,38 @@ void Dialog::importMetadata(){
 }
 
 void Dialog::comboBoxDatatypeChanged(int val){
-        ui->lineEditInvestigator->setEnabled(!(bool)val);
-        ui->textEditUsedSoftware->setEnabled(!(bool)val);
+//        ui->lineEditInvestigator->setEnabled(!(bool)val);
+//        ui->textEditUsedSoftware->setEnabled(!(bool)val);
 
         // hide input datasets tab if not needed:
-        // store tab widget in container and remove it
         if ((bool)val){
+            // raw data
+
+            // store tab widget in container and remove it
             inputDatasetsContainer.tab = ui->metadataGuided->widget(1);
             inputDatasetsContainer.tabLabel = ui->metadataGuided->tabText(1);
             ui->metadataGuided->removeTab(1);
+
+            ui->lineEditCreationLocation->show();
+            ui->labelCreationLocation->show();
+
+            ui->textEditUsedSoftware->hide();
+            ui->labelUsedSoftware->hide();
+            ui->lineEditInvestigator->hide();
+            ui->labelInvestigator->hide();
+
         } else {
+            //derived data
             ui->metadataGuided->insertTab(1,inputDatasetsContainer.tab, inputDatasetsContainer.tabLabel);
+
+            ui->lineEditCreationLocation->hide();
+            ui->labelCreationLocation->hide();
+
+            ui->textEditUsedSoftware->show();
+            ui->labelUsedSoftware->show();
+            ui->lineEditInvestigator->show();
+            ui->labelInvestigator->show();
+
         }
 
 }
@@ -1124,7 +1162,7 @@ void Login::getLoginData(){
     QString uname = uiLogin->lineEditUsername->text();
     QString pword = uiLogin->lineEditPassword->text();
     std::string token;
-    auto tmp = utils::system_call("curl -s -X POST --header 'Content-Type: application/json'  -d '{\"username\":\"" + uiLogin->lineEditUsername->text().toStdString() + "\",\"password\":\"" + uiLogin->lineEditPassword->text().toStdString() + "\"}' 'https://dacat.psi.ch/auth/msad'");
+    auto tmp = utils::system_call("curl -s -X POST --header 'Content-Type: application/json'  -d '{\"username\":\"" + uiLogin->lineEditUsername->text().toStdString() + "\",\"password\":\"" + uiLogin->lineEditPassword->text().toStdString() + "\"}' '" + baseUi->defaultSettings.serverListAuth[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "'");
     qDebug() << tmp;
     if ((tmp.compare("\"authentication error\"")==0) || (tmp.find("error") != std::string::npos)){
         QMessageBox::information(this, tr("Authentication error"), tr("Please check your username and password") );
@@ -1142,9 +1180,12 @@ void Login::getLoginData(){
         if (accessGranted){
             auto tmpUserInfo = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "/Users/userInfos?access_token=" + token + "'");
             baseUi->metadataContainer.userMail = QString::fromStdString(utils::extractFromJson(tmpUserInfo, "currentUserEmail"));
-            qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "Users/userInfos?access_token=" + token + "'";
-            qDebug() << baseUi->metadataContainer.userMail;
-            qDebug() << tmpUserInfo;
+            baseUi->metadataContainer.username = QString::fromStdString(utils::extractFromJson(tmpUserInfo, "currentUser"));
+            baseUi->ui->labelUsername->setText("Username: " + baseUi->metadataContainer.username);
+            baseUi->ui->labelServer->setText("Server: " + baseUi->defaultSettings.serverListNames[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()]);
+//            qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "Users/userInfos?access_token=" + token + "'";
+//            qDebug() << baseUi->metadataContainer.userMail;
+//            qDebug() << tmpUserInfo;
             close();
             baseUi->token = token;
             baseUi->getAvailPgroups();
@@ -1248,7 +1289,14 @@ void Settings::updateServerURL(int val){
 }
 
 void Settings::acceptChanges(){
+    QSettings settingsContainer("PSI", "SciCat");
+
     // update settings
+    if (settingsContainer.value("serverID").toInt()!=ui->comboBoxServer->currentIndex()){
+        QMessageBox msgBox;
+        msgBox.setText("You must restart the application to apply these changes.");
+        msgBox.exec();
+    }
     updateSettings();
     close();
 }

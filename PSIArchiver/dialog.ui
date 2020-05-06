@@ -131,6 +131,67 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QFrame" name="frame_4">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <property name="lineWidth">
+         <number>0</number>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_25">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_24">
+           <item>
+            <widget class="QLabel" name="labelUsername">
+             <property name="styleSheet">
+              <string notr="true">QLabel{color:rgb(255, 255, 255)}</string>
+             </property>
+             <property name="text">
+              <string>User: username</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="labelServer">
+             <property name="styleSheet">
+              <string notr="true">QLabel{color:rgb(255, 255, 255)}</string>
+             </property>
+             <property name="text">
+              <string>Server: Production</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_19">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>5</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
      </layout>
     </widget>
    </item>
@@ -624,7 +685,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             <enum>QFrame::Sunken</enum>
            </property>
            <property name="currentIndex">
-            <number>3</number>
+            <number>2</number>
            </property>
            <widget class="QWidget" name="startPage">
             <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -1248,7 +1309,7 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                 <enum>QTabWidget::Rounded</enum>
                </property>
                <property name="currentIndex">
-                <number>1</number>
+                <number>0</number>
                </property>
                <widget class="QWidget" name="General">
                 <attribute name="title">
@@ -1494,6 +1555,23 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                       </size>
                      </property>
                     </spacer>
+                   </item>
+                   <item row="0" column="2">
+                    <widget class="QLabel" name="labelCreationLocation">
+                     <property name="text">
+                      <string>Instrument</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="3">
+                    <widget class="QLineEdit" name="lineEditCreationLocation">
+                     <property name="placeholderText">
+                      <string>e.g. /PSI/SLS/CSAXS</string>
+                     </property>
+                    </widget>
                    </item>
                   </layout>
                  </item>

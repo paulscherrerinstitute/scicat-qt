@@ -58,6 +58,8 @@ struct defaultSettings_t {
     QString filenameMetadata = "metadata.json";
     bool deleteLog = false;
     QStringList serverList = {"https://dacat.psi.ch/api/v3/", "https://dacat-qa.psi.ch/api/v3/", "https://dacat-development.psi.ch/api/v3/"};
+    QStringList serverListAuth = {"https://dacat.psi.ch/auth/msad", "https://dacat-qa.psi.ch/auth/msad", "https://dacat-development.psi.ch/auth/msad"};
+    QStringList serverListNames = {"Production", "QA", "Development"};
     uint serverID = 0;
     bool printIngestion = true;
     bool disableSystemCalls = true;
@@ -102,7 +104,7 @@ struct metadataContainer_t {
     std::string type;
     QString datasetName;
     std::string sourceFolder;
-    std::string creationLocation;
+    QString creationLocation;
     std::string inputDatasets;
     QString usedSoftware;
     std::string keywords;
@@ -114,6 +116,7 @@ struct metadataContainer_t {
     QString investigator;
     QString description;
     QString userMail;
+    QString username;
 };
 
 class ButtonHoverWatcher : public QObject
