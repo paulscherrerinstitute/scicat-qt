@@ -416,6 +416,78 @@ void Dialog::setButtonsEnabled(bool enabled){
     ui->pushButtonNavigationSubmit->setEnabled(enabled);
 }
 
+void Dialog::prepareIngestion(){
+    QSettings settingsContainer("PSI", "SciCat");
+
+    QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + metadataContainer.datasetName + QString::number(QDateTime::currentDateTime().toSecsSinceEpoch());
+    if (!QDir(dirpath).exists()){
+        qDebug()<<"Output directory does not exist";
+        if (!QDir().mkpath(dirpath)){
+            sendWarning("Could not write to output directory.");
+        }
+    }
+
+    QFile metadataFile(QDir(dirpath).filePath(settingsContainer.value("filenameMetadata", defaultSettings.filenameMetadata).toString()));
+    if (!metadataFile.open(QIODevice::WriteOnly)) {
+        sendWarning("Could not open metadata file.");
+        return;
+    }
+
+    // prepare metadata file
+    QJsonObject metadata;
+    bool isRawData = (bool) ui->comboBoxDatatype->currentIndex();
+    if (isRawData){
+        qDebug() << "Preparing metadata file for raw data";
+        metadata["principalInvestigator"] = QString::fromStdString(metadataContainer.PIemail); // this should be changed in the future; there is no need to save it as std::string
+//        metadata["creationLocation"] = baseUi->metadataContainer.creationLocation;
+        metadata["owner"] = QString::fromStdString(metadataContainer.owner);
+        metadata["ownerGroup"] = QString::fromStdString(metadataContainer.ownerGroup);
+        metadata["ownerEmail"] = QString::fromStdString(metadataContainer.ownerEmail);
+        metadata["datasetName"] = metadataContainer.datasetName;
+        metadata["type"] = "raw";
+        metadata["description"] = metadataContainer.description;
+        auto res = ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
+        QJsonArray scMetadata;
+        for (int ii=0; ii<res.size(); ii++){
+            qDebug() << res[ii]->childCount();
+            scMetadata.push_back(treeModel2Json(res[ii]));
+        }
+        metadata["scientificMetadata"] = scMetadata;
+        qDebug() << metadataContainer.datasetName;
+    } else {
+        qDebug() << "Preparing metadata file for derived data";
+        metadata["sourceFolder"] = extractSourceFolder(filelistingContainer);
+        metadata["owner"] = QString::fromStdString(metadataContainer.owner);
+        metadata["type"] = "derived";
+        metadata["ownerGroup"] = QString::fromStdString(metadataContainer.ownerGroup);
+        metadata["investigator"] = metadataContainer.investigator;
+        auto dsmodel = ui->tableWidget->model();
+        QStringList inputDatasetsList;
+        for (int ii=0; ii<dsmodel->rowCount(); ii++){
+            inputDatasetsList.push_back(dsmodel->data(dsmodel->index(ii,1), Qt::DisplayRole).toString());
+        }
+        metadata["inputDatasets"] = QJsonArray::fromStringList(inputDatasetsList);
+        metadata["usedSoftware"] = metadataContainer.usedSoftware;
+    }
+
+
+    QJsonDocument saveDoc(metadata);
+    metadataFile.write(saveDoc.toJson());
+    metadataFile.close();
+
+    QFile filelistingFile(QDir(dirpath).filePath(settingsContainer.value("filenameFilelisting", defaultSettings.filenameFilelisting).toString()));
+    if (!filelistingFile.open(QIODevice::WriteOnly | QIODevice::Text)){
+        sendWarning("Could not open filelisting file.");
+        return;
+    }
+
+    QTextStream out(&filelistingFile);
+    for (auto v:filelistingContainer){
+        out << v << "\n";
+    }
+    filelistingFile.close();
+}
+
 void Dialog::startIngestion(){
     QSettings settingsContainer("PSI", "SciCat");
 
@@ -437,7 +509,7 @@ void Dialog::startIngestion(){
         arguments << "--autoarchive";
     }
 
-    arguments << "--noninteractive" << "--allowexistingsource" << "--token " + QString::fromStdString(token);
+    arguments << "--noninteractive" << "--allowexistingsource" << "--token" << QString::fromStdString(token);
 
     // start ingestion
     qDebug() << "starting ingestion";
@@ -507,6 +579,7 @@ void Dialog::restart(){
         resetContent();
         goToPgroup(); // go back to PI
     } else {
+        prepareIngestion();
         startIngestion();
     }
 

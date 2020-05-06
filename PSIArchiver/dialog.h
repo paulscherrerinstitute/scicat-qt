@@ -240,6 +240,7 @@ private:
     int numPagesLogin = 1;
     bool ingested = false;
     QProcess *ingestion;
+    void prepareIngestion();
 
 
     
