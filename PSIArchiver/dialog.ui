@@ -1907,7 +1907,7 @@ QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
             <widget class="QPushButton" name="pushButtonRestart">
              <property name="geometry">
               <rect>
-               <x>280</x>
+               <x>330</x>
                <y>380</y>
                <width>88</width>
                <height>36</height>
@@ -1971,6 +1971,19 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
                <width>171</width>
                <height>161</height>
               </rect>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton">
+             <property name="geometry">
+              <rect>
+               <x>240</x>
+               <y>380</y>
+               <width>88</width>
+               <height>34</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Open log</string>
              </property>
             </widget>
            </widget>

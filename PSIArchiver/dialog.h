@@ -343,10 +343,14 @@ public:
     explicit Settings(QWidget *parent = nullptr);
     ~Settings();
     void connectToUi(Dialog *uiDialog);
-public slots:
     void updateSettings();
+
+public slots:
     void toggleAdvancedSettings(int val);
     void updateServerURL(int val);
+    void logFileBrowser();
+    void reset();
+    void acceptChanges();
 
 private:
     Ui::Settings *ui;

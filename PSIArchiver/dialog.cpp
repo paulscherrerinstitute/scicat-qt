@@ -1139,18 +1139,45 @@ Settings::Settings(QWidget *parent) :
     ui(new Ui::Settings)
 {
     ui->setupUi(this);
-    connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(updateSettings()));
+    connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(acceptChanges()));
     connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(close()));
     connect(ui->checkBoxEnableAdvanced, SIGNAL(stateChanged(int)), this, SLOT(toggleAdvancedSettings(int)));
     connect(ui->comboBoxServer, SIGNAL(currentIndexChanged(int)), this, SLOT(updateServerURL(int)));
-
+    connect(ui->pushButtonBrowseLogPath, SIGNAL(clicked()), this, SLOT(logFileBrowser()));
+    connect(ui->pushButtonReset, SIGNAL(clicked()), this, SLOT(reset()));
     toggleAdvancedSettings(0);
     ui->tabWidget->setCurrentIndex(0);
 
 }
 
+void Settings::reset(){
+    ui->lineEditMetadataFile->setText(baseUi->defaultSettings.filenameMetadata);
+    ui->lineEditFilelistingFile->setText(baseUi->defaultSettings.filenameFilelisting);
+    ui->lineEditLogPath->setText(baseUi->defaultSettings.logPath);
+    ui->checkBoxDeleteLog->setChecked(baseUi->defaultSettings.deleteLog);
+    ui->checkBoxPrintCalls->setChecked(baseUi->defaultSettings.printIngestion);
+    ui->checkBoxSystemCalls->setChecked(baseUi->defaultSettings.disableSystemCalls);
+    ui->comboBoxServer->setCurrentIndex(baseUi->defaultSettings.serverID);
+    updateServerURL(baseUi->defaultSettings.serverID);
+
+    updateSettings();
+}
+
+void Settings::logFileBrowser(){
+    auto fileName = QFileDialog::getExistingDirectory(this,tr("Select log file path"), QDir::homePath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (fileName.length()>0){
+        ui->lineEditLogPath->setText(fileName);
+    }
+}
+
 void Settings::updateServerURL(int val){
     ui->lineEditServer->setText(baseUi->defaultSettings.serverList[val]);
+}
+
+void Settings::acceptChanges(){
+    // update settings
+    updateSettings();
+    close();
 }
 
 void Settings::updateSettings(){
@@ -1163,9 +1190,6 @@ void Settings::updateSettings(){
     settingsContainer.setValue("printIngestion", (bool) ui->checkBoxPrintCalls->checkState());
     settingsContainer.setValue("disableSystemCalls", (bool) ui->checkBoxSystemCalls->checkState());
     settingsContainer.setValue("serverID", ui->comboBoxServer->currentIndex());
-
-
-    close();
 }
 
 void Settings::toggleAdvancedSettings(int val){
@@ -1179,7 +1203,7 @@ void Settings::toggleAdvancedSettings(int val){
 
 void Settings::connectToUi(Dialog *uiDialog){
     baseUi = uiDialog;
-    ui->lineEditServer->setEnabled(false);
+    ui->lineEditServer->setReadOnly(true);
 
     //update UI
     QSettings settingsContainer("PSI", "SciCat");
