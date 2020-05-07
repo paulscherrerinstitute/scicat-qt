@@ -531,7 +531,11 @@ void Dialog::prepareIngestion(){
 
     QTextStream out(&filelistingFile);
     for (auto v:filelistingContainer){
-        out << v.remove(sourceFolder) << "\n";
+        QString tmpFilename = v.remove(sourceFolder);
+        if (tmpFilename[0]=="/"){
+            tmpFilename.remove(0,1);
+        }
+        out << tmpFilename << "\n";
     }
     filelistingFile.close();
 }
