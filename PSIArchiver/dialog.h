@@ -60,6 +60,50 @@ struct defaultSettings_t {
     QStringList serverList = {"https://dacat.psi.ch/api/v3/", "https://dacat-qa.psi.ch/api/v3/", "https://dacat-development.psi.ch/api/v3/"};
     QStringList serverListAuth = {"https://dacat.psi.ch/auth/msad", "https://dacat-qa.psi.ch/auth/msad", "https://dacat-development.psi.ch/auth/msad"};
     QStringList serverListNames = {"Production", "QA", "Development"};
+    QStringList creationLocationList = {"/PSI/SLS/ADRESS-RIXS",
+                                        "/PSI/SLS/ADRESS-SX-ARPES",
+                                        "/PSI/SLS/CSAXS",
+                                        "/PSI/SLS/MICRO-XAS",
+                                        "/PSI/SLS/MICRO-XAS-FEMTO",
+                                        "/PSI/SLS/MS-POWDER",
+                                        "/PSI/SLS/MS-SURF-DIFFR",
+                                        "/PSI/SLS/NANOXAS",
+                                        "/PSI/SLS/PEARL",
+                                        "/PSI/SLS/PHOENIX",
+                                        "/PSI/SLS/POLLUX",
+                                        "/PSI/SLS/MX",
+                                        "/PSI/SLS/SIM",
+                                        "/PSI/SLS/SIS-COPHEE",
+                                        "/PSI/SLS/SIS-HRPES",
+                                        "/PSI/SLS/SUPER-XAS",
+                                        "/PSI/SLS/TOMCAT",
+                                        "/PSI/SLS/VUV",
+                                        "/PSI/SLS/XIL-II",
+                                        "/PSI/SLS/XTREME",
+                                        "/PSI/SWISSFEL/ARAMIS-ALVRA",
+                                        "/PSI/SWISSFEL/ARAMIS-BERNINA",
+                                        "/PSI/SWISSFEL/ARAMIS-CRISTALLINA",
+                                        "/PSI/SINQ/AMOR",
+                                        "/PSI/SINQ/DMC",
+                                        "/PSI/SINQ/EIGER",
+                                        "/PSI/SINQ/FOCUS",
+                                        "/PSI/SINQ/HRPT",
+                                        "/PSI/SINQ/ICON",
+                                        "/PSI/SINQ/MORPHEUS",
+                                        "/PSI/SINQ/NARZISS",
+                                        "/PSI/SINQ/NEUTRA",
+                                        "/PSI/SINQ/POLDI",
+                                        "/PSI/SINQ/RITA-II",
+                                        "/PSI/SINQ/SANS-I",
+                                        "/PSI/SINQ/SANS-II",
+                                        "/PSI/SINQ/TASP",
+                                        "/PSI/SINQ/ZEBRA",
+                                        "/PSI/SMUS/DOLLY",
+                                        "/PSI/SMUS/GPD",
+                                        "/PSI/SMUS/GPS",
+                                        "/PSI/SMUS/HAL-9500",
+                                        "/PSI/SMUS/LEM",
+                                        "/PSI/SMUS/LTF"};
     uint serverID = 0;
     bool printIngestion = true;
     bool disableSystemCalls = true;
@@ -117,6 +161,7 @@ struct metadataContainer_t {
     QString description;
     QString userMail;
     QString username;
+    bool isBeamlineAccount = false;
 };
 
 class ButtonHoverWatcher : public QObject

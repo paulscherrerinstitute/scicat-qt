@@ -17,7 +17,7 @@ Dialog::Dialog(QWidget *parent)
     ui->setupUi(this);
 
     QPixmap pixmap(":/images/scicat-logo-white.png");
-    pixmap = pixmap.scaledToHeight(50);
+    pixmap = pixmap.scaledToWidth(50);
     ui->labelLogo->setPixmap(pixmap);
     ui->labelLogo->setMask(pixmap.mask());
 
@@ -110,7 +110,8 @@ Dialog::Dialog(QWidget *parent)
     ui->clearAllButtonDatasets->setEnabled(false);
     ui->clearButtonDatasets->setEnabled(false);
 
-    ui->lineEditCreationLocation->hide();
+    ui->comboBoxCreationLocation->addItems(defaultSettings.creationLocationList);
+    ui->comboBoxCreationLocation->hide();
     ui->labelCreationLocation->hide();
 
 
@@ -408,7 +409,8 @@ bool Dialog::filelistingCheckAndUpdate(){
     ui->lineEditInvestigator->setText(metadataContainer.investigator);
     auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals/" + QString::fromStdString(metadataContainer.proposalID).replace("/", "%2F").toStdString() + "?access_token=" + token + "'");
     metadataContainer.creationLocation = QString::fromStdString(utils::extractFromJson(tmp, "instrument"));
-    ui->lineEditCreationLocation->setText(metadataContainer.creationLocation);
+
+    ui->comboBoxCreationLocation->setCurrentIndex(ui->comboBoxCreationLocation->findText(metadataContainer.creationLocation));
 
     filelistingContainer.clear();
     for (int ii=0; ii<ui->filelistingListWidget->count(); ii++ ){
@@ -889,7 +891,7 @@ void Dialog::comboBoxDatatypeChanged(int val){
             inputDatasetsContainer.tabLabel = ui->metadataGuided->tabText(1);
             ui->metadataGuided->removeTab(1);
 
-            ui->lineEditCreationLocation->show();
+            ui->comboBoxCreationLocation->show();
             ui->labelCreationLocation->show();
 
             ui->textEditUsedSoftware->hide();
@@ -901,7 +903,7 @@ void Dialog::comboBoxDatatypeChanged(int val){
             //derived data
             ui->metadataGuided->insertTab(1,inputDatasetsContainer.tab, inputDatasetsContainer.tabLabel);
 
-            ui->lineEditCreationLocation->hide();
+            ui->comboBoxCreationLocation->hide();
             ui->labelCreationLocation->hide();
 
             ui->textEditUsedSoftware->show();
@@ -1165,35 +1167,44 @@ void Login::getLoginData(){
     auto tmp = utils::system_call("curl -s -X POST --header 'Content-Type: application/json'  -d '{\"username\":\"" + uiLogin->lineEditUsername->text().toStdString() + "\",\"password\":\"" + uiLogin->lineEditPassword->text().toStdString() + "\"}' '" + baseUi->defaultSettings.serverListAuth[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "'");
     qDebug() << tmp;
     if ((tmp.compare("\"authentication error\"")==0) || (tmp.find("error") != std::string::npos)){
-        QMessageBox::information(this, tr("Authentication error"), tr("Please check your username and password") );
-        uiLogin->lineEditPassword->clear();
-    } else {
-        accessGranted = true;
-        if (tmp.find("access_token") != std::string::npos){
-            token = utils::extractFromJson(tmp, "access_token");
-        } else if (tmp.find("id") != std::string::npos) {
-            token = utils::extractFromJson(tmp, "id");
+        // try BL accounts
+        tmp = utils::system_call("curl -s -X POST --header 'Content-Type: application/json'  -d '{\"username\":\"" + uiLogin->lineEditUsername->text().toStdString() + "\",\"password\":\"" + uiLogin->lineEditPassword->text().toStdString() + "\"}' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "Users/login'");
+        if ((tmp.compare("\"authentication error\"")==0) || (tmp.find("error") != std::string::npos)){
+            QMessageBox::information(this, tr("Authentication error"), tr("Please check your username and password") );
+            uiLogin->lineEditPassword->clear();
+            return;
         } else {
-            QMessageBox::information(this, tr("Connection error"), tr("Could not connect to SciCat.\nPlease make sure that you are within the PSI intranet and try again.") );
-            accessGranted = false;
+            baseUi->metadataContainer.isBeamlineAccount = true;
         }
-        if (accessGranted){
-            auto tmpUserInfo = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "/Users/userInfos?access_token=" + token + "'");
-            baseUi->metadataContainer.userMail = QString::fromStdString(utils::extractFromJson(tmpUserInfo, "currentUserEmail"));
-            baseUi->metadataContainer.username = QString::fromStdString(utils::extractFromJson(tmpUserInfo, "currentUser"));
-            baseUi->ui->labelUsername->setText("Username: " + baseUi->metadataContainer.username);
-            baseUi->ui->labelServer->setText("Server: " + baseUi->defaultSettings.serverListNames[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()]);
-//            qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "Users/userInfos?access_token=" + token + "'";
-//            qDebug() << baseUi->metadataContainer.userMail;
-//            qDebug() << tmpUserInfo;
-            close();
-            baseUi->token = token;
-            baseUi->getAvailPgroups();
-            baseUi->show();
-            qDebug() << token;
-        }
-
     }
+
+
+    accessGranted = true;
+    if (tmp.find("access_token") != std::string::npos){
+        token = utils::extractFromJson(tmp, "access_token");
+    } else if (tmp.find("id") != std::string::npos) {
+        token = utils::extractFromJson(tmp, "id");
+    } else {
+        QMessageBox::information(this, tr("Connection error"), tr("Could not connect to SciCat.\nPlease make sure that you are within the PSI intranet and try again.") );
+        accessGranted = false;
+    }
+    if (accessGranted){
+        auto tmpUserInfo = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "/Users/userInfos?access_token=" + token + "'");
+        baseUi->metadataContainer.userMail = QString::fromStdString(utils::extractFromJson(tmpUserInfo, "currentUserEmail"));
+        baseUi->metadataContainer.username = QString::fromStdString(utils::extractFromJson(tmpUserInfo, "currentUser"));
+        baseUi->ui->labelUsername->setText("Username: " + baseUi->metadataContainer.username);
+        baseUi->ui->labelServer->setText("Server: " + baseUi->defaultSettings.serverListNames[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()]);
+        //            qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "Users/userInfos?access_token=" + token + "'";
+        //            qDebug() << baseUi->metadataContainer.userMail;
+        //            qDebug() << tmpUserInfo;
+        close();
+        baseUi->token = token;
+        baseUi->getAvailPgroups();
+        baseUi->show();
+        qDebug() << token;
+    }
+
+
 
 }
 

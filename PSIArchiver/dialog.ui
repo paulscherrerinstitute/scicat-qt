@@ -1324,33 +1324,10 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                    <property name="verticalSpacing">
                     <number>0</number>
                    </property>
-                   <item row="8" column="3">
-                    <widget class="QLineEdit" name="lineEditProposalID">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="styleSheet">
-                      <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="1" rowspan="2">
-                    <widget class="QTextEdit" name="textEditDescription">
-                     <property name="whatsThis">
-                      <string>Meaningful description of the datasets</string>
-                     </property>
-                     <property name="placeholderText">
-                      <string>e.g. ptychographic reconstructions with object regularization</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="8" column="2">
-                    <widget class="QLabel" name="labelProposalID">
+                   <item row="5" column="0" colspan="3">
+                    <widget class="QLabel" name="label_9">
                      <property name="text">
-                      <string>Proposal ID</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                      <string>Additional information used as metadata for this dataset:</string>
                      </property>
                     </widget>
                    </item>
@@ -1368,46 +1345,6 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                      </item>
                     </widget>
                    </item>
-                   <item row="7" column="2">
-                    <widget class="QLabel" name="labelOwnerEmail">
-                     <property name="text">
-                      <string>Owner email</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="labelDescription">
-                     <property name="text">
-                      <string>Description</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="1">
-                    <widget class="QLineEdit" name="lineEditDatasetName">
-                     <property name="toolTip">
-                      <string>Enter a meaningful name for this dataset. Do not use spaces.</string>
-                     </property>
-                     <property name="placeholderText">
-                      <string>e.g. catalyst_analysis_ID23</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="8" column="1">
-                    <widget class="QLineEdit" name="lineEditOwnerGroup">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="styleSheet">
-                      <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
-                     </property>
-                    </widget>
-                   </item>
                    <item row="7" column="1">
                     <widget class="QLineEdit" name="lineEditOwner">
                      <property name="enabled">
@@ -1418,10 +1355,10 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                      </property>
                     </widget>
                    </item>
-                   <item row="8" column="0">
-                    <widget class="QLabel" name="labelOwnerGroup">
+                   <item row="1" column="2">
+                    <widget class="QLabel" name="labelInvestigator">
                      <property name="text">
-                      <string>Owner group</string>
+                      <string>Investigator</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1438,63 +1375,23 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                      </property>
                     </widget>
                    </item>
-                   <item row="1" column="2">
-                    <widget class="QLabel" name="labelInvestigator">
+                   <item row="7" column="0">
+                    <widget class="QLabel" name="labelOwner">
                      <property name="text">
-                      <string>Investigator</string>
+                      <string>Owner</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                      </property>
                     </widget>
                    </item>
-                   <item row="4" column="1">
-                    <spacer name="verticalSpacer_11">
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>20</width>
-                       <height>50</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QLabel" name="labelDataType">
+                   <item row="8" column="0">
+                    <widget class="QLabel" name="labelOwnerGroup">
                      <property name="text">
-                      <string>Data type</string>
+                      <string>Owner group</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="5" column="0" colspan="3">
-                    <widget class="QLabel" name="label_9">
-                     <property name="text">
-                      <string>Additional information used as metadata for this dataset:</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="3">
-                    <widget class="QLineEdit" name="lineEditInvestigator">
-                     <property name="toolTip">
-                      <string>Email adress of the investigator. Only needed for derived datasets.</string>
-                     </property>
-                     <property name="placeholderText">
-                      <string>e.g. pimail@institute.ch</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="3" rowspan="2">
-                    <widget class="QTextEdit" name="textEditUsedSoftware">
-                     <property name="whatsThis">
-                      <string>Add the name or description of the software you used</string>
-                     </property>
-                     <property name="placeholderText">
-                      <string>e.g. https://gitlab.psi.ch/MyAnalysisRepo/MyScripts/commit/60629a1cbef493a26aac626602ba8f1a6c9e14d2</string>
                      </property>
                     </widget>
                    </item>
@@ -1502,38 +1399,6 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                     <widget class="QLabel" name="labelUsedSoftware">
                      <property name="text">
                       <string>Used software</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="7" column="3">
-                    <widget class="QLineEdit" name="lineEditOwnerEmail">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="minimumSize">
-                      <size>
-                       <width>188</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="styleSheet">
-                      <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="7" column="0">
-                    <widget class="QLabel" name="labelOwner">
-                     <property name="text">
-                      <string>Owner</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1556,6 +1421,81 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                      </property>
                     </spacer>
                    </item>
+                   <item row="4" column="1">
+                    <spacer name="verticalSpacer_11">
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item row="8" column="4">
+                    <widget class="QLineEdit" name="lineEditProposalID">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="7" column="2">
+                    <widget class="QLabel" name="labelOwnerEmail">
+                     <property name="text">
+                      <string>Owner email</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="1" rowspan="2">
+                    <widget class="QTextEdit" name="textEditDescription">
+                     <property name="whatsThis">
+                      <string>Meaningful description of the datasets</string>
+                     </property>
+                     <property name="placeholderText">
+                      <string>e.g. ptychographic reconstructions with object regularization</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="4" rowspan="2">
+                    <widget class="QTextEdit" name="textEditUsedSoftware">
+                     <property name="whatsThis">
+                      <string>Add the name or description of the software you used</string>
+                     </property>
+                     <property name="placeholderText">
+                      <string>e.g. https://gitlab.psi.ch/MyAnalysisRepo/MyScripts/commit/60629a1cbef493a26aac626602ba8f1a6c9e14d2</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="7" column="4">
+                    <widget class="QLineEdit" name="lineEditOwnerEmail">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>188</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                     </property>
+                    </widget>
+                   </item>
                    <item row="0" column="2">
                     <widget class="QLabel" name="labelCreationLocation">
                      <property name="text">
@@ -1566,12 +1506,68 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                      </property>
                     </widget>
                    </item>
-                   <item row="0" column="3">
-                    <widget class="QLineEdit" name="lineEditCreationLocation">
-                     <property name="placeholderText">
-                      <string>e.g. /PSI/SLS/CSAXS</string>
+                   <item row="8" column="2">
+                    <widget class="QLabel" name="labelProposalID">
+                     <property name="text">
+                      <string>Proposal ID</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                      </property>
                     </widget>
+                   </item>
+                   <item row="1" column="4">
+                    <widget class="QLineEdit" name="lineEditInvestigator">
+                     <property name="toolTip">
+                      <string>Email adress of the investigator. Only needed for derived datasets.</string>
+                     </property>
+                     <property name="placeholderText">
+                      <string>e.g. pimail@institute.ch</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QLineEdit" name="lineEditDatasetName">
+                     <property name="toolTip">
+                      <string>Enter a meaningful name for this dataset. Do not use spaces.</string>
+                     </property>
+                     <property name="placeholderText">
+                      <string>e.g. catalyst_analysis_ID23</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="labelDataType">
+                     <property name="text">
+                      <string>Data type</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="8" column="1">
+                    <widget class="QLineEdit" name="lineEditOwnerGroup">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="labelDescription">
+                     <property name="text">
+                      <string>Description</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="4">
+                    <widget class="QComboBox" name="comboBoxCreationLocation"/>
                    </item>
                   </layout>
                  </item>
