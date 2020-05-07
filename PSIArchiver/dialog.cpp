@@ -401,6 +401,13 @@ bool Dialog::checkMetadata(){
             return false;
         }
     }
+    if (ui->comboBoxDatatype->currentIndex()==0){
+        if (ui->lineEditInvestigator->text().isEmpty()){
+            QMessageBox::information(this, tr("Invalid entry"), tr("Investigator cannot be empty") );
+            ui->metadataGuided->setCurrentIndex(0);
+            return false;
+        }
+    }
 
     metadataContainer.datasetName = ui->lineEditDatasetName->text();
     return true;
@@ -691,6 +698,8 @@ bool Dialog::checkPgroup(){
 }
 
 bool Dialog::checkPIInfo(){
+    QSettings settingsContainer("PSI", "SciCat");
+
     if ((PIHasChanged) || (!PIIsValid)){
         qDebug() << "checking PI";
         PIHasChanged = false;
@@ -721,6 +730,7 @@ bool Dialog::checkPIInfo(){
         metadataContainer.ownerGroup = metadataContainer.pgroup;
         metadataContainer.owner = metadataContainer.PIFirstname + " " + metadataContainer.PILastname;
         metadataContainer.ownerEmail = metadataContainer.PIemail;
+        settingsContainer.value("investigatorIsPI", defaultSettings.investigatorIsPI).toBool() ? metadataContainer.investigator=QString::fromStdString(metadataContainer.PIemail) : metadataContainer.investigator=QString::fromStdString(utils::extractFromJson(metadataContainer.userInfo, "currentUserEmail"));
 
         return PIIsValid;
     }
@@ -743,7 +753,6 @@ void Dialog::getPI(){
             metadataContainer.instrument = utils::extractFromJson(tmp, "instrument");
             metadataContainer.proposalID = utils::extractFromJson(tmp, "proposalId");
 
-            settingsContainer.value("investigatorIsPI", defaultSettings.investigatorIsPI).toBool() ? metadataContainer.investigator=QString::fromStdString(metadataContainer.PIemail) : metadataContainer.investigator=QString::fromStdString(utils::extractFromJson(metadataContainer.userInfo, "currentUserEmail"));
             ui->lineEditPIMail->setText(QString::fromStdString(metadataContainer.PIemail));
             ui->lineEditPIFirstname->setText(QString::fromStdString(metadataContainer.PIFirstname));
             ui->lineEditPILastname->setText(QString::fromStdString(metadataContainer.PILastname));
