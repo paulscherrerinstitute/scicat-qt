@@ -49,17 +49,25 @@ else()
     dialog.cpp
     dialog.h
     dialog.ui
+    filebrowser.cpp
+    filebrowser.h
     filebrowser.ui
+    login.cpp
+    login.h
     login.ui
     archiverutils.cpp
     archiverutils.h
     pstream.h
     datasetmodel.cpp
     datasetmodel.h
+    datasetbrowser.cpp
+    datasetbrowser.h
     datasetbrowser.ui
     logbrowser.cpp
     logbrowser.h
     logbrowser.ui
+    settings.cpp
+    settings.h
     settings.ui
     ${RES_SOURCES}
   )

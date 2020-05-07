@@ -27,24 +27,23 @@
 #include <QSettings>
 #include <QCoreApplication>
 #include <QProcess>
+#include "qfiledialog.h"
+#include "QMessageBox"
+
+// forward declaration for external header files
+class DatasetModel;
+class Ingestor;
+class Dialog;
 
 #include "archiverutils.h"
 #include "datasetmodel.h"
 #include "logbrowser.h"
+#include "ui_dialog.h"
+#include "ui_datasetbrowser.h"
+#include "filebrowser.h"
+#include "settings.h"
+#include "datasetbrowser.h"
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-    class Dialog;
-    class fileBrowser;
-    class Login;
-    class DatasetBrowser;
-    class Settings;
-}
-
-
-
-class DatasetModel;
-class Ingestor;
 
 struct styleSheets_t {
     QString buttonNavigation;
@@ -293,83 +292,8 @@ private:
     QProcess *ingestion;
     void prepareIngestion();
 
-
-    
-
-
-
-
-
-
-
 };
 
-class fileBrowser : public QDialog
-{
-    Q_OBJECT
-
-public:
-    explicit fileBrowser(QWidget *parent = nullptr);
-    ~fileBrowser();
-    void connectToUi(Ui::Dialog *ui);
-    bool removeDuplicates = true;
-
-private slots:
-    void getCurrentEntry();
-    void setParentDirActive();
-    void selectButton();
-
-
-private:
-    Ui::fileBrowser *uiFileBrowser;
-    QFileSystemModel *fileModel;
-    QStringList filePathQList;
-    std::string filePath;
-    Ui::Dialog *baseUi;
-
-    void appendEntry();
-
-
-
-
-
-};
-
-class Login : public QDialog
-{
-    Q_OBJECT
-public:
-    Login(QWidget *parent = nullptr);
-    ~Login();
-    bool accessGranted = false;
-    void connectToGui(Dialog *ui);
-private:
-    Ui::Login *uiLogin;
-    Dialog *baseUi;
-private slots:
-    void getLoginData();
-
-
-signals:
-
-
-};
-
-class DatasetBrowser : public QDialog
-{
-    Q_OBJECT
-
-public:
-    explicit DatasetBrowser(const std::vector<QStringList>& datasetContainer, QWidget *parent = nullptr);
-    ~DatasetBrowser();
-    void connectToUi(Dialog *uiDialog);
-private slots:
-    void selectButton();
-private:
-    Ui::DatasetBrowser *ui;
-    Dialog *baseUi;
-    DatasetModel* datasets_m = new DatasetModel();
-};
 
 class Ingestor : public QThread
 {
@@ -387,27 +311,7 @@ private:
     Dialog *baseUi;
 };
 
-class Settings : public QDialog
-{
-    Q_OBJECT
 
-public:
-    explicit Settings(QWidget *parent = nullptr);
-    ~Settings();
-    void connectToUi(Dialog *uiDialog);
-    void updateSettings();
-
-public slots:
-    void toggleAdvancedSettings(int val);
-    void updateServerURL(int val);
-    void logFileBrowser();
-    void reset();
-    void acceptChanges();
-
-private:
-    Ui::Settings *ui;
-    Dialog *baseUi;
-};
 
 
 QString extractSourceFolder(std::vector<QString> container);
