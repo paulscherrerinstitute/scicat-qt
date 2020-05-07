@@ -163,6 +163,8 @@ Dialog::Dialog(QWidget *parent)
     ui->tableWidgetRetriever->setHorizontalHeaderLabels(QStringList({"Name", "Retrievable", "Retrieved"}));
 
 
+    ingestionLog = new LogBrowser(this);
+
     styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
                                           "QPushButton:hover{background-color:rgb(0, 70, 91); border-radius:0px}; "
                                           "QPushButton:!enabled{background-color:rgb(0, 45, 59); border-radius:0px; color:rgb(198, 198, 198)}";
@@ -546,15 +548,15 @@ void Dialog::startIngestion(){
 }
 
 void Dialog::ingestionFailed(QProcess::ProcessError error){
-    ui->plainTextEdit->appendPlainText("Error: " + (QString) error);
-    ui->plainTextEdit->appendPlainText(ingestion->errorString());
+    ingestionLog->ui->textEditIngestionLog->append("Error: " + (QString) error);
+    ingestionLog->ui->textEditIngestionLog->append(ingestion->errorString());
     qDebug() << "Error: " << error;
     ingestionFinished(1);
 }
 
 void Dialog::readIngestionOutput(){
     while(ingestion->canReadLine()){
-        ui->plainTextEdit->appendPlainText(ingestion->readLine());
+        ingestionLog->ui->textEditIngestionLog->append(ingestion->readLine());
     }
 
 }
@@ -966,7 +968,7 @@ void Dialog::updateRetrieveList(){
     QSettings settingsContainer("PSI", "SciCat");
     auto currentDatasets = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.ownerGroup + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + token + "'");
     auto successfulJobs = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'");
-//    qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'";
+
     // get all 'finishedSuccessful' jobs
     // sadly, there seems to be no option to filter the jobs by pgroup, so we have to query all and select the ones from the current account
     QJsonDocument successfulJobsJson = QJsonDocument::fromJson(QString::fromStdString(successfulJobs).toUtf8());
@@ -1018,8 +1020,7 @@ void Dialog::openSettings(){
 }
 
 void Dialog::openIngestionLog(){
-    LogBrowser log(this);
-    log.exec();
+    ingestionLog->exec();
 }
 
 void Dialog::quit(){

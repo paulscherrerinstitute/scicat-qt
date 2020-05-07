@@ -2037,16 +2037,6 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
               </item>
              </layout>
             </widget>
-            <widget class="QPlainTextEdit" name="plainTextEdit">
-             <property name="geometry">
-              <rect>
-               <x>460</x>
-               <y>210</y>
-               <width>171</width>
-               <height>161</height>
-              </rect>
-             </property>
-            </widget>
             <widget class="QPushButton" name="pushButtonOpenLog">
              <property name="geometry">
               <rect>

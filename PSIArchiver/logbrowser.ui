@@ -17,7 +17,7 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QTextEdit" name="textEdit"/>
+      <widget class="QTextEdit" name="textEditIngestionLog"/>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -35,7 +35,7 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="pushButtonClose">
          <property name="text">
           <string>Close</string>
          </property>

@@ -1,11 +1,8 @@
 #ifndef LOGBROWSER_H
 #define LOGBROWSER_H
 
-#include <QDialog>
+#include "ui_logbrowser.h"
 
-namespace Ui {
-class LogBrowser;
-}
 
 class LogBrowser : public QDialog
 {
@@ -14,9 +11,8 @@ class LogBrowser : public QDialog
 public:
     explicit LogBrowser(QWidget *parent = nullptr);
     ~LogBrowser();
-
-private:
     Ui::LogBrowser *ui;
+
 };
 
 #endif // LOGBROWSER_H

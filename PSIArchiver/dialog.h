@@ -291,6 +291,7 @@ private:
     bool ingested = false;
     QProcess *ingestion;
     void prepareIngestion();
+    LogBrowser *ingestionLog;
 
 };
 
