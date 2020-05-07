@@ -26,6 +26,18 @@ Dialog::Dialog(QWidget *parent)
     ui->nextSlideButton->hide();
     ui->pushButtonRetrieveData->hide();
     ui->pushButtonArchiveData->hide();
+    ui->labelManualEntry->hide();
+    ui->lineEditPIMail->hide();
+    ui->lineEditPIFirstname->hide();
+    ui->lineEditPILastname->hide();
+    ui->lineEditProposalID_2->hide();
+    ui->label_3->hide();
+    ui->label_4->hide();
+    ui->label_5->hide();
+    ui->label_6->hide();
+    ui->comboBoxCreationLocation->setCurrentIndex(-1);
+
+
 
     QSettings settingsContainer("PSI", "SciCat");
     updateSettingsContainer(settingsContainer, "investigatorIsPI", defaultSettings.investigatorIsPI);
@@ -74,6 +86,7 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonRetrieveData, SIGNAL(clicked()), this, SLOT(goToRetrieve()));
     connect(ui->pushButtonSettings, SIGNAL(clicked()), this, SLOT(openSettings()));
     connect(ui->pushButtonOpenLog, SIGNAL(clicked()), this, SLOT(openIngestionLog()));
+    connect(ui->comboBoxCreationLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(creationLocationChanged(int)));
 
 
     // warning label
@@ -335,12 +348,14 @@ void Dialog::goToPgroup(){
 void Dialog::goToFiles(){
     if (checkPIInfo()){
         goToPage(numPagesLogin);
+        ui->nextSlideButton->setText("Next");
     }
 }
 
 void Dialog::goToMetadata(){
     if (checkPIInfo() && filelistingCheckAndUpdate()){
         goToPage(numPagesLogin+1);
+        ui->nextSlideButton->setText("Next");
     }
 }
 
@@ -380,15 +395,22 @@ bool Dialog::checkMetadata(){
     }
     // raw data requires creationLocation
     if (ui->comboBoxDatatype->currentIndex()==1){
-        if (ui->lineEditDatasetName->text().isEmpty()){
-            QMessageBox::information(this, tr("Invalid entry"), tr("Dataset name cannot be empty.") );
+        if (ui->comboBoxCreationLocation->currentIndex()==-1){
+            QMessageBox::information(this, tr("Invalid entry"), tr("Instrument cannot be empty.") );
             ui->metadataGuided->setCurrentIndex(0);
-            ui->labelDatasetName->setFocus();
             return false;
         }
     }
+
     metadataContainer.datasetName = ui->lineEditDatasetName->text();
     return true;
+}
+
+void Dialog::creationLocationChanged(int val){
+    (void) val;
+    if (ui->stackedWidget->currentIndex()==2){
+        metadataContainer.creationLocation = ui->comboBoxCreationLocation->currentText();
+    }
 }
 
 bool Dialog::filelistingCheckAndUpdate(){
@@ -402,12 +424,18 @@ bool Dialog::filelistingCheckAndUpdate(){
     ui->lineEditOwnerEmail->setText(QString::fromStdString(metadataContainer.ownerEmail));
     ui->lineEditOwner->setText(QString::fromStdString(metadataContainer.owner));
     ui->lineEditOwnerGroup->setText(QString::fromStdString(metadataContainer.ownerGroup));
-    ui->lineEditProposalID->setText(QString::fromStdString(metadataContainer.proposalID));
-    ui->lineEditInvestigator->setText(metadataContainer.investigator);
-    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals/" + QString::fromStdString(metadataContainer.proposalID).replace("/", "%2F").toStdString() + "?access_token=" + token + "'");
-    metadataContainer.creationLocation = QString::fromStdString(utils::extractFromJson(tmp, "instrument"));
 
-    ui->comboBoxCreationLocation->setCurrentIndex(ui->comboBoxCreationLocation->findText(metadataContainer.creationLocation));
+    if (metadataContainer.proposalID.length()>0){
+        ui->lineEditProposalID->setText(QString::fromStdString(metadataContainer.proposalID));
+        auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals/" + QString::fromStdString(metadataContainer.proposalID).replace("/", "%2F").toStdString() + "?access_token=" + token + "'");
+        metadataContainer.creationLocation = QString::fromStdString(utils::extractFromJson(tmp, "instrument"));
+        ui->comboBoxCreationLocation->setCurrentIndex(ui->comboBoxCreationLocation->findText(metadataContainer.creationLocation));
+    } else {
+        if (metadataContainer.creationLocation.length()==0){
+            ui->comboBoxCreationLocation->setCurrentIndex(-1);
+        }
+    }
+    ui->lineEditInvestigator->setText(metadataContainer.investigator);
 
     filelistingContainer.clear();
     for (int ii=0; ii<ui->filelistingListWidget->count(); ii++ ){
@@ -705,21 +733,40 @@ void Dialog::getPI(){
             ui->lineEditPILastname->setText(QString::fromStdString(metadataContainer.PILastname));
             ui->lineEditProposalID_2->setText(QString::fromStdString(metadataContainer.proposalID));
 
+            ui->lineEditPIMail->show();
+            ui->lineEditPIFirstname->show();
+            ui->lineEditPILastname->show();
+            ui->lineEditProposalID_2->show();
+            ui->label_3->show();
+            ui->label_4->show();
+            ui->label_5->show();
+            ui->label_6->show();
+
             ui->lineEditPIMail->setEnabled(false);
             ui->lineEditPIFirstname->setEnabled(false);
             ui->lineEditPILastname->setEnabled(false);
             ui->lineEditProposalID_2->setEnabled(false);
 
         } else {
+            ui->label_3->show();
+            ui->label_4->show();
+            ui->label_5->show();
+            ui->label_6->hide();
+            ui->labelManualEntry->show();
+            ui->lineEditPIMail->show();
+            ui->lineEditPIFirstname->show();
+            ui->lineEditPILastname->show();
+            ui->lineEditProposalID_2->hide();
+
+
             ui->lineEditPIMail->setText("");
             ui->lineEditPIFirstname->setText("");
             ui->lineEditPILastname->setText("");
-            ui->lineEditProposalID_2->setText("");
+            metadataContainer.proposalID = "";
 
             ui->lineEditPIMail->setEnabled(true);
             ui->lineEditPIFirstname->setEnabled(true);
             ui->lineEditPILastname->setEnabled(true);
-            ui->lineEditProposalID_2->setEnabled(false);
         }
 
 

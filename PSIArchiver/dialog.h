@@ -246,6 +246,7 @@ private slots:
     void readIngestionOutput();
     void ingestionFailed(QProcess::ProcessError error);
     void openIngestionLog();
+    void creationLocationChanged(int val);
 
 
 
