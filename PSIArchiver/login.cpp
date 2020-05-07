@@ -8,7 +8,6 @@ Login::Login(QWidget *parent) :
 
     // connect to login UI
     connect(uiLogin->pushButtonLogin, SIGNAL (clicked()), this, SLOT (getLoginData()));
-
 }
 
 

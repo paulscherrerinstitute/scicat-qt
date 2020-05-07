@@ -15,6 +15,9 @@ DatasetBrowser::DatasetBrowser(const std::vector<QStringList>& datasetContainer,
     ui->tableViewDatasetBrowser->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     connect(ui->pushButton, SIGNAL (clicked()), this, SLOT (selectButton()));
+
+    // connect to parent
+    baseUi = dynamic_cast<Dialog*>(parent);
 }
 
 void DatasetBrowser::selectButton(){
@@ -33,10 +36,6 @@ void DatasetBrowser::selectButton(){
     }
     close();
 
-}
-
-void DatasetBrowser::connectToUi(Dialog *uiDialog){
-    baseUi = uiDialog;
 }
 
 DatasetBrowser::~DatasetBrowser()

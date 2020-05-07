@@ -756,7 +756,6 @@ void Dialog::openDatasetBrowser(){
 
     // open DatasetBrowser
     DatasetBrowser* db = new DatasetBrowser(datasetContainer, this);
-    db->connectToUi(this);
     db->exec();
     delete db;
 
@@ -1015,7 +1014,6 @@ void Dialog::updateRetrieveList(){
 
 void Dialog::openSettings(){
     Settings sett(this);
-    sett.connectToUi(this);
     sett.exec();
 }
 

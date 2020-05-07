@@ -14,6 +14,21 @@ Settings::Settings(QWidget *parent) :
     toggleAdvancedSettings(0);
     ui->tabWidget->setCurrentIndex(0);
 
+    // get parent class instance
+    baseUi = dynamic_cast<Dialog*>(parent);
+
+    ui->lineEditServer->setReadOnly(true);
+
+    //update UI
+    QSettings settingsContainer("PSI", "SciCat");
+    ui->lineEditMetadataFile->setText(settingsContainer.value("filenameMetadata").toString());
+    ui->lineEditFilelistingFile->setText(settingsContainer.value("filenameFilelisting").toString());
+    ui->lineEditLogPath->setText(settingsContainer.value("logPath").toString());
+    ui->checkBoxDeleteLog->setChecked(settingsContainer.value("deleteLog").toBool());
+    ui->checkBoxPrintCalls->setChecked(settingsContainer.value("printIngestion").toBool());
+    ui->checkBoxSystemCalls->setChecked(settingsContainer.value("disableSystemCalls").toBool());
+    ui->comboBoxServer->setCurrentIndex(settingsContainer.value("serverID").toInt());
+    updateServerURL(settingsContainer.value("serverID").toInt());
 }
 
 void Settings::reset(){
@@ -74,23 +89,6 @@ void Settings::toggleAdvancedSettings(int val){
 
 }
 
-void Settings::connectToUi(Dialog *uiDialog){
-    baseUi = uiDialog;
-    ui->lineEditServer->setReadOnly(true);
-
-    //update UI
-    QSettings settingsContainer("PSI", "SciCat");
-    ui->lineEditMetadataFile->setText(settingsContainer.value("filenameMetadata").toString());
-    ui->lineEditFilelistingFile->setText(settingsContainer.value("filenameFilelisting").toString());
-    ui->lineEditLogPath->setText(settingsContainer.value("logPath").toString());
-    ui->checkBoxDeleteLog->setChecked(settingsContainer.value("deleteLog").toBool());
-    ui->checkBoxPrintCalls->setChecked(settingsContainer.value("printIngestion").toBool());
-    ui->checkBoxSystemCalls->setChecked(settingsContainer.value("disableSystemCalls").toBool());
-    ui->comboBoxServer->setCurrentIndex(settingsContainer.value("serverID").toInt());
-    updateServerURL(settingsContainer.value("serverID").toInt());
-
-
-}
 
 Settings::~Settings()
 {

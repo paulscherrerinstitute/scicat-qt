@@ -11,7 +11,6 @@ class DatasetBrowser : public QDialog
 public:
     explicit DatasetBrowser(const std::vector<QStringList>& datasetContainer, QWidget *parent = nullptr);
     ~DatasetBrowser();
-    void connectToUi(Dialog *uiDialog);
 private slots:
     void selectButton();
 private:

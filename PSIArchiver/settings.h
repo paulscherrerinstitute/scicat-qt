@@ -11,7 +11,6 @@ class Settings : public QDialog
 public:
     explicit Settings(QWidget *parent = nullptr);
     ~Settings();
-    void connectToUi(Dialog *uiDialog);
     void updateSettings();
 
 public slots:
