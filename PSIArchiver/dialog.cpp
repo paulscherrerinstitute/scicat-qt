@@ -512,8 +512,16 @@ void Dialog::prepareIngestion(){
         for (int ii=0; ii<dsmodel->rowCount(); ii++){
             inputDatasetsList.push_back(dsmodel->data(dsmodel->index(ii,1), Qt::DisplayRole).toString());
         }
-        metadata["inputDatasets"] = QJsonArray::fromStringList(inputDatasetsList);
-        metadata["usedSoftware"] = metadataContainer.usedSoftware;
+        if (inputDatasetsList.length()==0){
+            metadata["inputDatasets"] = "N/A";
+        } else {
+            metadata["inputDatasets"] = QJsonArray::fromStringList(inputDatasetsList);
+        }
+        if (metadataContainer.usedSoftware.length()==0){
+            metadata["usedSoftware"] = "N/A";
+        } else {
+            metadata["usedSoftware"] = metadataContainer.usedSoftware;
+        }
     }
 
 
