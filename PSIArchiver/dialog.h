@@ -30,6 +30,7 @@
 
 #include "archiverutils.h"
 #include "datasetmodel.h"
+#include "logbrowser.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -245,6 +246,7 @@ private slots:
     void openSettings();
     void readIngestionOutput();
     void ingestionFailed(QProcess::ProcessError error);
+    void openIngestionLog();
 
 
 

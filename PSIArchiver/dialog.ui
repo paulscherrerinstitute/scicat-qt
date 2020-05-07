@@ -685,7 +685,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             <enum>QFrame::Sunken</enum>
            </property>
            <property name="currentIndex">
-            <number>2</number>
+            <number>3</number>
            </property>
            <widget class="QWidget" name="startPage">
             <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -2047,7 +2047,7 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
               </rect>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton">
+            <widget class="QPushButton" name="pushButtonOpenLog">
              <property name="geometry">
               <rect>
                <x>240</x>

@@ -76,6 +76,8 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonArchiveData, SIGNAL(clicked()), this, SLOT(goToArchive()));
     connect(ui->pushButtonRetrieveData, SIGNAL(clicked()), this, SLOT(goToRetrieve()));
     connect(ui->pushButtonSettings, SIGNAL(clicked()), this, SLOT(openSettings()));
+    connect(ui->pushButtonOpenLog, SIGNAL(clicked()), this, SLOT(openIngestionLog()));
+
 
     // warning label
     ui->warningLabel->setVisible(false);
@@ -995,7 +997,6 @@ void Dialog::updateRetrieveList(){
         if (std::find(finishedSuccessfulPIDs.begin(), finishedSuccessfulPIDs.end(), tmp.pid) != finishedSuccessfulPIDs.end()) {
           tmp.retrieved = "true";
         }
-//        qDebug() << tmp;
         retrieveContainer.push_back(tmp);
     }
 
@@ -1022,6 +1023,10 @@ void Dialog::openSettings(){
     sett.exec();
 }
 
+void Dialog::openIngestionLog(){
+    LogBrowser log(this);
+    log.exec();
+}
 
 void Dialog::quit(){
     close();

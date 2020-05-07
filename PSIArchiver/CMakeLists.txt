@@ -57,6 +57,9 @@ else()
     datasetmodel.cpp
     datasetmodel.h
     datasetbrowser.ui
+    logbrowser.cpp
+    logbrowser.h
+    logbrowser.ui
     settings.ui
     ${RES_SOURCES}
   )
