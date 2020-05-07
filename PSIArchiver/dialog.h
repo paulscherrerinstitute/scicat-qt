@@ -163,6 +163,8 @@ struct metadataContainer_t {
     QString username;
     std::string userInfo;
     bool isBeamlineAccount = false;
+    QString metadataFilename;
+    QString filelistingFilename;
 };
 
 class ButtonHoverWatcher : public QObject

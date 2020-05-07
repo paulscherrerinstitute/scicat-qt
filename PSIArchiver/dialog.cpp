@@ -471,11 +471,13 @@ void Dialog::prepareIngestion(){
         }
     }
 
-    QFile metadataFile(QDir(dirpath).filePath(settingsContainer.value("filenameMetadata", defaultSettings.filenameMetadata).toString()));
+    QString metafname = QDir(dirpath).filePath(settingsContainer.value("filenameMetadata", defaultSettings.filenameMetadata).toString());
+    QFile metadataFile(metafname);
     if (!metadataFile.open(QIODevice::WriteOnly)) {
         sendWarning("Could not open metadata file.");
         return;
     }
+    metadataContainer.metadataFilename = metafname;
 
     // prepare metadata file
     QJsonObject metadata;
@@ -519,11 +521,13 @@ void Dialog::prepareIngestion(){
     metadataFile.write(saveDoc.toJson());
     metadataFile.close();
 
-    QFile filelistingFile(QDir(dirpath).filePath(settingsContainer.value("filenameFilelisting", defaultSettings.filenameFilelisting).toString()));
+    QString filefname = QDir(dirpath).filePath(settingsContainer.value("filenameFilelisting", defaultSettings.filenameFilelisting).toString());
+    QFile filelistingFile(filefname);
     if (!filelistingFile.open(QIODevice::WriteOnly | QIODevice::Text)){
         sendWarning("Could not open filelisting file.");
         return;
     }
+    metadataContainer.filelistingFilename = filefname;
 
     QTextStream out(&filelistingFile);
     for (auto v:filelistingContainer){
@@ -563,7 +567,7 @@ void Dialog::startIngestion(){
         break;
     }
 
-    arguments << "--noninteractive" << "--allowexistingsource" << "--token" << QString::fromStdString(token);
+    arguments << "--noninteractive" << "--allowexistingsource" << "--token" << QString::fromStdString(token) << metadataContainer.metadataFilename << metadataContainer.filelistingFilename;
 
     // start ingestion
     qDebug() << "starting ingestion";
