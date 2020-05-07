@@ -58,6 +58,9 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->toolButtonPlus, SIGNAL(clicked()), this, SLOT(appendMetadataEntry()));
     connect(ui->toolButtonMinus, SIGNAL(clicked()), this, SLOT(removeMetadataEntry()));
     connect(ui->lineEditPgroup, SIGNAL(editingFinished()), this, SLOT(piChanged()));
+    connect(ui->lineEditPIMail, SIGNAL(editingFinished()), this, SLOT(piChanged()));
+    connect(ui->lineEditPIFirstname, SIGNAL(editingFinished()), this, SLOT(piChanged()));
+    connect(ui->lineEditPILastname, SIGNAL(editingFinished()), this, SLOT(piChanged()));
     connect(ui->pushButtonRestart, SIGNAL(clicked()), this, SLOT(restart()));
     connect(ui->lineEditDatasetName, SIGNAL(editingFinished()), this, SLOT(datasetNameCheck()));
     connect(ui->lineEditInvestigator, SIGNAL(editingFinished()), this, SLOT(investigatorChanged()));
@@ -521,6 +524,16 @@ void Dialog::startIngestion(){
     if (ui->checkBoxArchive->isChecked()>0){
         arguments << "--autoarchive";
     }
+    switch (settingsContainer.value("serverID", defaultSettings.serverID).toInt()){
+    case 0:
+        break;
+    case 1:
+        arguments << "-testenv";
+        break;
+    case 2:
+        arguments << "-devenv";
+        break;
+    }
 
     arguments << "--noninteractive" << "--allowexistingsource" << "--token" << QString::fromStdString(token);
 
@@ -638,6 +651,33 @@ bool Dialog::checkPIInfo(){
         qDebug() << "checking PI";
         PIHasChanged = false;
         PIIsValid = checkPgroup(); // this should also check the PI info, not only the pgroup
+
+        metadataContainer.PIemail = ui->lineEditPIMail->text().toStdString();
+        metadataContainer.PIFirstname = ui->lineEditPIFirstname->text().toStdString();
+        metadataContainer.PILastname = ui->lineEditPILastname->text().toStdString();
+        metadataContainer.proposalID = ui->lineEditProposalID_2->text().toStdString();
+
+
+        if (metadataContainer.PIFirstname.length()==0){
+            QMessageBox::information(this, tr("Error"), tr("PI name cannot be empty") );
+            return false;
+        }
+
+        if (metadataContainer.PILastname.length()==0){
+            QMessageBox::information(this, tr("Error"), tr("PI name cannot be empty") );
+            return false;
+        }
+
+        if (metadataContainer.PIemail.length()==0){
+            QMessageBox::information(this, tr("Error"), tr("Please enter a valid email address") );
+            return false;
+        }
+
+        // set defaults for owner/ownergroup etc
+        metadataContainer.ownerGroup = metadataContainer.pgroup;
+        metadataContainer.owner = metadataContainer.PIFirstname + " " + metadataContainer.PILastname;
+        metadataContainer.ownerEmail = metadataContainer.PIemail;
+
         return PIIsValid;
     }
 
@@ -659,25 +699,30 @@ void Dialog::getPI(){
             metadataContainer.instrument = utils::extractFromJson(tmp, "instrument");
             metadataContainer.proposalID = utils::extractFromJson(tmp, "proposalId");
 
-            // set defaults for owner/ownergroup etc
-            metadataContainer.ownerGroup = metadataContainer.pgroup;
-            metadataContainer.owner = metadataContainer.PIFirstname + " " + metadataContainer.PILastname;
-            metadataContainer.ownerEmail = metadataContainer.PIemail;
-            auto tmpUser = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Users/userInfos?access_token=" + token + "'");
-
-            settingsContainer.value("investigatorIsPI", defaultSettings.investigatorIsPI).toBool() ? metadataContainer.investigator=QString::fromStdString(metadataContainer.PIemail) : metadataContainer.investigator=QString::fromStdString(utils::extractFromJson(tmpUser, "currentUserEmail"));
+            settingsContainer.value("investigatorIsPI", defaultSettings.investigatorIsPI).toBool() ? metadataContainer.investigator=QString::fromStdString(metadataContainer.PIemail) : metadataContainer.investigator=QString::fromStdString(utils::extractFromJson(metadataContainer.userInfo, "currentUserEmail"));
             ui->lineEditPIMail->setText(QString::fromStdString(metadataContainer.PIemail));
             ui->lineEditPIFirstname->setText(QString::fromStdString(metadataContainer.PIFirstname));
             ui->lineEditPILastname->setText(QString::fromStdString(metadataContainer.PILastname));
             ui->lineEditProposalID_2->setText(QString::fromStdString(metadataContainer.proposalID));
 
+            ui->lineEditPIMail->setEnabled(false);
+            ui->lineEditPIFirstname->setEnabled(false);
+            ui->lineEditPILastname->setEnabled(false);
+            ui->lineEditProposalID_2->setEnabled(false);
 
+        } else {
+            ui->lineEditPIMail->setText("");
+            ui->lineEditPIFirstname->setText("");
+            ui->lineEditPILastname->setText("");
+            ui->lineEditProposalID_2->setText("");
+
+            ui->lineEditPIMail->setEnabled(true);
+            ui->lineEditPIFirstname->setEnabled(true);
+            ui->lineEditPILastname->setEnabled(true);
+            ui->lineEditProposalID_2->setEnabled(false);
         }
 
-        ui->lineEditPIMail->setEnabled(true);
-        ui->lineEditPIFirstname->setEnabled(true);
-        ui->lineEditPILastname->setEnabled(true);
-        ui->lineEditProposalID_2->setEnabled(true);
+
 
         ui->pushButtonArchiveData->show();
         ui->pushButtonRetrieveData->show();
