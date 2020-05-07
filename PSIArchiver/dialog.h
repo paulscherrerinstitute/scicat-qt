@@ -161,6 +161,7 @@ struct metadataContainer_t {
     QString description;
     QString userMail;
     QString username;
+    std::string userInfo;
     bool isBeamlineAccount = false;
 };
 

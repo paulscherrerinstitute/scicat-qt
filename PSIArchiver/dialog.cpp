@@ -294,14 +294,10 @@ void Dialog::usedSoftwareChanged(){
 }
 
 void Dialog::getAvailPgroups(){
-    QSettings settingsContainer("PSI", "SciCat");
-    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals?filter=%7B%22fields%22%3A%20%22ownerGroup%22%7D&access_token=" + token + "'");
-    auto delim = '}';
-    std::vector<std::string> tmpVec = utils::split(tmp, delim);
-    for (auto v:tmpVec){
-        if (v.length()>5){
-            availPgroups.push_back(QString::fromStdString(utils::extractFromJson(v, "ownerGroup")));
-        }
+    QJsonDocument userInfoReponse = QJsonDocument::fromJson(QString::fromStdString(metadataContainer.userInfo).toUtf8());
+    std::vector<QString>finishedSuccessfulPIDs;
+    for (auto v:userInfoReponse.object().find("currentGroups").value().toArray()){
+        availPgroups.push_back(v.toString());
     }
 
     // set autocomplete for pgroup selection
@@ -622,14 +618,15 @@ bool Dialog::checkPgroup(){
     if (ui->lineEditPgroup->text().size()==0){
         QMessageBox::information(this, tr("Error"), tr("pgroup cannot be empty") );
         pgroupIsValid = false;
+        return pgroupIsValid;
     } else if ((ui->lineEditPgroup->text().size() != 6) || (ui->lineEditPgroup->text().toStdString().find("p") != 0)){
         QMessageBox::information(this, tr("Error"), tr("Please enter a valid pgroup") );
         pgroupIsValid = false;
+        return pgroupIsValid;
     }
 
     // check if user has access to the given pgroup
-    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals?filter=%7B%22fields%22%3A%20%22ownerGroup%22%7D&access_token=" + token + "'");
-    if (pgroupIsValid && (tmp.find(ui->lineEditPgroup->text().toStdString())==std::string::npos)){
+    if (!availPgroups.contains(ui->lineEditPgroup->text())){
         auto msg = "Cannot access pgroup " + ui->lineEditPgroup->text().toStdString() + ". Permission denied.";
         QMessageBox::information(this, tr("Error"), tr(msg.c_str()));
         pgroupIsValid = false;
@@ -1192,11 +1189,12 @@ void Login::getLoginData(){
         auto tmpUserInfo = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "/Users/userInfos?access_token=" + token + "'");
         baseUi->metadataContainer.userMail = QString::fromStdString(utils::extractFromJson(tmpUserInfo, "currentUserEmail"));
         baseUi->metadataContainer.username = QString::fromStdString(utils::extractFromJson(tmpUserInfo, "currentUser"));
+        baseUi->metadataContainer.userInfo = tmpUserInfo;
         baseUi->ui->labelUsername->setText("Username: " + baseUi->metadataContainer.username);
         baseUi->ui->labelServer->setText("Server: " + baseUi->defaultSettings.serverListNames[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()]);
         //            qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "Users/userInfos?access_token=" + token + "'";
         //            qDebug() << baseUi->metadataContainer.userMail;
-        //            qDebug() << tmpUserInfo;
+//                    qDebug() << tmpUserInfo;
         close();
         baseUi->token = token;
         baseUi->getAvailPgroups();
