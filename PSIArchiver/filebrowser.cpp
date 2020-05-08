@@ -5,20 +5,25 @@ fileBrowser::fileBrowser(QWidget *parent) :
     uiFileBrowser(new Ui::fileBrowser)
 {
     uiFileBrowser->setupUi(this);
+    baseUi = dynamic_cast<Dialog*>(parent);
+    QSettings settingsContainer("PSI", "SciCat");
+    QDir cwd;
+    QDir pgroupPath = QDir("/das/work/"+QString::fromStdString(baseUi->metadataContainer.pgroup).midRef(0,4)+"/"+QString::fromStdString(baseUi->metadataContainer.pgroup));
+    if (pgroupPath.exists() && settingsContainer.value("usePgroupAsDefaultPath").toBool()){
+         cwd.setPath(pgroupPath.path());
+    } else {
+        cwd.setPath(QDir::homePath());
+    }
 
     fileModel = new QFileSystemModel(this);
     fileModel->setRootPath(QDir::rootPath());
     uiFileBrowser->columnView->setModel(fileModel);
     uiFileBrowser->columnView->setRootIndex(fileModel->index(QDir::rootPath()));
-    uiFileBrowser->columnView->selectionModel()->setCurrentIndex(fileModel->index(QDir::homePath()), QItemSelectionModel::Select);
+    uiFileBrowser->columnView->selectionModel()->setCurrentIndex(fileModel->index(cwd.path()), QItemSelectionModel::Select);
     uiFileBrowser->columnView->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
     connect(uiFileBrowser->pushButtonFileBrowser, SIGNAL (clicked()), this, SLOT (selectButton()));
     uiFileBrowser->columnView->selectionModel()->clearSelection();
-}
-
-void fileBrowser::connectToUi(Ui::Dialog *ui){
-    baseUi = ui;
 }
 
 void fileBrowser::selectButton(){
@@ -32,12 +37,12 @@ void fileBrowser::appendEntry(){
 
     // check if current entry already exists in filelisting to avoid duplicates
     QStringList listWidgetEntries;
-    for (int ii=0; ii<baseUi->filelistingListWidget->count(); ii++){
-        listWidgetEntries.push_back(baseUi->filelistingListWidget->item(ii)->text());
+    for (int ii=0; ii<baseUi->ui->filelistingListWidget->count(); ii++){
+        listWidgetEntries.push_back(baseUi->ui->filelistingListWidget->item(ii)->text());
     }
 
     // clear output
-    baseUi->filelistingListWidget->clear();
+    baseUi->ui->filelistingListWidget->clear();
     for (int ii=0; ii<filePathQList.size(); ii++){
         listWidgetEntries.push_back(filePathQList[ii]);
     }
@@ -46,7 +51,7 @@ void fileBrowser::appendEntry(){
     if (removeDuplicates){
         listWidgetEntries.removeDuplicates();
     }
-    baseUi->filelistingListWidget->addItems(listWidgetEntries);
+    baseUi->ui->filelistingListWidget->addItems(listWidgetEntries);
 
 
 }

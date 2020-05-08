@@ -27,14 +27,12 @@ Dialog::Dialog(QWidget *parent)
     ui->pushButtonRetrieveData->hide();
     ui->pushButtonArchiveData->hide();
     ui->labelManualEntry->hide();
-    ui->lineEditPIMail->hide();
-    ui->lineEditPIFirstname->hide();
-    ui->lineEditPILastname->hide();
-    ui->lineEditProposalID_2->hide();
-    ui->label_3->hide();
-    ui->label_4->hide();
-    ui->label_5->hide();
-    ui->label_6->hide();
+//    ui->lineEditPIMail->show();
+//    ui->lineEditPIFirstname->show();
+//    ui->lineEditPILastname->show();
+//    ui->lineEditProposalID_2->show();
+    ui->groupBoxProposal->hide();
+    ui->labelProposal->hide();
     ui->comboBoxCreationLocation->setCurrentIndex(-1);
 
 
@@ -49,6 +47,11 @@ Dialog::Dialog(QWidget *parent)
     updateSettingsContainer(settingsContainer, "serverID", defaultSettings.serverID);
     updateSettingsContainer(settingsContainer, "printIngestion", defaultSettings.printIngestion);
     updateSettingsContainer(settingsContainer, "disableSystemCalls", defaultSettings.disableSystemCalls);
+    updateSettingsContainer(settingsContainer, "usePgroupAsDefaultPath", defaultSettings.usePgroupAsDefaultPath);
+    updateSettingsContainer(settingsContainer, "saveProposalInfo", defaultSettings.saveProposalInfo);
+    updateSettingsContainer(settingsContainer, "loadProposalInfo", defaultSettings.loadProposalInfo);
+    updateSettingsContainer(settingsContainer, "enableArchive", defaultSettings.enableArchive);
+    updateSettingsContainer(settingsContainer, "enableIngest", defaultSettings.enableIngest);
 
 
 
@@ -762,10 +765,9 @@ void Dialog::getPI(){
             ui->lineEditPIFirstname->show();
             ui->lineEditPILastname->show();
             ui->lineEditProposalID_2->show();
-            ui->label_3->show();
-            ui->label_4->show();
-            ui->label_5->show();
-            ui->label_6->show();
+            ui->groupBoxProposal->show();
+            ui->labelProposal->show();
+            ui->labelManualEntry->hide();
 
             ui->lineEditPIMail->setEnabled(false);
             ui->lineEditPIFirstname->setEnabled(false);
@@ -773,14 +775,9 @@ void Dialog::getPI(){
             ui->lineEditProposalID_2->setEnabled(false);
 
         } else {
-            ui->label_3->show();
-            ui->label_4->show();
-            ui->label_5->show();
-            ui->label_6->hide();
+            ui->labelProposal->hide();
+            ui->groupBoxProposal->show();
             ui->labelManualEntry->show();
-            ui->lineEditPIMail->show();
-            ui->lineEditPIFirstname->show();
-            ui->lineEditPILastname->show();
             ui->lineEditProposalID_2->hide();
 
 
@@ -804,7 +801,6 @@ void Dialog::getPI(){
 
 void Dialog::fileDialogFilelisting(){
     fileBrowser fb(this);
-    fb.connectToUi(ui);
     fb.exec();
 
     ui->filelistingListWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);

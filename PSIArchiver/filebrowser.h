@@ -11,7 +11,6 @@ class fileBrowser : public QDialog
 public:
     explicit fileBrowser(QWidget *parent = nullptr);
     ~fileBrowser();
-    void connectToUi(Ui::Dialog *ui);
     bool removeDuplicates = true;
 
 private slots:
@@ -25,7 +24,7 @@ private:
     QFileSystemModel *fileModel;
     QStringList filePathQList;
     std::string filePath;
-    Ui::Dialog *baseUi;
+    Dialog *baseUi;
 
     void appendEntry();
 

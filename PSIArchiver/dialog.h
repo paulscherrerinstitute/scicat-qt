@@ -107,6 +107,13 @@ struct defaultSettings_t {
     uint serverID = 0;
     bool printIngestion = true;
     bool disableSystemCalls = true;
+    bool usePgroupAsDefaultPath = true;
+    bool saveProposalInfo = true;
+    bool loadProposalInfo = true;
+    bool enableArchive = true;
+    bool enableIngest = true;
+
+
 };
 
 struct inputDatasets_t {

@@ -387,10 +387,10 @@ QPushButton:!enabled{border-image:url(&quot;:/images/settings-not-active.svg&quo
         </size>
        </property>
        <property name="styleSheet">
-        <string notr="true">QStackedWidget{background-color:rgb(0, 70, 91); border:0px}</string>
+        <string notr="true">QStackedWidget{background-color:rgb(0, 70, 91); border:0px; padding:0px}</string>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="pgroupPage">
         <property name="styleSheet">
@@ -405,7 +405,7 @@ QPushButton:!enabled{border-image:url(&quot;:/images/settings-not-active.svg&quo
          </sizepolicy>
         </property>
         <property name="styleSheet">
-         <string notr="true">QWidget{background-color:rgb(0, 70, 91); border:0px}</string>
+         <string notr="true">QWidget{background-color:rgb(0, 70, 91); border:0px; padding:0px; padding-top:15px; padding-bottom:15px}</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_13">
          <property name="spacing">
@@ -447,8 +447,8 @@ QPushButton:!enabled{border-image:url(&quot;:/images/settings-not-active.svg&quo
              </property>
              <property name="minimumSize">
               <size>
-               <width>70</width>
-               <height>24</height>
+               <width>50</width>
+               <height>50</height>
               </size>
              </property>
              <property name="styleSheet">
@@ -475,8 +475,8 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
              </property>
              <property name="minimumSize">
               <size>
-               <width>70</width>
-               <height>24</height>
+               <width>50</width>
+               <height>50</height>
               </size>
              </property>
              <property name="styleSheet">
@@ -503,8 +503,8 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
              </property>
              <property name="minimumSize">
               <size>
-               <width>70</width>
-               <height>24</height>
+               <width>50</width>
+               <height>50</height>
               </size>
              </property>
              <property name="styleSheet">
@@ -685,49 +685,34 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             <enum>QFrame::Sunken</enum>
            </property>
            <property name="currentIndex">
-            <number>2</number>
+            <number>0</number>
            </property>
            <widget class="QWidget" name="startPage">
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <property name="spacing">
-              <number>0</number>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_15">
              <item>
-              <layout class="QVBoxLayout" name="verticalLayout_4">
-               <property name="spacing">
-                <number>0</number>
-               </property>
+              <layout class="QVBoxLayout" name="verticalLayout_29">
                <item>
-                <spacer name="verticalSpacer">
+                <spacer name="verticalSpacer_21">
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
                    <width>20</width>
-                   <height>32</height>
+                   <height>40</height>
                   </size>
                  </property>
                 </spacer>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <layout class="QHBoxLayout" name="horizontalLayout_6">
                  <item>
                   <spacer name="horizontalSpacer_4">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
                    </property>
                    <property name="sizeHint" stdset="0">
                     <size>
@@ -738,87 +723,74 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                   </spacer>
                  </item>
                  <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_3">
+                  <layout class="QVBoxLayout" name="verticalLayout_28">
                    <item>
-                    <layout class="QFormLayout" name="formLayout_2">
-                     <property name="horizontalSpacing">
-                      <number>5</number>
+                    <spacer name="verticalSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
                      </property>
-                     <property name="verticalSpacing">
-                      <number>5</number>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>679</width>
+                       <height>13</height>
+                      </size>
                      </property>
-                     <item row="1" column="0">
-                      <spacer name="horizontalSpacer">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                     <item row="2" column="1">
-                      <widget class="QLineEdit" name="lineEditPgroup">
-                       <property name="toolTip">
-                        <string>Enter the pgroup ID</string>
-                       </property>
-                       <property name="whatsThis">
-                        <string extracomment="Please enter your pgroup"/>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignCenter</set>
-                       </property>
-                       <property name="placeholderText">
-                        <string>p12345</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="3" column="1">
-                      <spacer name="horizontalSpacer_2">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>33</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                     <item row="2" column="0">
-                      <widget class="QLabel" name="label_2">
-                       <property name="minimumSize">
-                        <size>
-                         <width>100</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="text">
-                        <string>pgroup</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="0" colspan="2">
-                      <widget class="QLabel" name="label_8">
-                       <property name="whatsThis">
-                        <string extracomment="pgroup number"/>
-                       </property>
-                       <property name="text">
-                        <string>Please select the pgroup</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignCenter</set>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QGroupBox" name="groupBoxPgroup">
+                     <property name="title">
+                      <string>Select the pgroup</string>
+                     </property>
+                     <layout class="QVBoxLayout" name="verticalLayout_4">
+                      <item>
+                       <layout class="QHBoxLayout" name="horizontalLayout_2">
+                        <item>
+                         <spacer name="horizontalSpacer_2">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>33</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
+                         <widget class="QLineEdit" name="lineEditPgroup">
+                          <property name="toolTip">
+                           <string>Enter the pgroup ID</string>
+                          </property>
+                          <property name="whatsThis">
+                           <string extracomment="Please enter your pgroup"/>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignCenter</set>
+                          </property>
+                          <property name="placeholderText">
+                           <string>p12345</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_3">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
+                      </item>
+                     </layout>
+                    </widget>
                    </item>
                    <item>
                     <spacer name="verticalSpacer_8">
@@ -835,6 +807,18 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                    </item>
                    <item>
                     <widget class="QLabel" name="labelManualEntry">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>40</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Could not find a proposal for the given pgroup. Please enter the PI information manually.</string>
                      </property>
@@ -847,118 +831,127 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                     </widget>
                    </item>
                    <item>
-                    <layout class="QFormLayout" name="formLayoutPI">
-                     <property name="horizontalSpacing">
-                      <number>5</number>
+                    <widget class="QGroupBox" name="groupBoxProposal">
+                     <property name="title">
+                      <string>Proposal</string>
                      </property>
-                     <property name="verticalSpacing">
-                      <number>5</number>
-                     </property>
-                     <item row="1" column="0">
-                      <widget class="QLabel" name="label_3">
-                       <property name="text">
-                        <string>PI first name</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="1">
-                      <widget class="QLineEdit" name="lineEditPIFirstname">
-                       <property name="minimumSize">
-                        <size>
-                         <width>200</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="toolTip">
-                        <string>First name of the PI for the given pgroup.</string>
-                       </property>
-                       <property name="whatsThis">
-                        <string extracomment="First name of the PI for the given pgroup."/>
-                       </property>
-                       <property name="text">
-                        <string/>
-                       </property>
-                       <property name="placeholderText">
-                        <string>PI first name</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="2" column="0">
-                      <widget class="QLabel" name="label_4">
-                       <property name="text">
-                        <string>PI last name</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="2" column="1">
-                      <widget class="QLineEdit" name="lineEditPILastname">
-                       <property name="minimumSize">
-                        <size>
-                         <width>200</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="toolTip">
-                        <string>Last name of the PI for the given pgroup.</string>
-                       </property>
-                       <property name="placeholderText">
-                        <string>PI last name</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="3" column="0">
-                      <widget class="QLabel" name="label_5">
-                       <property name="text">
-                        <string>PI email</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="3" column="1">
-                      <widget class="QLineEdit" name="lineEditPIMail">
-                       <property name="minimumSize">
-                        <size>
-                         <width>200</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="toolTip">
-                        <string>Email adress of the PI for the given pgroup.</string>
-                       </property>
-                       <property name="inputMethodHints">
-                        <set>Qt::ImhEmailCharactersOnly</set>
-                       </property>
-                       <property name="placeholderText">
-                        <string>PImail@institute.ch</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="4" column="0">
-                      <widget class="QLabel" name="label_6">
-                       <property name="text">
-                        <string>Proposal number</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="4" column="1">
-                      <widget class="QLineEdit" name="lineEditProposalID_2">
-                       <property name="minimumSize">
-                        <size>
-                         <width>200</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="toolTip">
-                        <string>Proposal number for the given pgroup. Leave empty if it does not exist.</string>
-                       </property>
-                       <property name="echoMode">
-                        <enum>QLineEdit::Normal</enum>
-                       </property>
-                       <property name="placeholderText">
-                        <string>proposal ID</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
+                     <layout class="QVBoxLayout" name="verticalLayout_3">
+                      <item>
+                       <layout class="QFormLayout" name="formLayoutPI">
+                        <property name="horizontalSpacing">
+                         <number>5</number>
+                        </property>
+                        <property name="verticalSpacing">
+                         <number>5</number>
+                        </property>
+                        <item row="1" column="0">
+                         <widget class="QLabel" name="label_3">
+                          <property name="text">
+                           <string>PI first name</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="1" column="1">
+                         <widget class="QLineEdit" name="lineEditPIFirstname">
+                          <property name="minimumSize">
+                           <size>
+                            <width>200</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>First name of the PI for the given pgroup.</string>
+                          </property>
+                          <property name="whatsThis">
+                           <string extracomment="First name of the PI for the given pgroup."/>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="placeholderText">
+                           <string>PI first name</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="2" column="0">
+                         <widget class="QLabel" name="label_4">
+                          <property name="text">
+                           <string>PI last name</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="2" column="1">
+                         <widget class="QLineEdit" name="lineEditPILastname">
+                          <property name="minimumSize">
+                           <size>
+                            <width>200</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Last name of the PI for the given pgroup.</string>
+                          </property>
+                          <property name="placeholderText">
+                           <string>PI last name</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="3" column="0">
+                         <widget class="QLabel" name="label_5">
+                          <property name="text">
+                           <string>PI email</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="3" column="1">
+                         <widget class="QLineEdit" name="lineEditPIMail">
+                          <property name="minimumSize">
+                           <size>
+                            <width>200</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Email adress of the PI for the given pgroup.</string>
+                          </property>
+                          <property name="inputMethodHints">
+                           <set>Qt::ImhEmailCharactersOnly</set>
+                          </property>
+                          <property name="placeholderText">
+                           <string>PImail@institute.ch</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="4" column="0">
+                         <widget class="QLabel" name="labelProposal">
+                          <property name="text">
+                           <string>Proposal number</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="4" column="1">
+                         <widget class="QLineEdit" name="lineEditProposalID_2">
+                          <property name="minimumSize">
+                           <size>
+                            <width>200</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Proposal number for the given pgroup. Leave empty if it does not exist.</string>
+                          </property>
+                          <property name="echoMode">
+                           <enum>QLineEdit::Normal</enum>
+                          </property>
+                          <property name="placeholderText">
+                           <string>proposal ID</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                     </layout>
+                    </widget>
                    </item>
                    <item>
                     <spacer name="verticalSpacer_13">
@@ -971,7 +964,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                      <property name="sizeHint" stdset="0">
                       <size>
                        <width>17</width>
-                       <height>63</height>
+                       <height>20</height>
                       </size>
                      </property>
                     </spacer>
@@ -989,12 +982,12 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
 </string>
                      </property>
                      <property name="frameShape">
-                      <enum>QFrame::StyledPanel</enum>
+                      <enum>QFrame::NoFrame</enum>
                      </property>
                      <property name="frameShadow">
                       <enum>QFrame::Raised</enum>
                      </property>
-                     <layout class="QHBoxLayout" name="horizontalLayout_6">
+                     <layout class="QHBoxLayout" name="horizontalLayout_3">
                       <property name="spacing">
                        <number>0</number>
                       </property>
@@ -1013,6 +1006,19 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                       <item>
                        <layout class="QHBoxLayout" name="horizontalLayout_5">
                         <item>
+                         <spacer name="horizontalSpacer_21">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
                          <widget class="QPushButton" name="pushButtonRetrieveData">
                           <property name="text">
                            <string>Retrieve data</string>
@@ -1023,6 +1029,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                          <spacer name="horizontalSpacer_12">
                           <property name="orientation">
                            <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeType">
+                           <enum>QSizePolicy::Expanding</enum>
                           </property>
                           <property name="sizeHint" stdset="0">
                            <size>
@@ -1038,6 +1047,19 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                            <string>Archive data</string>
                           </property>
                          </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_22">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
                         </item>
                        </layout>
                       </item>
@@ -1060,9 +1082,12 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                   </layout>
                  </item>
                  <item>
-                  <spacer name="horizontalSpacer_3">
+                  <spacer name="horizontalSpacer">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
                    </property>
                    <property name="sizeHint" stdset="0">
                     <size>
@@ -1959,115 +1984,156 @@ QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
             </layout>
            </widget>
            <widget class="QWidget" name="submitJob">
-            <widget class="QWidget" name="layoutWidget">
+            <widget class="QWidget" name="">
              <property name="geometry">
               <rect>
-               <x>220</x>
+               <x>210</x>
                <y>100</y>
-               <width>216</width>
-               <height>80</height>
+               <width>281</width>
+               <height>331</height>
               </rect>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout">
+             <layout class="QVBoxLayout" name="verticalLayout_27">
               <item>
-               <widget class="QCheckBox" name="checkBoxIngest">
-                <property name="text">
-                 <string>Ingest data to data catalogue</string>
+               <layout class="QVBoxLayout" name="verticalLayout">
+                <item>
+                 <widget class="QCheckBox" name="checkBoxIngest">
+                  <property name="text">
+                   <string>Ingest data to data catalogue</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkBoxArchive">
+                  <property name="text">
+                   <string>Archive data </string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_19">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
                 </property>
-                <property name="checked">
-                 <bool>true</bool>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
                 </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QWidget" name="waitingMessage" native="true">
+                <layout class="QVBoxLayout" name="verticalLayout_2">
+                 <item>
+                  <widget class="QLabel" name="ingestingDatasets">
+                   <property name="text">
+                    <string>Ingesting datasets</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="waitingCircle">
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="pleaseWait">
+                   <property name="text">
+                    <string>Please wait</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="checkBoxArchive">
-                <property name="text">
-                 <string>Archive data </string>
+               <spacer name="verticalSpacer_20">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
                 </property>
-                <property name="checked">
-                 <bool>true</bool>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>20</height>
+                 </size>
                 </property>
-               </widget>
+               </spacer>
               </item>
-             </layout>
-            </widget>
-            <widget class="QPushButton" name="pushButtonRestart">
-             <property name="geometry">
-              <rect>
-               <x>330</x>
-               <y>380</y>
-               <width>88</width>
-               <height>36</height>
-              </rect>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px}
+              <item>
+               <widget class="QFrame" name="frame_5">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_26">
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_14">
+                   <item>
+                    <widget class="QPushButton" name="pushButtonOpenLog">
+                     <property name="text">
+                      <string>Open log</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_20">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButtonRestart">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px}
 QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}</string>
-             </property>
-             <property name="text">
-              <string>Restart</string>
-             </property>
-            </widget>
-            <widget class="QWidget" name="waitingMessage" native="true">
-             <property name="geometry">
-              <rect>
-               <x>230</x>
-               <y>220</y>
-               <width>191</width>
-               <height>131</height>
-              </rect>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_2">
-              <item>
-               <widget class="QLabel" name="ingestingDatasets">
-                <property name="text">
-                 <string>Ingesting datasets</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="waitingCircle">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="pleaseWait">
-                <property name="text">
-                 <string>Please wait</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
+                     </property>
+                     <property name="text">
+                      <string>Restart</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
                </widget>
               </item>
              </layout>
-            </widget>
-            <widget class="QPushButton" name="pushButtonOpenLog">
-             <property name="geometry">
-              <rect>
-               <x>240</x>
-               <y>380</y>
-               <width>88</width>
-               <height>34</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Open log</string>
-             </property>
             </widget>
            </widget>
            <widget class="QWidget" name="retrieverPage">
