@@ -9,7 +9,6 @@ fileBrowser::fileBrowser(QWidget *parent) :
     QSettings settingsContainer("PSI", "SciCat");
     QDir cwd;
     QDir pgroupPath = QDir("/das/work/"+QString::fromStdString(baseUi->metadataContainer.pgroup).midRef(0,3)+"/"+QString::fromStdString(baseUi->metadataContainer.pgroup));
-    qDebug() << pgroupPath.path();
     if (pgroupPath.exists() && settingsContainer.value("usePgroupAsDefaultPath").toBool()){
          cwd.setPath(pgroupPath.path());
     } else {
@@ -62,7 +61,7 @@ void fileBrowser::getCurrentEntry(){
     QModelIndex index = uiFileBrowser->columnView->currentIndex();
     QModelIndexList indexList = uiFileBrowser->columnView->selectionModel()->selection().indexes();
     qDebug() << indexList.size();
-    for (int ii=0; ii<indexList.size(); ++ii) {
+    for (int ii=(int)(filePathQList.length()==0); ii<indexList.size(); ++ii) { // fix for a weird bug: QT creates an additional entry for the first time the GUI is used
         filePath = "/" + indexList[ii].data().toString().toStdString();
         QModelIndex parentIndex, parentIndexOld;
         QVariant dataParent;

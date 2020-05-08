@@ -51,7 +51,6 @@ struct styleSheets_t {
 };
 
 struct defaultSettings_t {
-    bool investigatorIsPI = false;
     QString binaryPath = "datasetIngestor";
     QString logPath = QDir::homePath() + "/.scicat/log/";
     QString filenameFilelisting = "filelisting.txt";
@@ -110,8 +109,11 @@ struct defaultSettings_t {
     bool usePgroupAsDefaultPath = true;
     bool saveProposalInfo = true;
     bool loadProposalInfo = true;
+    bool disableEmails = false;
     bool enableArchive = true;
     bool enableIngest = true;
+    bool investigatorIsPI = false;
+
 
 
 };

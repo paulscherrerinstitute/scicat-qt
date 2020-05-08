@@ -52,6 +52,7 @@ Dialog::Dialog(QWidget *parent)
     updateSettingsContainer(settingsContainer, "loadProposalInfo", defaultSettings.loadProposalInfo);
     updateSettingsContainer(settingsContainer, "enableArchive", defaultSettings.enableArchive);
     updateSettingsContainer(settingsContainer, "enableIngest", defaultSettings.enableIngest);
+    updateSettingsContainer(settingsContainer, "disableEmails", defaultSettings.disableEmails);
 
 
 
