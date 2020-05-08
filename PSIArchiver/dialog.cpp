@@ -762,11 +762,17 @@ void Dialog::getPI(){
             ui->lineEditPIFirstname->setText(QString::fromStdString(metadataContainer.PIFirstname));
             ui->lineEditPILastname->setText(QString::fromStdString(metadataContainer.PILastname));
             ui->lineEditProposalID_2->setText(QString::fromStdString(metadataContainer.proposalID));
+            ui->lineEditTitle->setText(QString::fromStdString(metadataContainer.proposalTitle));
+            ui->textEditAbstract->setText(QString::fromStdString(metadataContainer.proposalAbstract));
 
             ui->lineEditPIMail->show();
             ui->lineEditPIFirstname->show();
             ui->lineEditPILastname->show();
             ui->lineEditProposalID_2->show();
+            ui->lineEditTitle->show();
+            ui->textEditAbstract->show();
+            ui->labelTitle->show();
+            ui->labelAbstract->show();
             ui->groupBoxProposal->show();
             ui->labelProposal->show();
             ui->labelManualEntry->hide();
@@ -775,13 +781,18 @@ void Dialog::getPI(){
             ui->lineEditPIFirstname->setEnabled(false);
             ui->lineEditPILastname->setEnabled(false);
             ui->lineEditProposalID_2->setEnabled(false);
+            ui->lineEditTitle->setEnabled(false);
+            ui->textEditAbstract->setEnabled(false);
 
         } else {
             ui->labelProposal->hide();
             ui->groupBoxProposal->show();
             ui->labelManualEntry->show();
             ui->lineEditProposalID_2->hide();
-
+            ui->lineEditTitle->hide();
+            ui->textEditAbstract->hide();
+            ui->labelTitle->hide();
+            ui->labelAbstract->hide();
 
             ui->lineEditPIMail->setText("");
             ui->lineEditPIFirstname->setText("");

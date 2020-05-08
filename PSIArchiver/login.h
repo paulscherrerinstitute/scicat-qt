@@ -1,6 +1,11 @@
 #ifndef LOGIN_H
 #define LOGIN_H
 
+
+#ifdef KERBEROS
+#define SKIP_KERBEROS
+#endif
+
 #include "dialog.h"
 #include "ui_login.h"
 
@@ -16,8 +21,16 @@ public:
 private:
     Ui::Login *uiLogin;
     Dialog *baseUi;
+    void authenticateUser(const QString pass);
+    QProcess *kerberosAuth;
+    void openGate();
+    void errorMessage(QString msg);
+
 private slots:
     void getLoginData();
+    void authenticationFailed(QProcess::ProcessError error);
+    void authenticationFinished(int val);
+
 
 
 signals:
