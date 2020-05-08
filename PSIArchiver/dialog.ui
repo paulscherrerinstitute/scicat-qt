@@ -685,7 +685,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             <enum>QFrame::Sunken</enum>
            </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>3</number>
            </property>
            <widget class="QWidget" name="startPage">
             <layout class="QHBoxLayout" name="horizontalLayout_15">
@@ -741,6 +741,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                     <widget class="QGroupBox" name="groupBoxPgroup">
                      <property name="title">
                       <string>Select the pgroup</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_4">
                       <item>
@@ -834,6 +837,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                     <widget class="QGroupBox" name="groupBoxProposal">
                      <property name="title">
                       <string>Proposal</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_3">
                       <item>
@@ -2083,7 +2089,7 @@ QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
               <item>
                <widget class="QFrame" name="frame_5">
                 <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
+                 <enum>QFrame::NoFrame</enum>
                 </property>
                 <property name="frameShadow">
                  <enum>QFrame::Raised</enum>

@@ -313,6 +313,7 @@ void Dialog::usedSoftwareChanged(){
 void Dialog::getAvailPgroups(){
     QJsonDocument userInfoReponse = QJsonDocument::fromJson(QString::fromStdString(metadataContainer.userInfo).toUtf8());
     std::vector<QString>finishedSuccessfulPIDs;
+    qDebug() << userInfoReponse;
     for (auto v:userInfoReponse.object().find("currentGroups").value().toArray()){
         availPgroups.push_back(v.toString());
     }
@@ -785,6 +786,7 @@ void Dialog::getPI(){
             ui->lineEditPIFirstname->setText("");
             ui->lineEditPILastname->setText("");
             metadataContainer.proposalID = "";
+            ui->lineEditProposalID_2->setText(QString::fromStdString(metadataContainer.proposalID));
 
             ui->lineEditPIMail->setEnabled(true);
             ui->lineEditPIFirstname->setEnabled(true);

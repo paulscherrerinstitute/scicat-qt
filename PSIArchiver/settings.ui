@@ -81,7 +81,7 @@
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>-219</y>
+                 <y>0</y>
                  <width>590</width>
                  <height>560</height>
                 </rect>
@@ -91,6 +91,9 @@
                  <widget class="QGroupBox" name="groupBox">
                   <property name="title">
                    <string>Log files</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_3">
                    <item>
@@ -153,6 +156,9 @@
                   <property name="title">
                    <string>Proposal</string>
                   </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
                   <layout class="QVBoxLayout" name="verticalLayout_15">
                    <item>
                     <widget class="QCheckBox" name="checkBoxSaveProposalInfo">
@@ -176,6 +182,9 @@
                   <property name="title">
                    <string>File selection</string>
                   </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
                   <layout class="QVBoxLayout" name="verticalLayout_4">
                    <item>
                     <widget class="QCheckBox" name="checkBoxUsePgroupAsPath">
@@ -191,6 +200,9 @@
                  <widget class="QGroupBox" name="groupBox_2">
                   <property name="title">
                    <string>Metadata</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_10">
                    <item>
@@ -390,6 +402,9 @@
                  <property name="title">
                   <string>Server</string>
                  </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
                  <layout class="QVBoxLayout" name="verticalLayout_5">
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -428,6 +443,9 @@
                 <widget class="QGroupBox" name="groupBoxDebugging">
                  <property name="title">
                   <string>Debugging</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_7">
                   <item>
