@@ -365,11 +365,14 @@ void Dialog::goToMetadata(){
 }
 
 void Dialog::goToSubmit(){
+    QSettings settingsContainer("PSI", "SciCat");
     if (checkPIInfo() && filelistingCheckAndUpdate() && checkMetadata()){
         goToPage(numPagesLogin+2);
         ui->pushButtonRestart->setText("Submit job");
         ui->waitingMessage->hide();
         ui->nextSlideButton->setText("Done");
+        ui->checkBoxIngest->setChecked(settingsContainer.value("enableIngest").toBool());
+        ui->checkBoxArchive->setChecked(settingsContainer.value("enableArchive").toBool());
     }
 }
 

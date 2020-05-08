@@ -61,7 +61,7 @@ void fileBrowser::getCurrentEntry(){
     QModelIndex index = uiFileBrowser->columnView->currentIndex();
     QModelIndexList indexList = uiFileBrowser->columnView->selectionModel()->selection().indexes();
     qDebug() << indexList.size();
-    for (int ii=(int)(filePathQList.length()==0); ii<indexList.size(); ++ii) { // fix for a weird bug: QT creates an additional entry for the first time the GUI is used
+    for (int ii=0; ii<indexList.size(); ++ii) {
         filePath = "/" + indexList[ii].data().toString().toStdString();
         QModelIndex parentIndex, parentIndexOld;
         QVariant dataParent;
@@ -85,7 +85,12 @@ void fileBrowser::getCurrentEntry(){
             filePath.insert(0,"/" + parentStdString);
             parentIndexOld = parentIndex;
         }
-        filePathQList.push_back(QString::fromStdString(filePath));
+        qDebug() << filePath;
+        QDir qPath = QDir(QString::fromStdString(filePath));
+        qDebug() << qPath.exists();
+        if (qPath.exists()|| qPath.exists(QString::fromStdString(filePath))){ // fix for a weird bug: QT creates an additional entry for the first time the GUI is used
+            filePathQList.push_back(QString::fromStdString(filePath));
+        }
     }
     filePathQList.removeDuplicates(); // probably not needed
 
