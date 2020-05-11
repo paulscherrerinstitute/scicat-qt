@@ -88,6 +88,7 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonImportMetadata, SIGNAL(clicked()), this, SLOT(importMetadata()));
     connect(ui->pushButtonArchiveData, SIGNAL(clicked()), this, SLOT(goToArchive()));
     connect(ui->pushButtonRetrieveData, SIGNAL(clicked()), this, SLOT(goToRetrieve()));
+    connect(ui->pushButtonRetrieve, SIGNAL(clicked()), this, SLOT(requestRetrieve()));
     connect(ui->pushButtonSettings, SIGNAL(clicked()), this, SLOT(openSettings()));
     connect(ui->pushButtonOpenLog, SIGNAL(clicked()), this, SLOT(openIngestionLog()));
     connect(ui->comboBoxCreationLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(creationLocationChanged(int)));
@@ -177,10 +178,12 @@ Dialog::Dialog(QWidget *parent)
     ui->tableWidgetRetriever->insertColumn(0);
     ui->tableWidgetRetriever->insertColumn(1);
     ui->tableWidgetRetriever->insertColumn(2);
+    ui->tableWidgetRetriever->insertColumn(3);
     ui->tableWidgetRetriever->setColumnWidth(0, 200);
     ui->tableWidgetRetriever->setColumnWidth(1, 100);
     ui->tableWidgetRetriever->setColumnWidth(2, 100);
-    ui->tableWidgetRetriever->setHorizontalHeaderLabels(QStringList({"Name", "Retrievable", "Retrieved"}));
+    ui->tableWidgetRetriever->setColumnWidth(3, 300);
+    ui->tableWidgetRetriever->setHorizontalHeaderLabels(QStringList({"Name", "Retrievable", "Retrieved", "PID"}));
 
 
     ingestionLog = new LogBrowser(this);
@@ -503,12 +506,13 @@ void Dialog::prepareIngestion(){
     metadata["ownerGroup"] = QString::fromStdString(metadataContainer.ownerGroup);
     metadata["ownerEmail"] = QString::fromStdString(metadataContainer.ownerEmail);
     metadata["description"] = metadataContainer.description;
+    metadata["datasetName"] = metadataContainer.datasetName;
+
 
     if (isRawData){
         qDebug() << "Preparing metadata file for raw data";
         metadata["principalInvestigator"] = QString::fromStdString(metadataContainer.PIemail); // this should be changed in the future; there is no need to save it as std::string
         metadata["creationLocation"] = metadataContainer.creationLocation;
-        metadata["datasetName"] = metadataContainer.datasetName;
         metadata["type"] = "raw";
         auto res = ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
         QJsonArray scMetadata;
@@ -740,6 +744,34 @@ bool Dialog::checkPIInfo(){
         metadataContainer.ownerEmail = metadataContainer.PIemail;
         settingsContainer.value("investigatorIsPI", defaultSettings.investigatorIsPI).toBool() ? metadataContainer.investigator=QString::fromStdString(metadataContainer.PIemail) : metadataContainer.investigator=QString::fromStdString(utils::extractFromJson(metadataContainer.userInfo, "currentUserEmail"));
 
+        // save PI info if needed
+        if ((!metadataContainer.retrievedPIInfoSuccessfully) && (settingsContainer.value("saveProposalInfo", defaultSettings.saveProposalInfo).toBool())){
+            qDebug() << "Writing PI info";
+            QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "proposals";
+            if (!QDir(dirpath).exists()){
+                qDebug()<<"Output directory does not exist";
+                if (!QDir().mkpath(dirpath)){
+                    sendWarning("Could not write to output directory.");
+                    return PIIsValid;
+                }
+            }
+
+            QString proposalFile = QDir(dirpath).filePath(QString::fromStdString("proposal_" + metadataContainer.pgroup+".dat"));
+
+            QFile file(proposalFile);
+            if (!file.open(QIODevice::WriteOnly | QIODevice::Text)){
+                sendWarning("Could not open proposal file for writing.");
+            } else {
+                QTextStream out(&file);
+                out << QString::fromStdString(metadataContainer.PIFirstname) << "\n";
+                out << QString::fromStdString(metadataContainer.PILastname) << "\n";
+                out << QString::fromStdString(metadataContainer.PIemail) << "\n";
+                file.close();
+            }
+
+        }
+
+
         return PIIsValid;
     }
 
@@ -787,31 +819,83 @@ void Dialog::getPI(){
             ui->lineEditTitle->setEnabled(false);
             ui->textEditAbstract->setEnabled(false);
 
+            metadataContainer.retrievedPIInfoSuccessfully = true;
+
+
         } else {
-            ui->labelProposal->hide();
-            ui->groupBoxProposal->show();
-            ui->labelManualEntry->show();
-            ui->lineEditProposalID_2->hide();
-            ui->lineEditTitle->hide();
-            ui->textEditAbstract->hide();
-            ui->labelTitle->hide();
-            ui->labelAbstract->hide();
 
-            ui->lineEditPIMail->setText("");
-            ui->lineEditPIFirstname->setText("");
-            ui->lineEditPILastname->setText("");
-            metadataContainer.proposalID = "";
-            ui->lineEditProposalID_2->setText(QString::fromStdString(metadataContainer.proposalID));
+            metadataContainer.retrievedPIInfoSuccessfully = false;
+            bool manualEdit = false;
 
-            ui->lineEditPIMail->setEnabled(true);
-            ui->lineEditPIFirstname->setEnabled(true);
-            ui->lineEditPILastname->setEnabled(true);
+            QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "proposals";
+            QString proposalFile = QDir(dirpath).filePath(QString::fromStdString("proposal_" + metadataContainer.pgroup+".dat"));
+
+            if (settingsContainer.value("loadProposalInfo",defaultSettings.loadProposalInfo).toBool()){
+                QFile file(proposalFile);
+                if(!file.open(QIODevice::ReadOnly)) {
+                    manualEdit = true;
+                } else {
+                    QTextStream in(&file);
+
+                    QStringList proposalContent;
+                    while(!in.atEnd()) {
+                        proposalContent.push_back(in.readLine());
+                    }
+                    qDebug() << proposalContent.size();
+                    if (proposalContent.size()<3){
+                        manualEdit = true;
+                    } else {
+                        ui->labelProposal->hide();
+                        ui->groupBoxProposal->show();
+                        ui->labelManualEntry->hide();
+                        ui->lineEditProposalID_2->hide();
+                        ui->lineEditTitle->hide();
+                        ui->textEditAbstract->hide();
+                        ui->labelTitle->hide();
+                        ui->labelAbstract->hide();
+
+                        ui->lineEditPIFirstname->setText(proposalContent[0]);
+                        ui->lineEditPILastname->setText(proposalContent[1]);
+                        ui->lineEditPIMail->setText(proposalContent[2]);
+                        metadataContainer.proposalID = "";
+                        ui->lineEditProposalID_2->setText(QString::fromStdString(metadataContainer.proposalID));
+
+                        ui->lineEditPIMail->setEnabled(true);
+                        ui->lineEditPIFirstname->setEnabled(true);
+                        ui->lineEditPILastname->setEnabled(true);
+                    }
+
+
+                    file.close();
+                }
+
+            }
+           if (manualEdit) {
+                ui->labelProposal->hide();
+                ui->groupBoxProposal->show();
+                ui->labelManualEntry->show();
+                ui->lineEditProposalID_2->hide();
+                ui->lineEditTitle->hide();
+                ui->textEditAbstract->hide();
+                ui->labelTitle->hide();
+                ui->labelAbstract->hide();
+
+                ui->lineEditPIMail->setText("");
+                ui->lineEditPIFirstname->setText("");
+                ui->lineEditPILastname->setText("");
+                metadataContainer.proposalID = "";
+                ui->lineEditProposalID_2->setText(QString::fromStdString(metadataContainer.proposalID));
+
+                ui->lineEditPIMail->setEnabled(true);
+                ui->lineEditPIFirstname->setEnabled(true);
+                ui->lineEditPILastname->setEnabled(true);
+            }
+
         }
-
-
 
         ui->pushButtonArchiveData->show();
         ui->pushButtonRetrieveData->show();
+
 
     }
 }
@@ -1041,7 +1125,6 @@ void Dialog::comboBoxDatatypeChanged(int val){
 
 void Dialog::appendMetadataEntry(){
     // check if item supports children
-
     if (ui->treeWidget->currentItem() != nullptr) {
         if (ui->treeWidget->selectedItems().size()>0){
             if (ui->treeWidget->currentItem()->flags().testFlag(Qt::ItemIsDropEnabled)){
@@ -1100,7 +1183,8 @@ void Dialog::updateRetrieveList(){
     QSettings settingsContainer("PSI", "SciCat");
     auto currentDatasets = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.ownerGroup + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + token + "'");
     auto successfulJobs = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'");
-
+    qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'";
+    qDebug() << successfulJobs;
     // get all 'finishedSuccessful' jobs
     // sadly, there seems to be no option to filter the jobs by pgroup, so we have to query all and select the ones from the current account
     QJsonDocument successfulJobsJson = QJsonDocument::fromJson(QString::fromStdString(successfulJobs).toUtf8());
@@ -1108,16 +1192,19 @@ void Dialog::updateRetrieveList(){
     for (auto v:successfulJobsJson.array()){
         if (v.toObject().find("jobStatusMessage").value().toString().compare("finishedSuccessful")==0){
             auto datasetListArray = v.toObject().take("datasetList").toArray();
+            qDebug() << v;
             for (int ii=0; ii<datasetListArray.size(); ii++) {
                 finishedSuccessfulPIDs.push_back(datasetListArray.at(ii).toObject().find("pid").value().toString());
+                qDebug() << datasetListArray.at(ii).toObject().find("pid").value().toString();
             }
         }
     }
 
     QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(QString::fromStdString(currentDatasets).toUtf8());
-    std::vector<retrieveContainer_t> retrieveContainer;
+    retrieveContainer.clear();
     for (auto v : currentDatasetsJson.array()){
         retrieveContainer_t tmp;
+        qDebug() << v.toObject().find("pid").value().toString();
         tmp.pid = v.toObject().find("pid").value().toString();
         tmp.name = v.toObject().find("datasetName").value().toString();
         bool retrievableBool = v.toObject().find("datasetlifecycle").value().toObject().find("retrievable").value().toBool();
@@ -1130,7 +1217,7 @@ void Dialog::updateRetrieveList(){
 
 
     ui->tableWidgetRetriever->setRowCount(0);
-    ui->tableWidgetRetriever->clear();
+    ui->tableWidgetRetriever->clearContents();
     ui->tableWidgetRetriever->setSortingEnabled(false);
     for (auto v : retrieveContainer) {
         ui->tableWidgetRetriever->insertRow(0);
@@ -1140,6 +1227,8 @@ void Dialog::updateRetrieveList(){
         ui->tableWidgetRetriever->setItem(0,1,tmpItemRetrievable);
         QTableWidgetItem *tmpItemStatus = new QTableWidgetItem(v.retrieved);
         ui->tableWidgetRetriever->setItem(0,2,tmpItemStatus);
+        QTableWidgetItem *tmpItemPID = new QTableWidgetItem(v.pid);
+        ui->tableWidgetRetriever->setItem(0,3,tmpItemPID);
     }
     ui->tableWidgetRetriever->setSortingEnabled(true);
 
@@ -1158,104 +1247,19 @@ void Dialog::quit(){
     close();
 }
 
+void Dialog::requestRetrieve(){
+    qDebug() << "Requesting data retrieval";
+    for (auto v: retrieveContainer){
+        qDebug() << v;
+    }
+
+}
 
 Dialog::~Dialog()
 {
     delete datasets_m;
     delete ui;
 }
-
-
-
-
-
-
-
-
-void Ingestor::prepareIngestion(){
-    QSettings settingsContainer("PSI", "SciCat");
-
-    QString dirpath = settingsContainer.value("logPath", baseUi->defaultSettings.logPath).toString() + baseUi->metadataContainer.datasetName + QString::number(QDateTime::currentDateTime().toSecsSinceEpoch());
-    if (!QDir(dirpath).exists()){
-        qDebug()<<"Output directory does not exist";
-        if (!QDir().mkpath(dirpath)){
-            baseUi->sendWarning("Could not write to output directory.");
-        }
-    }
-
-    QFile metadataFile(QDir(dirpath).filePath(settingsContainer.value("filenameMetadata", baseUi->defaultSettings.filenameMetadata).toString()));
-    if (!metadataFile.open(QIODevice::WriteOnly)) {
-        baseUi->sendWarning("Could not open metadata file.");
-        return;
-    }
-
-    // prepare metadata file
-    QJsonObject metadata;
-    bool isRawData = (bool) baseUi->ui->comboBoxDatatype->currentIndex();
-    if (isRawData){
-        qDebug() << "Preparing metadata file for raw data";
-        metadata["principalInvestigator"] = QString::fromStdString(baseUi->metadataContainer.PIemail); // this should be changed in the future; there is no need to save it as std::string
-//        metadata["creationLocation"] = baseUi->metadataContainer.creationLocation;
-        metadata["owner"] = QString::fromStdString(baseUi->metadataContainer.owner);
-        metadata["ownerGroup"] = QString::fromStdString(baseUi->metadataContainer.ownerGroup);
-        metadata["ownerEmail"] = QString::fromStdString(baseUi->metadataContainer.ownerEmail);
-        metadata["datasetName"] = baseUi->metadataContainer.datasetName;
-        metadata["type"] = "raw";
-        metadata["description"] = baseUi->metadataContainer.description;
-        auto res = baseUi->ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
-        QJsonArray scMetadata;
-        for (int ii=0; ii<res.size(); ii++){
-            qDebug() << res[ii]->childCount();
-            scMetadata.push_back(treeModel2Json(res[ii]));
-        }
-        metadata["scientificMetadata"] = scMetadata;
-        qDebug() << baseUi->metadataContainer.datasetName;
-    } else {
-        qDebug() << "Preparing metadata file for derived data";
-        metadata["sourceFolder"] = extractSourceFolder(baseUi->filelistingContainer);
-        metadata["owner"] = QString::fromStdString(baseUi->metadataContainer.owner);
-        metadata["type"] = "derived";
-        metadata["ownerGroup"] = QString::fromStdString(baseUi->metadataContainer.ownerGroup);
-        metadata["investigator"] = baseUi->metadataContainer.investigator;
-        auto dsmodel = baseUi->ui->tableWidget->model();
-        QStringList inputDatasetsList;
-        for (int ii=0; ii<dsmodel->rowCount(); ii++){
-            inputDatasetsList.push_back(dsmodel->data(dsmodel->index(ii,1), Qt::DisplayRole).toString());
-        }
-        metadata["inputDatasets"] = QJsonArray::fromStringList(inputDatasetsList);
-        metadata["usedSoftware"] = baseUi->metadataContainer.usedSoftware;
-    }
-
-
-    QJsonDocument saveDoc(metadata);
-    metadataFile.write(saveDoc.toJson());
-    metadataFile.close();
-
-    QFile filelistingFile(QDir(dirpath).filePath(settingsContainer.value("filenameFilelisting", baseUi->defaultSettings.filenameFilelisting).toString()));
-    if (!filelistingFile.open(QIODevice::WriteOnly | QIODevice::Text)){
-        baseUi->sendWarning("Could not open filelisting file.");
-        return;
-    }
-
-    QTextStream out(&filelistingFile);
-    for (auto v:baseUi->filelistingContainer){
-        out << v << "\n";
-    }
-    filelistingFile.close();
-}
-
-Ingestor::Ingestor(const QString &commandIn){
-    command = commandIn;
-}
-
-void Ingestor::connectToUi(Dialog *uiDialog){
-    baseUi = uiDialog;
-}
-
-void Ingestor::run(){
-    utils::system_call(command.toStdString());
-}
-
 
 
 QString extractSourceFolder(std::vector<QString> container){

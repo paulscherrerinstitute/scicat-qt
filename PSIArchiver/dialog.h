@@ -132,6 +132,12 @@ struct retrieveContainer_t {
     QString retrievable;
 };
 
+inline QDebug operator<<(QDebug out, const retrieveContainer_t& container)
+{
+    out << container.pid << " " << container.name << " " << container.retrievable << " " << container.retrieved;
+    return out;
+}
+
 
 inline void updateSettingsContainer(QSettings &settingsContainer, const QString &key, const QVariant &value){
     if (!settingsContainer.contains(key)){
@@ -139,11 +145,7 @@ inline void updateSettingsContainer(QSettings &settingsContainer, const QString 
     }
 }
 
-inline QDebug operator<<(QDebug out, const retrieveContainer_t& container)
-{
-    out << container.pid << " " << container.name << " " << container.retrievable << " " << container.retrieved;
-    return out;
-}
+
 
 struct metadataContainer_t {
     std::string PIemail;
@@ -174,6 +176,7 @@ struct metadataContainer_t {
     bool isBeamlineAccount = false;
     QString metadataFilename;
     QString filelistingFilename;
+    bool retrievedPIInfoSuccessfully;
 };
 
 class ButtonHoverWatcher : public QObject
@@ -258,6 +261,7 @@ private slots:
     void ingestionFailed(QProcess::ProcessError error);
     void openIngestionLog();
     void creationLocationChanged(int val);
+    void requestRetrieve();
 
 
 
@@ -286,7 +290,6 @@ private:
     bool PIHasChanged = true;
     bool PIIsValid = false;
     bool pgroupIsValid = false;
-    Ingestor *ingestor_m;
     void resetContent();
     void quit();
     QStringList availPgroups;
@@ -304,27 +307,10 @@ private:
     QProcess *ingestion;
     void prepareIngestion();
     LogBrowser *ingestionLog;
+    std::vector<retrieveContainer_t> retrieveContainer;
+
 
 };
-
-
-class Ingestor : public QThread
-{
-  Q_OBJECT
-public:
-    Ingestor(){};
-    Ingestor(const QString& commandIn);
-    void setCommand(const QString& commandIn);
-    void prepareIngestion();
-    void connectToUi(Dialog *uiDialog);
-protected:
-    void run();
-private:
-    QString command;
-    Dialog *baseUi;
-};
-
-
 
 
 QString extractSourceFolder(std::vector<QString> container);
