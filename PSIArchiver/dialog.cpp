@@ -53,6 +53,7 @@ Dialog::Dialog(QWidget *parent)
     updateSettingsContainer(settingsContainer, "enableArchive", defaultSettings.enableArchive);
     updateSettingsContainer(settingsContainer, "enableIngest", defaultSettings.enableIngest);
     updateSettingsContainer(settingsContainer, "disableEmails", defaultSettings.disableEmails);
+    updateSettingsContainer(settingsContainer, "requestAlreadyRetrievedData", defaultSettings.requestAlreadyRetrievedData);
 
 
 
@@ -1183,8 +1184,9 @@ void Dialog::updateRetrieveList(){
     QSettings settingsContainer("PSI", "SciCat");
     auto currentDatasets = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.ownerGroup + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + token + "'");
     auto successfulJobs = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'");
-    qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'";
-    qDebug() << successfulJobs;
+//    qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'";
+//    qDebug() << successfulJobs;
+
     // get all 'finishedSuccessful' jobs
     // sadly, there seems to be no option to filter the jobs by pgroup, so we have to query all and select the ones from the current account
     QJsonDocument successfulJobsJson = QJsonDocument::fromJson(QString::fromStdString(successfulJobs).toUtf8());
@@ -1192,7 +1194,7 @@ void Dialog::updateRetrieveList(){
     for (auto v:successfulJobsJson.array()){
         if (v.toObject().find("jobStatusMessage").value().toString().compare("finishedSuccessful")==0){
             auto datasetListArray = v.toObject().take("datasetList").toArray();
-            qDebug() << v;
+//            qDebug() << v;
             for (int ii=0; ii<datasetListArray.size(); ii++) {
                 finishedSuccessfulPIDs.push_back(datasetListArray.at(ii).toObject().find("pid").value().toString());
                 qDebug() << datasetListArray.at(ii).toObject().find("pid").value().toString();
@@ -1204,7 +1206,7 @@ void Dialog::updateRetrieveList(){
     retrieveContainer.clear();
     for (auto v : currentDatasetsJson.array()){
         retrieveContainer_t tmp;
-        qDebug() << v.toObject().find("pid").value().toString();
+//        qDebug() << v.toObject().find("pid").value().toString();
         tmp.pid = v.toObject().find("pid").value().toString();
         tmp.name = v.toObject().find("datasetName").value().toString();
         bool retrievableBool = v.toObject().find("datasetlifecycle").value().toObject().find("retrievable").value().toBool();
@@ -1248,10 +1250,46 @@ void Dialog::quit(){
 }
 
 void Dialog::requestRetrieve(){
-    qDebug() << "Requesting data retrieval";
-    for (auto v: retrieveContainer){
-        qDebug() << v;
+    QSettings settingsContainer("PSI", "SciCat");
+    QJsonArray datasetList;
+
+    QJsonObject request;
+    request["emailJobInitiator"] = metadataContainer.userMail;
+    request["type"] = "retrieve";
+    {
+        QJsonObject jobParams;
+        jobParams["username"] = metadataContainer.username;
+        jobParams["destinationPath"] = "/archive/retrieve";
+        request["jobParams"] = jobParams;
     }
+    {
+        QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
+        for (int ii=0; ii<indexList.size(); ++ii) {
+            qDebug() << ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0);
+            if (ui->tableWidgetRetriever->item(indexList[ii].row(),1)->data(0).toBool()) { // check retrievable
+                qDebug() << (!ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool());
+                qDebug() << (settingsContainer.value("requestAlreadyRetrievedData").toBool());
+                    if ((!ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool()) || (settingsContainer.value("requestAlreadyRetrievedData").toBool())){
+                        QJsonObject tmpDatasetObject;
+                        tmpDatasetObject["pid"] = ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0).toString();
+                        tmpDatasetObject["file"] = QJsonArray();
+                        datasetList.push_back(tmpDatasetObject);
+                    } else {
+                        sendWarning("Some datasets have already been retrieved and will be skipped.");
+                    }
+            } else {
+                sendWarning("Some datasets are not in a retrievable state.");
+            }
+        }
+
+        request["datasetList"] = datasetList;
+    }
+    if (datasetList.size()>0){
+        std::string cmd = "curl -X PUT --header 'Content-Type: application/json' --header 'Accept: application/json' -d '" + QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toStdString() +  "' 'https://dacat-qa.psi.ch/api/v3/Jobs?access_token=" + token + "'";
+        auto successfulJobs = utils::system_call(cmd);
+        qDebug().noquote() << cmd;
+    }
+
 
 }
 

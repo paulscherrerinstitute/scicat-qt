@@ -113,6 +113,7 @@ struct defaultSettings_t {
     bool enableArchive = true;
     bool enableIngest = true;
     bool investigatorIsPI = false;
+    bool requestAlreadyRetrievedData = true;
 
 
 
