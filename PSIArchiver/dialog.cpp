@@ -1041,13 +1041,16 @@ void Dialog::comboBoxDatatypeChanged(int val){
 
 void Dialog::appendMetadataEntry(){
     // check if item supports children
-    if (ui->treeWidget->selectedItems().size()>0){
-        if (ui->treeWidget->currentItem()->flags().testFlag(Qt::ItemIsDropEnabled)){
-            ui->treeWidget->currentItem()->setData(1,0,"");
-            addEntryMetadataTreeView("name", "value", ui->treeWidget->currentItem(), true, 4);
 
-        } else {
-            sendWarning("Cannot append child entry to protected field.");
+    if (ui->treeWidget->currentItem() != nullptr) {
+        if (ui->treeWidget->selectedItems().size()>0){
+            if (ui->treeWidget->currentItem()->flags().testFlag(Qt::ItemIsDropEnabled)){
+                ui->treeWidget->currentItem()->setData(1,0,"");
+                addEntryMetadataTreeView("name", "value", ui->treeWidget->currentItem(), true, 4);
+
+            } else {
+                sendWarning("Cannot append child entry to protected field.");
+            }
         }
     } else {
         addEntryMetadataTreeView("name", "value", "scientificMetadata", true, 4);
