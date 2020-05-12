@@ -6,5 +6,7 @@ export CMAKE_PREFIX_PATH=/afs/psi.ch/user/w/wakonig_k/public/qt5lib/:$CMAKE_PREF
 cmake ./ -B../release
 
 cd ../release
-make
+make -j4
+
+module add datacatalog/1.1.9
 
