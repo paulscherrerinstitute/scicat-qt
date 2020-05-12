@@ -1145,6 +1145,7 @@ void Dialog::appendMetadataEntry(){
 
 void Dialog::removeMetadataEntry(){
     // check if item is protected
+    if (ui->treeWidget->currentItem() != nullptr) {
     qDebug()<<ui->treeWidget->currentItem()->flags();
     if (ui->treeWidget->currentItem()->flags()>43){
         QModelIndexList indexList = ui->treeWidget->selectionModel()->selectedRows();
@@ -1154,6 +1155,7 @@ void Dialog::removeMetadataEntry(){
 //        }
     } else {
         sendWarning("Cannot remove protected field.");
+    }
     }
 
 }
