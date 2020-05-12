@@ -1301,14 +1301,15 @@ void Dialog::requestRetrieve(){
 void Dialog::saveRetrievedData(){
 
     QString dirname = QFileDialog::getExistingDirectory(this, "Save path",QDir::homePath(),QFileDialog::ShowDirsOnly);
-
-    QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
-    for (int ii=0; ii<indexList.size(); ++ii) {
-        qDebug() << ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0);
-        if (ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool()) { // check retrieve status
+    if (dirname.length()>0){
+        QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
+        for (int ii=0; ii<indexList.size(); ++ii) {
+            qDebug() << ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0);
+            if (ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool()) { // check retrieve status
                 startRetriever(ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0).toString(), dirname);
-        } else {
-            sendWarning("Some datasets are not in a retrievable state.");
+            } else {
+                sendWarning("Some datasets are not in a retrievable state.");
+            }
         }
     }
 
@@ -1339,6 +1340,7 @@ void Dialog::startRetriever(const QString &pid, const QString &outdir){
     arguments << "-dataset" << pid << "-token" << QString::fromStdString(token) << "-retrieve" << outdir;
     retriever->start(settingsContainer.value("datasetRetriever", defaultSettings.datasetRetriever).toString(), arguments);
     retriever->closeWriteChannel();
+    qDebug() << arguments;
 
     retrieverList.push_back(retriever);
 }
@@ -1348,7 +1350,7 @@ void Dialog::retrieverFinished(int val){
 }
 
 void Dialog::retrieverFailed(QProcess::ProcessError error){
-    qDebug() << "Retriever failed";
+    sendWarning("Retriever failed.");
 
 }
 
