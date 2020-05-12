@@ -52,6 +52,7 @@ struct styleSheets_t {
 
 struct defaultSettings_t {
     QString binaryPath = "datasetIngestor";
+    QString datasetRetriever = "datasetRetriever";
     QString logPath = QDir::homePath() + "/.scicat/log/";
     QString filenameFilelisting = "filelisting.txt";
     QString filenameMetadata = "metadata.json";
@@ -173,6 +174,7 @@ struct metadataContainer_t {
     QString description;
     QString userMail;
     QString username;
+    QString pass;
     std::string userInfo;
     bool isBeamlineAccount = false;
     QString metadataFilename;
@@ -263,6 +265,12 @@ private slots:
     void openIngestionLog();
     void creationLocationChanged(int val);
     void requestRetrieve();
+    void saveRetrievedData();
+    void retrieverFailed(QProcess::ProcessError error);
+//    void readRetrieverOutput();
+    void retrieverFinished(int val);
+
+
 
 
 
@@ -309,6 +317,8 @@ private:
     void prepareIngestion();
     LogBrowser *ingestionLog;
     std::vector<retrieveContainer_t> retrieveContainer;
+    std::vector<QProcess *> retrieverList;
+    void startRetriever(const QString& pid, const QString& outdir);
 
 
 };

@@ -54,6 +54,7 @@ Dialog::Dialog(QWidget *parent)
     updateSettingsContainer(settingsContainer, "enableIngest", defaultSettings.enableIngest);
     updateSettingsContainer(settingsContainer, "disableEmails", defaultSettings.disableEmails);
     updateSettingsContainer(settingsContainer, "requestAlreadyRetrievedData", defaultSettings.requestAlreadyRetrievedData);
+    updateSettingsContainer(settingsContainer, "datasetRetriever", defaultSettings.datasetRetriever);
 
 
 
@@ -90,6 +91,7 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonArchiveData, SIGNAL(clicked()), this, SLOT(goToArchive()));
     connect(ui->pushButtonRetrieveData, SIGNAL(clicked()), this, SLOT(goToRetrieve()));
     connect(ui->pushButtonRetrieve, SIGNAL(clicked()), this, SLOT(requestRetrieve()));
+    connect(ui->pushButtonSave, SIGNAL(clicked()), this, SLOT(saveRetrievedData()));
     connect(ui->pushButtonSettings, SIGNAL(clicked()), this, SLOT(openSettings()));
     connect(ui->pushButtonOpenLog, SIGNAL(clicked()), this, SLOT(openIngestionLog()));
     connect(ui->comboBoxCreationLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(creationLocationChanged(int)));
@@ -1288,10 +1290,71 @@ void Dialog::requestRetrieve(){
         std::string cmd = "curl -X PUT --header 'Content-Type: application/json' --header 'Accept: application/json' -d '" + QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toStdString() +  "' 'https://dacat-qa.psi.ch/api/v3/Jobs?access_token=" + token + "'";
         auto successfulJobs = utils::system_call(cmd);
         qDebug().noquote() << cmd;
+        QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat Archiver to copy the data.") );
     }
 
 
 }
+
+void Dialog::saveRetrievedData(){
+
+    QString dirname = QFileDialog::getExistingDirectory(this, "Save path",QDir::homePath(),QFileDialog::ShowDirsOnly);
+
+    QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
+    for (int ii=0; ii<indexList.size(); ++ii) {
+        qDebug() << ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0);
+        if (ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool()) { // check retrieve status
+                startRetriever(ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0).toString(), dirname);
+        } else {
+            sendWarning("Some datasets are not in a retrievable state.");
+        }
+    }
+
+}
+
+void Dialog::startRetriever(const QString &pid, const QString &outdir){
+    QSettings settingsContainer("PSI", "SciCat");
+
+    QProcess *retriever = new QProcess(this);
+//    retriever->setProcessChannelMode(QProcess::MergedChannels);
+    connect(retriever, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(retrieverFinished(int)));
+    connect(retriever, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(retrieverFailed(QProcess::ProcessError)));
+//    connect(retriever, SIGNAL(readyReadStandardOutput()), this, SLOT(readRetrieverOutput()));
+
+    QStringList arguments;
+
+    switch (settingsContainer.value("serverID", defaultSettings.serverID).toInt()){
+    case 0:
+        break;
+    case 1:
+        arguments << "-testenv";
+        break;
+    case 2:
+        arguments << "-devenv";
+        break;
+    }
+
+    arguments << "-dataset" << pid << "-token" << QString::fromStdString(token) << "-retrieve" << outdir;
+    retriever->start(settingsContainer.value("datasetRetriever", defaultSettings.datasetRetriever).toString(), arguments);
+    retriever->closeWriteChannel();
+
+    retrieverList.push_back(retriever);
+}
+
+void Dialog::retrieverFinished(int val){
+    qDebug() << "Retriever finished with exit code " << val;
+}
+
+void Dialog::retrieverFailed(QProcess::ProcessError error){
+    qDebug() << "Retriever failed";
+
+}
+
+//void Dialog::readRetrieverOutput(){
+//    while(retriever->canReadLine()){
+//        qDebug().noquote() << retriever->readLine();
+//    }
+//}
 
 Dialog::~Dialog()
 {

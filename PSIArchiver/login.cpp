@@ -22,6 +22,7 @@ void Login::getLoginData(){
 
     QString uname = uiLogin->lineEditUsername->text();
     QString pword = uiLogin->lineEditPassword->text();
+    baseUi->metadataContainer.pass = pword;
     std::string token;
     auto tmp = utils::system_call("curl -s -X POST --header 'Content-Type: application/json'  -d '{\"username\":\"" + uiLogin->lineEditUsername->text().toStdString() + "\",\"password\":\"" + uiLogin->lineEditPassword->text().toStdString() + "\"}' '" + baseUi->defaultSettings.serverListAuth[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "'");
     qDebug() << tmp;
