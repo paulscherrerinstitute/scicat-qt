@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set ( RESOURCES  psiArchiverResources.qrc)
 #add_definitions(-DQT_NO_DEBUG_OUTPUT)
-add_definitions(-DKERBEROS)
+add_definitions(-DSKIP_KERBEROS_AUTH)
 
 # QtCreator supports the following variables for Android, which are identical to qmake Android variables.
 # Check http://doc.qt.io/qt-5/deployment-android.html for more information.

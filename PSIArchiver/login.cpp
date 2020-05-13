@@ -75,13 +75,14 @@ void Login::getLoginData(){
 void Login::authenticateUser(QString pass){
     kerberosAuth = new QProcess(this);
 
-//    kerberosAuth->setProcessChannelMode(QProcess::MergedChannels);
+    kerberosAuth->setProcessChannelMode(QProcess::MergedChannels);
     connect(kerberosAuth, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(authenticationFailed(QProcess::ProcessError)));
     connect(kerberosAuth, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(authenticationFinished(int)));
 
     QStringList argument(baseUi->metadataContainer.username);
     qDebug() << (const char*)pass.data();
-    kerberosAuth->start("kinit", argument);
+    qDebug() << argument;
+    kerberosAuth->start("kinit ", argument);
     kerberosAuth->write((const char*)pass.data(),pass.length());
     kerberosAuth->closeWriteChannel();
     kerberosAuth->waitForFinished(5000);
@@ -93,7 +94,7 @@ void Login::authenticateUser(QString pass){
 
 void Login::authenticationFinished(int val){
     qDebug() << "Authentication finished with exit code " << val;
-#ifndef SKIP_KERBEROS
+#ifndef SKIP_KERBEROS_AUTH
     if (val!=0){
         errorMessage("Kerberos authentication failed.");
         return;

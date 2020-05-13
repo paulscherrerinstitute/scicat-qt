@@ -1,11 +1,6 @@
 #ifndef LOGIN_H
 #define LOGIN_H
 
-
-#ifdef KERBEROS
-#define SKIP_KERBEROS
-#endif
-
 #include "dialog.h"
 #include "ui_login.h"
 
