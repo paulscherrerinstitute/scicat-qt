@@ -39,7 +39,6 @@ void Login::getLoginData(){
         }
     }
 
-
     accessGranted = true;
     if (tmp.find("access_token") != std::string::npos){
         token = utils::extractFromJson(tmp, "access_token");

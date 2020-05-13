@@ -27,6 +27,7 @@
 #include <QSettings>
 #include <QCoreApplication>
 #include <QProcess>
+#include <QVersionNumber>
 #include "qfiledialog.h"
 #include "QMessageBox"
 
@@ -34,6 +35,7 @@
 class DatasetModel;
 class Ingestor;
 class Dialog;
+class LogBrowser;
 
 #include "archiverutils.h"
 #include "datasetmodel.h"
@@ -45,6 +47,8 @@ class Dialog;
 #include "datasetbrowser.h"
 
 
+
+
 struct styleSheets_t {
     QString buttonNavigation;
     QString buttonNotActive;
@@ -53,7 +57,7 @@ struct styleSheets_t {
 struct defaultSettings_t {
     QString binaryPath = "datasetIngestor";
     QString datasetRetriever = "datasetRetriever";
-    QString logPath = QDir::homePath() + "/.scicat/log/";
+    QString logPath = QDir::homePath() + "/.scicat/log";
     QString filenameFilelisting = "filelisting.txt";
     QString filenameMetadata = "metadata.json";
     bool deleteLog = false;
@@ -179,6 +183,7 @@ struct metadataContainer_t {
     bool isBeamlineAccount = false;
     QString metadataFilename;
     QString filelistingFilename;
+    QString ingestionLogDir;
     bool retrievedPIInfoSuccessfully;
 };
 

@@ -8,6 +8,12 @@ LogBrowser::LogBrowser(QWidget *parent) :
     ui->setupUi(this);
 
     connect(ui->pushButtonClose, SIGNAL(clicked()), this, SLOT(close()));
+    connect(ui->pushButtonSaveLog, SIGNAL(clicked()), this, SLOT(saveLog()));
+
+}
+
+void LogBrowser::saveLog(){
+    auto fileName = QFileDialog::getSaveFileName(this, tr("Save File"),  QDir::homePath(), tr("Log files (*.log)"));
 }
 
 LogBrowser::~LogBrowser()

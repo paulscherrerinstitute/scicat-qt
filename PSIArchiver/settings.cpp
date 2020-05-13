@@ -11,6 +11,8 @@ Settings::Settings(QWidget *parent) :
     connect(ui->comboBoxServer, SIGNAL(currentIndexChanged(int)), this, SLOT(updateServerURL(int)));
     connect(ui->pushButtonBrowseLogPath, SIGNAL(clicked()), this, SLOT(logFileBrowser()));
     connect(ui->pushButtonReset, SIGNAL(clicked()), this, SLOT(reset()));
+    connect(ui->lineEditFilelistingFile, SIGNAL(editingFinished()), this, SLOT(checkFilelistingFile()));
+    connect(ui->lineEditMetadataFile, SIGNAL(editingFinished()), this, SLOT(checkMetadataFile()));
     toggleAdvancedSettings(0);
     ui->tabWidget->setCurrentIndex(0);
 
@@ -108,6 +110,32 @@ void Settings::toggleAdvancedSettings(int val){
     ui->groupBoxServer->setEnabled(enableSettings);
     ui->groupBoxDebugging->setEnabled(enableSettings);
 
+}
+
+void Settings::checkMetadataFile(){
+    if (ui->lineEditMetadataFile->text().length()==0){
+        qDebug() << "is empty";
+        ui->lineEditMetadataFile->setText(baseUi->defaultSettings.filenameMetadata);
+    } else {
+        QRegExp rx("*.json");
+        rx.setPatternSyntax(QRegExp::Wildcard);
+        if (!rx.exactMatch(ui->lineEditMetadataFile->text())){
+            ui->lineEditMetadataFile->setText(ui->lineEditMetadataFile->text() + ".json");
+        }
+    }
+
+}
+
+void Settings::checkFilelistingFile(){
+    if (ui->lineEditFilelistingFile->text().length()==0){
+        ui->lineEditFilelistingFile->setText(baseUi->defaultSettings.filenameFilelisting);
+    } else {
+        QRegExp rx("*.txt");
+        rx.setPatternSyntax(QRegExp::Wildcard);
+        if (!rx.exactMatch(ui->lineEditFilelistingFile->text())){
+            ui->lineEditFilelistingFile->setText(ui->lineEditFilelistingFile->text() + ".txt");
+        }
+    }
 }
 
 

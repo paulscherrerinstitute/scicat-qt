@@ -19,6 +19,8 @@ public slots:
     void logFileBrowser();
     void reset();
     void acceptChanges();
+    void checkFilelistingFile();
+    void checkMetadataFile();
 
 private:
     Ui::Settings *ui;

@@ -7,6 +7,7 @@ Dialog::Dialog(QWidget *parent)
 {
 
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    QVersionNumber currentVersionNumber(0,1);
 
     ui->setupUi(this);
 
@@ -27,10 +28,6 @@ Dialog::Dialog(QWidget *parent)
     ui->pushButtonRetrieveData->hide();
     ui->pushButtonArchiveData->hide();
     ui->labelManualEntry->hide();
-//    ui->lineEditPIMail->show();
-//    ui->lineEditPIFirstname->show();
-//    ui->lineEditPILastname->show();
-//    ui->lineEditProposalID_2->show();
     ui->groupBoxProposal->hide();
     ui->labelProposal->hide();
     ui->comboBoxCreationLocation->setCurrentIndex(-1);
@@ -38,8 +35,18 @@ Dialog::Dialog(QWidget *parent)
 
 
     QSettings settingsContainer("PSI", "SciCat");
+
+    // flush the settings container if the major version number has changed
+    QVersionNumber oldVersion = QVersionNumber::fromString(settingsContainer.value("version", QVersionNumber(-1,0).toString()).toString());
+    if (oldVersion.isNull() || (oldVersion.majorVersion()!=currentVersionNumber.majorVersion())){
+        qDebug() << "Current version number has changed. Flushing settings container.";
+        settingsContainer.clear();
+    }
+
+    updateSettingsContainer(settingsContainer, "version", currentVersionNumber.toString());
     updateSettingsContainer(settingsContainer, "investigatorIsPI", defaultSettings.investigatorIsPI);
     updateSettingsContainer(settingsContainer, "binaryPath", defaultSettings.binaryPath);
+    updateSettingsContainer(settingsContainer, "datasetRetriever", defaultSettings.datasetRetriever);
     updateSettingsContainer(settingsContainer, "logPath", defaultSettings.logPath);
     updateSettingsContainer(settingsContainer, "filenameFilelisting", defaultSettings.filenameFilelisting);
     updateSettingsContainer(settingsContainer, "filenameMetadata", defaultSettings.filenameMetadata);
@@ -54,7 +61,6 @@ Dialog::Dialog(QWidget *parent)
     updateSettingsContainer(settingsContainer, "enableIngest", defaultSettings.enableIngest);
     updateSettingsContainer(settingsContainer, "disableEmails", defaultSettings.disableEmails);
     updateSettingsContainer(settingsContainer, "requestAlreadyRetrievedData", defaultSettings.requestAlreadyRetrievedData);
-    updateSettingsContainer(settingsContainer, "datasetRetriever", defaultSettings.datasetRetriever);
 
 
 
@@ -484,7 +490,8 @@ void Dialog::setButtonsEnabled(bool enabled){
 void Dialog::prepareIngestion(){
     QSettings settingsContainer("PSI", "SciCat");
 
-    QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + metadataContainer.datasetName + QString::number(QDateTime::currentDateTime().toSecsSinceEpoch());
+    QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "/ingestion/" + metadataContainer.datasetName + QString::number(QDateTime::currentDateTime().toSecsSinceEpoch());
+    metadataContainer.ingestionLogDir = dirpath;
     if (!QDir(dirpath).exists()){
         qDebug()<<"Output directory does not exist";
         if (!QDir().mkpath(dirpath)){
@@ -641,6 +648,8 @@ void Dialog::readIngestionOutput(){
 }
 
 void Dialog::ingestionFinished(int exitCode){
+    QSettings settingsContainer("PSI", "SciCat");
+
     movie->stop();
     ui->waitingCircle->hide();
     ui->nextSlideButton->setEnabled(true);
@@ -652,6 +661,14 @@ void Dialog::ingestionFinished(int exitCode){
         ui->pleaseWait->setText("Done.");
     } else {
         ui->pleaseWait->setText("Ingestion failed.");
+    }
+
+    if (settingsContainer.value("deleteLog", defaultSettings.deleteLog).toBool()){
+        qDebug() << "removing ingestion log files";
+//        qDebug() << metadataContainer.ingestionLogDir;
+        if (!QDir(metadataContainer.ingestionLogDir).removeRecursively()){
+            sendWarning("Failed to remove ingestion log files.");
+        }
     }
 
 }
