@@ -11,6 +11,7 @@ class LogBrowser : public QDialog
 
 public:
     explicit LogBrowser(QWidget *parent = nullptr);
+    void clear();
     ~LogBrowser();
     Ui::LogBrowser *ui;
 

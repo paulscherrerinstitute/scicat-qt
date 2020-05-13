@@ -1,5 +1,7 @@
 #include "settings.h"
 
+extern QVersionNumber currentVersionNumber;
+
 Settings::Settings(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Settings)
@@ -22,6 +24,7 @@ Settings::Settings(QWidget *parent) :
     ui->lineEditServer->setReadOnly(true);
 
     //update UI
+    ui->labelVersionNumber->setText("v"+currentVersionNumber.toString());
     QSettings settingsContainer("PSI", "SciCat");
     ui->lineEditMetadataFile->setText(settingsContainer.value("filenameMetadata").toString());
     ui->lineEditFilelistingFile->setText(settingsContainer.value("filenameFilelisting").toString());

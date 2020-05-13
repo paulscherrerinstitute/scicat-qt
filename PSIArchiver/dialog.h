@@ -237,6 +237,7 @@ public:
 
 
 
+
 private slots:
     void nextSlide();
     void fileDialogFilelisting();

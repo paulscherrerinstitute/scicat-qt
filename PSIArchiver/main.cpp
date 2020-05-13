@@ -3,6 +3,8 @@
 #include "login.h"
 #include <QApplication>
 
+QVersionNumber currentVersionNumber(0,1);
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);

@@ -1,5 +1,6 @@
 #include "dialog.h"
 
+extern QVersionNumber currentVersionNumber;
 
 Dialog::Dialog(QWidget *parent)
     : QDialog(parent)
@@ -7,7 +8,6 @@ Dialog::Dialog(QWidget *parent)
 {
 
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-    QVersionNumber currentVersionNumber(0,1);
 
     ui->setupUi(this);
 
@@ -681,6 +681,7 @@ void Dialog::resetContent(){
     ui->metadataGuided->setCurrentIndex(0);
     ui->nextSlideButton->setText("Next");
     ingested = false;
+    ingestionLog->clear();
 }
 
 void Dialog::restart(){
@@ -767,7 +768,7 @@ bool Dialog::checkPIInfo(){
         // save PI info if needed
         if ((!metadataContainer.retrievedPIInfoSuccessfully) && (settingsContainer.value("saveProposalInfo", defaultSettings.saveProposalInfo).toBool())){
             qDebug() << "Writing PI info";
-            QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "proposals";
+            QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "/proposals/";
             if (!QDir(dirpath).exists()){
                 qDebug()<<"Output directory does not exist";
                 if (!QDir().mkpath(dirpath)){
@@ -847,7 +848,7 @@ void Dialog::getPI(){
             metadataContainer.retrievedPIInfoSuccessfully = false;
             bool manualEdit = false;
 
-            QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "proposals";
+            QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "/proposals/";
             QString proposalFile = QDir(dirpath).filePath(QString::fromStdString("proposal_" + metadataContainer.pgroup+".dat"));
 
             if (settingsContainer.value("loadProposalInfo",defaultSettings.loadProposalInfo).toBool()){
@@ -1325,7 +1326,7 @@ void Dialog::saveRetrievedData(){
             if (ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool()) { // check retrieve status
                 startRetriever(ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0).toString(), dirname);
             } else {
-                sendWarning("Some datasets are not in a retrievable state.");
+                sendWarning("Some datasets have not been retrieved yet.");
             }
         }
     }
