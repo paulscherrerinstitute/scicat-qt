@@ -670,6 +670,8 @@ void Dialog::ingestionFinished(int exitCode){
         if (!QDir(metadataContainer.ingestionLogDir).removeRecursively()){
             sendWarning("Failed to remove ingestion log files.");
         }
+    } else if (settingsContainer.value("saveLog", defaultSettings.saveLog).toBool()){
+        ingestionLog->saveLog(metadataContainer.ingestionLogDir + "/ingestion.log");
     }
 
 }
@@ -684,9 +686,6 @@ void Dialog::resetContent(){
     ui->metadataGuided->setCurrentIndex(0);
     ui->nextSlideButton->setText("Next");
     ingested = false;
-    if (settingsContainer.value("saveLog", defaultSettings.saveLog).toBool()){
-        ingestionLog->saveLog(metadataContainer.ingestionLogDir + "/ingestion.log");
-    }
     ingestionLog->clear();
 }
 
