@@ -33,6 +33,7 @@ Settings::Settings(QWidget *parent) :
     ui->checkBoxLoadProposalInfo->setChecked(settingsContainer.value("loadProposalInfo").toBool());
     ui->checkBoxSaveProposalInfo->setChecked(settingsContainer.value("saveProposalInfo").toBool());
     ui->checkBoxDisableEmails->setChecked(settingsContainer.value("disableEmails").toBool());
+    ui->checkBoxSaveLog->setChecked(settingsContainer.value("saveLog").toBool());
     ui->checkBoxEnableArchive->setChecked(settingsContainer.value("enableArchive").toBool());
     ui->checkBoxEnableIngest->setChecked(settingsContainer.value("enableIngest").toBool());
     ui->checkBoxUsePgroupAsPath->setChecked(settingsContainer.value("usePgroupAsDefaultPath").toBool());
@@ -51,6 +52,7 @@ void Settings::reset(){
     ui->checkBoxLoadProposalInfo->setChecked(baseUi->defaultSettings.loadProposalInfo);
     ui->checkBoxSaveProposalInfo->setChecked(baseUi->defaultSettings.saveProposalInfo);
     ui->checkBoxDisableEmails->setChecked(baseUi->defaultSettings.disableEmails);
+    ui->checkBoxSaveLog->setChecked(baseUi->defaultSettings.saveLog);
     ui->checkBoxEnableArchive->setChecked(baseUi->defaultSettings.enableArchive);
     ui->checkBoxEnableIngest->setChecked(baseUi->defaultSettings.enableIngest);
     ui->checkBoxUsePgroupAsPath->setChecked(baseUi->defaultSettings.usePgroupAsDefaultPath);
@@ -97,6 +99,7 @@ void Settings::updateSettings(){
     settingsContainer.setValue("loadProposalInfo", (bool) ui->checkBoxLoadProposalInfo->checkState());
     settingsContainer.setValue("saveProposalInfo", (bool) ui->checkBoxSaveProposalInfo->checkState());
     settingsContainer.setValue("disableEmails", (bool) ui->checkBoxDisableEmails->checkState());
+    settingsContainer.setValue("saveLog", (bool) ui->checkBoxSaveLog->checkState());
     settingsContainer.setValue("enableArchive", (bool) ui->checkBoxEnableArchive->checkState());
     settingsContainer.setValue("enableIngest", (bool) ui->checkBoxEnableIngest->checkState());
     settingsContainer.setValue("usePgroupAsDefaultPath", (bool) ui->checkBoxUsePgroupAsPath->checkState());

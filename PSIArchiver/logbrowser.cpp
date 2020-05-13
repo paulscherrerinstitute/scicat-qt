@@ -12,8 +12,7 @@ LogBrowser::LogBrowser(QWidget *parent) :
 
 }
 
-void LogBrowser::saveLog(){
-    auto fileName = QFileDialog::getSaveFileName(this, tr("Save File"),  QDir::homePath(), tr("Log files (*.log)"));
+void LogBrowser::saveLog(QString fileName){
     QFile logFile(fileName);
     if (!logFile.open(QIODevice::WriteOnly | QIODevice::Text)){
         return;
@@ -22,6 +21,11 @@ void LogBrowser::saveLog(){
     QTextStream out(&logFile);
     out << ui->textEditIngestionLog->toPlainText();
     logFile.close();
+}
+
+void LogBrowser::saveLog(){
+    auto fileName = QFileDialog::getSaveFileName(this, tr("Save File"),  QDir::homePath(), tr("Log files (*.log)"));
+    saveLog(fileName);
 }
 
 void LogBrowser::clear(){

@@ -115,6 +115,7 @@ struct defaultSettings_t {
     bool saveProposalInfo = true;
     bool loadProposalInfo = true;
     bool disableEmails = false;
+    bool saveLog = true;
     bool enableArchive = true;
     bool enableIngest = true;
     bool investigatorIsPI = false;

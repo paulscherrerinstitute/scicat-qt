@@ -14,6 +14,7 @@ public:
     void clear();
     ~LogBrowser();
     Ui::LogBrowser *ui;
+    void  saveLog(QString fileName);
 
 private slots:
     void saveLog();

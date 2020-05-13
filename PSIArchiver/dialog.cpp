@@ -60,6 +60,7 @@ Dialog::Dialog(QWidget *parent)
     updateSettingsContainer(settingsContainer, "enableArchive", defaultSettings.enableArchive);
     updateSettingsContainer(settingsContainer, "enableIngest", defaultSettings.enableIngest);
     updateSettingsContainer(settingsContainer, "disableEmails", defaultSettings.disableEmails);
+    updateSettingsContainer(settingsContainer, "saveLog", defaultSettings.saveLog);
     updateSettingsContainer(settingsContainer, "requestAlreadyRetrievedData", defaultSettings.requestAlreadyRetrievedData);
 
 
@@ -674,6 +675,8 @@ void Dialog::ingestionFinished(int exitCode){
 }
 
 void Dialog::resetContent(){
+    QSettings settingsContainer("PSI", "SciCat");
+
     setButtonsEnabled(true);
     filelistingContainer.clear();
     clearAllDatasets();
@@ -681,6 +684,9 @@ void Dialog::resetContent(){
     ui->metadataGuided->setCurrentIndex(0);
     ui->nextSlideButton->setText("Next");
     ingested = false;
+    if (settingsContainer.value("saveLog", defaultSettings.saveLog).toBool()){
+        ingestionLog->saveLog(metadataContainer.ingestionLogDir + "/ingestion.log");
+    }
     ingestionLog->clear();
 }
 
