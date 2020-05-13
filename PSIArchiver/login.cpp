@@ -78,17 +78,24 @@ void Login::authenticateUser(QString pass){
     kerberosAuth->setProcessChannelMode(QProcess::MergedChannels);
     connect(kerberosAuth, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(authenticationFailed(QProcess::ProcessError)));
     connect(kerberosAuth, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(authenticationFinished(int)));
+    connect(kerberosAuth, SIGNAL(readyReadStandardOutput()), this, SLOT(readKeberosOutput()));
 
     QStringList argument(baseUi->metadataContainer.username);
-    qDebug() << (const char*)pass.data();
-    qDebug() << argument;
-    kerberosAuth->start("kinit ", argument);
-    kerberosAuth->write((const char*)pass.data(),pass.length());
+    kerberosAuth->start("kinit", argument);
+    const QByteArray byteArray = pass.toUtf8();
+    const char *mytext = byteArray.constData();
+    kerberosAuth->write(mytext,pass.length()+1);
     kerberosAuth->closeWriteChannel();
-    kerberosAuth->waitForFinished(5000);
-//    qDebug() << kerberosAuth->error
-    qDebug() << kerberosAuth->readAllStandardError();
 
+
+}
+
+void Login::readKeberosOutput(){
+
+    qDebug() << "reading output";
+    while(kerberosAuth->canReadLine()){
+        qDebug() << kerberosAuth->readLine();
+    }
 
 }
 

@@ -25,6 +25,7 @@ private slots:
     void getLoginData();
     void authenticationFailed(QProcess::ProcessError error);
     void authenticationFinished(int val);
+    void readKeberosOutput();
 
 
 
