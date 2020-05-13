@@ -8,5 +8,5 @@ cmake ./ -B../release
 cd ../release
 make -j4
 
-module add datacatalog/1.1.9
+module add datacatalog/1.1.10
 
