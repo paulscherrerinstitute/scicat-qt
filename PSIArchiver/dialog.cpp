@@ -1397,31 +1397,31 @@ void Dialog::startRetriever(const QString &pid, const QString &outdir, const QSt
 
     retrieverList.push_back(job);
 
-    // add dummy process for test purposes
-    {
-    QProcess *dummy = new QProcess(this);
-    QStringList dummyArgs;
-    dummyArgs << "30";
-    dummy->start("sleep", dummyArgs);
-    retrieveJobsContainer_t dummyjob;
-    dummyjob.pid = pid;
-    dummyjob.outdir = outdir;
-    dummyjob.name = "sleep 30-1";
-    dummyjob.process = dummy;
-    retrieverList.push_back(dummyjob);
-    }
-    {
-    QProcess *dummy = new QProcess(this);
-    QStringList dummyArgs;
-    dummyArgs << "30";
-    dummy->start("sleep", dummyArgs);
-    retrieveJobsContainer_t dummyjob;
-    dummyjob.pid = pid;
-    dummyjob.outdir = outdir;
-    dummyjob.name = "sleep 30-2";
-    dummyjob.process = dummy;
-    retrieverList.push_back(dummyjob);
-    }
+//    // add dummy process for test purposes
+//    {
+//    QProcess *dummy = new QProcess(this);
+//    QStringList dummyArgs;
+//    dummyArgs << "30";
+//    dummy->start("sleep", dummyArgs);
+//    retrieveJobsContainer_t dummyjob;
+//    dummyjob.pid = pid;
+//    dummyjob.outdir = outdir;
+//    dummyjob.name = "sleep 30-1";
+//    dummyjob.process = dummy;
+//    retrieverList.push_back(dummyjob);
+//    }
+//    {
+//    QProcess *dummy = new QProcess(this);
+//    QStringList dummyArgs;
+//    dummyArgs << "30";
+//    dummy->start("sleep", dummyArgs);
+//    retrieveJobsContainer_t dummyjob;
+//    dummyjob.pid = pid;
+//    dummyjob.outdir = outdir;
+//    dummyjob.name = "sleep 30-2";
+//    dummyjob.process = dummy;
+//    retrieverList.push_back(dummyjob);
+//    }
 }
 
 void Dialog::retrieverFinished(int val){
