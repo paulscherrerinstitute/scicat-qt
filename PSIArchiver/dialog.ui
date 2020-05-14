@@ -160,6 +160,9 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
            </item>
            <item>
             <widget class="QLabel" name="labelServer">
+             <property name="toolTip">
+              <string>Current archive server</string>
+             </property>
              <property name="styleSheet">
               <string notr="true">QLabel{color:rgb(255, 255, 255)}</string>
              </property>
@@ -266,9 +269,10 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
            <string>Login</string>
           </property>
           <property name="styleSheet">
-           <string notr="true">QPushButton{background-repeat: no-repeat; width:50px; height:50px; border-radius:0px; padding:0px}
-QPushButton:hover{background-repeat: no-repeat; width:50px; height:50px}
-QPushButton:!enabled{background-repeat: no-repeat; width:50px; height:50px}
+           <string notr="true">QPushButton{border-image:url(&quot;:/images/login-not-active.svg&quot;); background-repeat: no-repeat; width:50px; height:50px; padding:0px}
+QPushButton:hover{border-image:url(&quot;:/images/login.svg&quot;); background-repeat: no-repeat; width:50px; height:50px}
+QPushButton:!enabled{border-image:url(&quot;:/images/login-not-active.svg&quot;); background-repeat: no-repeat; width:50px; height:50px}
+
 </string>
           </property>
           <property name="text">
@@ -356,6 +360,9 @@ QPushButton:!enabled{border-image:url(&quot;:/images/retrieve-not-active.svg&quo
         </item>
         <item>
          <widget class="QPushButton" name="pushButtonSettings">
+          <property name="toolTip">
+           <string>Settings</string>
+          </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{border-image:url(&quot;:/images/settings-not-active.svg&quot;); background-repeat: no-repeat; width:50px; height:50px; padding:0px}
 QPushButton:hover{border-image:url(&quot;:/images/settings.svg&quot;); background-repeat: no-repeat; width:50px; height:50px}
@@ -451,6 +458,9 @@ QPushButton:!enabled{border-image:url(&quot;:/images/settings-not-active.svg&quo
                <height>50</height>
               </size>
              </property>
+             <property name="toolTip">
+              <string>Go to file selection</string>
+             </property>
              <property name="styleSheet">
               <string notr="true">QPushButton{background-color:rgb(0, 70, 91); border-radius:0px; border:0px; color:rgb(200, 200, 200)}
 QPushButton:hover{background-color:rgb(0, 79, 103); border-radius:0px; border:0px; color:rgb(255, 255, 255)}
@@ -479,6 +489,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                <height>50</height>
               </size>
              </property>
+             <property name="toolTip">
+              <string>Go to metadata selection</string>
+             </property>
              <property name="styleSheet">
               <string notr="true">QPushButton{background-color:rgb(0, 70, 91); border-radius:0px; border:0px; color:rgb(200, 200, 200)}
 QPushButton:hover{background-color:rgb(0, 79,103); border-radius:0px; border:0px; color:rgb(255, 255, 255)}
@@ -506,6 +519,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                <width>50</width>
                <height>50</height>
               </size>
+             </property>
+             <property name="toolTip">
+              <string>Go to submission page</string>
              </property>
              <property name="styleSheet">
               <string notr="true">QPushButton{background-color:rgb(0, 70, 91); border-radius:0px; border:0px; color:rgb(200, 200, 200)}
@@ -577,6 +593,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                <height>50</height>
               </size>
              </property>
+             <property name="toolTip">
+              <string>Go to retrieve section</string>
+             </property>
              <property name="styleSheet">
               <string notr="true">QPushButton{background-color:rgb(0, 70, 91); border-radius:0px; border:0px; color:rgb(200, 200, 200)}
 QPushButton:hover{background-color:rgb(0, 79,103); border-radius:0px; border:0px; color:rgb(255, 255, 255)}
@@ -590,6 +609,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
            </item>
            <item>
             <widget class="QPushButton" name="pushButtonJobs">
+             <property name="toolTip">
+              <string>Go to current jobs</string>
+             </property>
              <property name="styleSheet">
               <string notr="true">QPushButton{background-color:rgb(0, 70, 91); border-radius:0px; border:0px; color:rgb(200, 200, 200)}
 QPushButton:hover{background-color:rgb(0, 79,103); border-radius:0px; border:0px; color:rgb(255, 255, 255)}
@@ -676,12 +698,15 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             <enum>QFrame::Sunken</enum>
            </property>
            <property name="currentIndex">
-            <number>5</number>
+            <number>0</number>
            </property>
            <widget class="QWidget" name="startPage">
             <layout class="QHBoxLayout" name="horizontalLayout_15">
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_29">
+               <property name="spacing">
+                <number>0</number>
+               </property>
                <item>
                 <spacer name="verticalSpacer_21">
                  <property name="orientation">
@@ -697,6 +722,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                </item>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_6">
+                 <property name="spacing">
+                  <number>6</number>
+                 </property>
                  <item>
                   <spacer name="horizontalSpacer_4">
                    <property name="orientation">
@@ -707,7 +735,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                    </property>
                    <property name="sizeHint" stdset="0">
                     <size>
-                     <width>40</width>
+                     <width>48</width>
                      <height>20</height>
                     </size>
                    </property>
@@ -715,6 +743,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                  </item>
                  <item>
                   <layout class="QVBoxLayout" name="verticalLayout_28">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
                    <item>
                     <spacer name="verticalSpacer">
                      <property name="orientation">
@@ -873,8 +904,8 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>558</width>
-                           <height>235</height>
+                           <width>520</width>
+                           <height>278</height>
                           </rect>
                          </property>
                          <property name="sizePolicy">
@@ -1070,22 +1101,6 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                     </widget>
                    </item>
                    <item>
-                    <spacer name="verticalSpacer_13">
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                     <property name="sizeType">
-                      <enum>QSizePolicy::MinimumExpanding</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>17</width>
-                       <height>25</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item>
                     <widget class="QFrame" name="retrieveArchiveButtons">
                      <property name="minimumSize">
                       <size>
@@ -1121,21 +1136,14 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                       </property>
                       <item>
                        <layout class="QHBoxLayout" name="horizontalLayout_5">
-                        <item>
-                         <spacer name="horizontalSpacer_21">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
+                        <property name="spacing">
+                         <number>0</number>
+                        </property>
                         <item>
                          <widget class="QPushButton" name="pushButtonRetrieveData">
+                          <property name="toolTip">
+                           <string>Retrieve data from archive</string>
+                          </property>
                           <property name="text">
                            <string>Retrieve data</string>
                           </property>
@@ -1159,44 +1167,18 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButtonArchiveData">
+                          <property name="toolTip">
+                           <string>Send data to archive</string>
+                          </property>
                           <property name="text">
                            <string>Archive data</string>
                           </property>
                          </widget>
                         </item>
-                        <item>
-                         <spacer name="horizontalSpacer_22">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
                        </layout>
                       </item>
                      </layout>
                     </widget>
-                   </item>
-                   <item>
-                    <spacer name="verticalSpacer_14">
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                     <property name="sizeType">
-                      <enum>QSizePolicy::Ignored</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>20</width>
-                       <height>40</height>
-                      </size>
-                     </property>
-                    </spacer>
                    </item>
                   </layout>
                  </item>
@@ -1210,7 +1192,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                    </property>
                    <property name="sizeHint" stdset="0">
                     <size>
-                     <width>40</width>
+                     <width>70</width>
                      <height>20</height>
                     </size>
                    </property>
@@ -1224,12 +1206,12 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                   <enum>Qt::Vertical</enum>
                  </property>
                  <property name="sizeType">
-                  <enum>QSizePolicy::Expanding</enum>
+                  <enum>QSizePolicy::Fixed</enum>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
                    <width>20</width>
-                   <height>59</height>
+                   <height>6</height>
                   </size>
                  </property>
                 </spacer>
@@ -1331,6 +1313,9 @@ QListWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); borde
                     <layout class="QHBoxLayout" name="horizontalLayout_4">
                      <item>
                       <widget class="QPushButton" name="clearButtonFilelisting">
+                       <property name="toolTip">
+                        <string>Remove currently selected entry</string>
+                       </property>
                        <property name="text">
                         <string>Clear</string>
                        </property>
@@ -1338,6 +1323,9 @@ QListWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); borde
                      </item>
                      <item>
                       <widget class="QPushButton" name="clearAllButtonFilelisting">
+                       <property name="toolTip">
+                        <string>Remove all entries</string>
+                       </property>
                        <property name="text">
                         <string>Clear all</string>
                        </property>
@@ -1385,6 +1373,9 @@ QListWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); borde
                          <width>70</width>
                          <height>24</height>
                         </size>
+                       </property>
+                       <property name="toolTip">
+                        <string>Add more files and/or directories</string>
                        </property>
                        <property name="styleSheet">
                         <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px}
@@ -1469,7 +1460,7 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                 <enum>QTabWidget::Rounded</enum>
                </property>
                <property name="currentIndex">
-                <number>2</number>
+                <number>1</number>
                </property>
                <widget class="QWidget" name="General">
                 <attribute name="title">
@@ -1493,6 +1484,9 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                    </item>
                    <item row="1" column="1">
                     <widget class="QComboBox" name="comboBoxDatatype">
+                     <property name="toolTip">
+                      <string>Switch between raw data and derived data ingestion</string>
+                     </property>
                      <item>
                       <property name="text">
                        <string>derived</string>
@@ -1616,6 +1610,9 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                    </item>
                    <item row="2" column="1" rowspan="2">
                     <widget class="QTextEdit" name="textEditDescription">
+                     <property name="toolTip">
+                      <string>Meaningful description of the datasets</string>
+                     </property>
                      <property name="whatsThis">
                       <string>Meaningful description of the datasets</string>
                      </property>
@@ -1626,6 +1623,9 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                    </item>
                    <item row="2" column="4" rowspan="2">
                     <widget class="QTextEdit" name="textEditUsedSoftware">
+                     <property name="toolTip">
+                      <string>Add the name or description of the software you used</string>
+                     </property>
                      <property name="whatsThis">
                       <string>Add the name or description of the software you used</string>
                      </property>
@@ -1834,8 +1834,14 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
                        </item>
                        <item>
                         <widget class="QPushButton" name="pushButtonAddDatasets">
+                         <property name="minimumSize">
+                          <size>
+                           <width>130</width>
+                           <height>24</height>
+                          </size>
+                         </property>
                          <property name="styleSheet">
-                          <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px}
+                          <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px; min-width:110px; min-height:20px; padding: 2px; padding-left:10px; padding-right:10px}
 QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}</string>
                          </property>
                          <property name="text">
@@ -1965,6 +1971,9 @@ QHeaderView::section { background-color: rgba(0, 153, 200, 0.2)}</string>
                        </property>
                        <item>
                         <widget class="QPushButton" name="pushButtonImportMetadata">
+                         <property name="toolTip">
+                          <string>Import json document</string>
+                         </property>
                          <property name="text">
                           <string>Import</string>
                          </property>
@@ -1972,6 +1981,9 @@ QHeaderView::section { background-color: rgba(0, 153, 200, 0.2)}</string>
                        </item>
                        <item>
                         <widget class="QPushButton" name="pushButtonExportMetadata">
+                         <property name="toolTip">
+                          <string>Export scientific metadata as json document</string>
+                         </property>
                          <property name="text">
                           <string>Export</string>
                          </property>
@@ -2037,6 +2049,9 @@ QHeaderView::section { background-color: rgba(0, 153, 200, 0.2)}</string>
                             <height>30</height>
                            </size>
                           </property>
+                          <property name="toolTip">
+                           <string>Add child entry to the currently selected item</string>
+                          </property>
                           <property name="styleSheet">
                            <string notr="true">QToolButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px}
 QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}</string>
@@ -2053,6 +2068,9 @@ QToolButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
                             <width>30</width>
                             <height>30</height>
                            </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Remove currently selected item</string>
                           </property>
                           <property name="styleSheet">
                            <string notr="true">QToolButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px}
@@ -2445,9 +2463,9 @@ QTableWidget QTableCornerButton::section  { background-color: rgba(0, 153, 200, 
             </layout>
            </widget>
            <widget class="QWidget" name="page_2">
-            <layout class="QVBoxLayout" name="verticalLayout_36">
+            <layout class="QVBoxLayout" name="verticalLayout_38">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_20">
+              <layout class="QHBoxLayout" name="horizontalLayout_21">
                <item>
                 <spacer name="horizontalSpacer_29">
                  <property name="orientation">
@@ -2465,7 +2483,7 @@ QTableWidget QTableCornerButton::section  { background-color: rgba(0, 153, 200, 
                 </spacer>
                </item>
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_35">
+                <layout class="QVBoxLayout" name="verticalLayout_37">
                  <item>
                   <spacer name="verticalSpacer_26">
                    <property name="orientation">
@@ -2483,44 +2501,111 @@ QTableWidget QTableCornerButton::section  { background-color: rgba(0, 153, 200, 
                   </spacer>
                  </item>
                  <item>
-                  <widget class="QTableWidget" name="tableWidgetJobs">
-                   <property name="styleSheet">
-                    <string notr="true">QTableWidget::item{ selection-background-color: rgb(0, 153, 200)}
-QTableWidget:hover{color: rgb(255, 255, 255)}
-QTableWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); border-style:solid}
-QHeaderView::section { background-color: rgba(0, 153, 200, 0.2)}
-QTableWidget QTableCornerButton::section  { background-color: rgba(0, 153, 200, 0.2)}</string>
+                  <widget class="QLabel" name="label_2">
+                   <property name="text">
+                    <string>Active jobs</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_19">
+                  <layout class="QHBoxLayout" name="horizontalLayout_20">
                    <item>
-                    <widget class="QPushButton" name="pushButtonKill">
-                     <property name="text">
-                      <string>Kill</string>
-                     </property>
-                    </widget>
+                    <layout class="QVBoxLayout" name="verticalLayout_36">
+                     <item>
+                      <widget class="QTableWidget" name="tableWidgetJobs">
+                       <property name="styleSheet">
+                        <string notr="true">QTableWidget::item{ selection-background-color: rgb(0, 153, 200)}
+QTableWidget:hover{color: rgb(255, 255, 255)}
+QTableWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); border-style:solid}
+QHeaderView::section { background-color: rgba(0, 153, 200, 0.2)}
+QTableWidget QTableCornerButton::section  { background-color: rgba(0, 153, 200, 0.2)}</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <layout class="QHBoxLayout" name="horizontalLayout_19">
+                       <item>
+                        <widget class="QPushButton" name="pushButtonKill">
+                         <property name="toolTip">
+                          <string>Kill job</string>
+                         </property>
+                         <property name="text">
+                          <string>Kill</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="horizontalSpacer_28">
+                         <property name="orientation">
+                          <enum>Qt::Horizontal</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>40</width>
+                           <height>20</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                       <item>
+                        <widget class="QPushButton" name="pushButtonDetach">
+                         <property name="toolTip">
+                          <string>Detach selected  job from GUI</string>
+                         </property>
+                         <property name="text">
+                          <string>Detach from GUI</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                    </layout>
                    </item>
                    <item>
-                    <spacer name="horizontalSpacer_28">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="pushButtonDetach">
-                     <property name="text">
-                      <string>Detach from GUI</string>
-                     </property>
-                    </widget>
+                    <layout class="QVBoxLayout" name="verticalLayout_35">
+                     <item>
+                      <widget class="QPushButton" name="pushButtonRefreshJobs">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>30</width>
+                         <height>30</height>
+                        </size>
+                       </property>
+                       <property name="toolTip">
+                        <string>Refresh jobs list</string>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">QPushButton{border-image:url(&quot;:/images/refreshButton.svg&quot;); background-repeat: no-repeat; width:30px; height:30px; padding:0px; min-width:30px;}
+QPushButton:hover{border-image:url(&quot;:/images/refreshButtonHover.svg&quot;); background-repeat: no-repeat; width:30px; height:30px; padding:0px}</string>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="verticalSpacer_28">
+                       <property name="orientation">
+                        <enum>Qt::Vertical</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>20</width>
+                         <height>40</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
                    </item>
                   </layout>
                  </item>

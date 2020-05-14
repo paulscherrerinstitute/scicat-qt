@@ -139,6 +139,13 @@ struct retrieveContainer_t {
     QString retrievable;
 };
 
+struct retrieveJobsContainer_t {
+    QString name;
+    QString outdir;
+    QString pid;
+    QProcess* process;
+};
+
 inline QDebug operator<<(QDebug out, const retrieveContainer_t& container)
 {
     out << container.pid << " " << container.name << " " << container.retrievable << " " << container.retrieved;
@@ -237,6 +244,8 @@ public:
 
 
 
+public slots:
+    void reject();
 
 
 private slots:
@@ -279,6 +288,8 @@ private slots:
     void goToJobs();
     void killJob();
     void detachJob();
+    void updateJobTable();
+
 
 
 
@@ -327,9 +338,9 @@ private:
     void prepareIngestion();
     LogBrowser *ingestionLog;
     std::vector<retrieveContainer_t> retrieveContainer;
-    std::vector<QProcess *> retrieverList;
-    void startRetriever(const QString& pid, const QString& outdir);
-    void updateJobTable();
+    std::vector<retrieveJobsContainer_t> retrieverList;
+    void startRetriever(const QString& pid, const QString& outdir, const QString& name);
+    void updateRetrieveJobs();
 
 
 };

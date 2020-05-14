@@ -6,10 +6,14 @@ Dialog::Dialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::Dialog)
 {
-
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     ui->setupUi(this);
+
+    // TODO hidden objects where need to be fixed/implemented
+    ui->pushButtonDetach->hide();
+    ui->pushButtonKill->hide();
+    // end
 
     QPixmap pixmap(":/images/scicat-logo-white.png");
     pixmap = pixmap.scaledToWidth(50);
@@ -106,6 +110,8 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonSettings, SIGNAL(clicked()), this, SLOT(openSettings()));
     connect(ui->pushButtonOpenLog, SIGNAL(clicked()), this, SLOT(openIngestionLog()));
     connect(ui->comboBoxCreationLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(creationLocationChanged(int)));
+    connect(ui->pushButtonRefreshJobs, SIGNAL(clicked()), this, SLOT(updateJobTable()));
+
 
 
     // warning label
@@ -197,16 +203,20 @@ Dialog::Dialog(QWidget *parent)
     ui->tableWidgetRetriever->setColumnWidth(1, 100);
     ui->tableWidgetRetriever->setColumnWidth(2, 100);
     ui->tableWidgetRetriever->setColumnWidth(3, 300);
-    ui->tableWidgetRetriever->setHorizontalHeaderLabels(QStringList({"Name", "Retrievable", "Retrieved", "PID"}));
+    ui->tableWidgetRetriever->setHorizontalHeaderLabels(QStringList({"Name", "Retrievable", "Retrieved", "Dataset ID"}));
 
 
     // job viewer
     ui->tableWidgetJobs->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidgetJobs->insertColumn(0);
     ui->tableWidgetJobs->insertColumn(1);
+    ui->tableWidgetJobs->insertColumn(2);
+    ui->tableWidgetJobs->insertColumn(3);
     ui->tableWidgetJobs->setColumnWidth(0, 200);
     ui->tableWidgetJobs->setColumnWidth(1, 200);
-    ui->tableWidgetJobs->setHorizontalHeaderLabels(QStringList({"Job", "ID"}));
+    ui->tableWidgetJobs->setColumnWidth(2, 200);
+    ui->tableWidgetJobs->setColumnWidth(3, 300);
+    ui->tableWidgetJobs->setHorizontalHeaderLabels(QStringList({"Name", "Path", "Process ID", "Dataset ID"}));
 
     ingestionLog = new LogBrowser(this);
 
@@ -1318,7 +1328,7 @@ void Dialog::saveRetrievedData(){
         for (int ii=0; ii<indexList.size(); ++ii) {
             qDebug() << ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0);
             if (ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool()) { // check retrieve status
-                startRetriever(ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0).toString(), dirname);
+                startRetriever(ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0).toString(), dirname, ui->tableWidgetRetriever->item(indexList[ii].row(),0)->data(0).toString());
             } else {
                 sendWarning("Some datasets have not been retrieved yet.");
             }
@@ -1327,7 +1337,7 @@ void Dialog::saveRetrievedData(){
 
 }
 
-void Dialog::startRetriever(const QString &pid, const QString &outdir){
+void Dialog::startRetriever(const QString &pid, const QString &outdir, const QString &name){
     QSettings settingsContainer("PSI", "SciCat");
 
     QProcess *retriever = new QProcess(this);
@@ -1354,16 +1364,39 @@ void Dialog::startRetriever(const QString &pid, const QString &outdir){
     retriever->closeWriteChannel();
     qDebug() << arguments;
 
-    retrieverList.push_back(retriever);
+    retrieveJobsContainer_t job;
+    job.pid = pid;
+    job.outdir = outdir;
+    job.name = name;
+    job.process = retriever;
+
+    retrieverList.push_back(job);
 
     // add dummy process for test purposes
+    {
     QProcess *dummy = new QProcess(this);
     QStringList dummyArgs;
     dummyArgs << "30";
     dummy->start("sleep", dummyArgs);
-    qDebug() << dummy->pid();
-    qDebug() << dummy->processId();
-    retrieverList.push_back(dummy);
+    retrieveJobsContainer_t dummyjob;
+    dummyjob.pid = pid;
+    dummyjob.outdir = outdir;
+    dummyjob.name = "sleep 30-1";
+    dummyjob.process = dummy;
+    retrieverList.push_back(dummyjob);
+    }
+    {
+    QProcess *dummy = new QProcess(this);
+    QStringList dummyArgs;
+    dummyArgs << "30";
+    dummy->start("sleep", dummyArgs);
+    retrieveJobsContainer_t dummyjob;
+    dummyjob.pid = pid;
+    dummyjob.outdir = outdir;
+    dummyjob.name = "sleep 30-2";
+    dummyjob.process = dummy;
+    retrieverList.push_back(dummyjob);
+    }
 }
 
 void Dialog::retrieverFinished(int val){
@@ -1385,15 +1418,34 @@ void Dialog::goToJobs(){
     updateJobTable();
 }
 
+void Dialog::updateRetrieveJobs(){
+    // delete all stale PIDs
+    for (std::vector<retrieveJobsContainer_t>::iterator it=retrieverList.begin(); it!=retrieverList.end();){
+        if ((*it).process->processId()==0){
+            it = retrieverList.erase(it);
+        } else {
+            ++it;
+        }
+
+    }
+}
+
 void Dialog::updateJobTable(){
+    updateRetrieveJobs();
     ui->tableWidgetJobs->setRowCount(0);
     ui->tableWidgetJobs->clearContents();
     for (auto v: retrieverList){
         ui->tableWidgetJobs->insertRow(0);
-	qDebug() << v->pid();
-    	qDebug() << v->processId(); 
-        QTableWidgetItem *tmpJobID = new QTableWidgetItem(QString::number(v->processId()));
-        ui->tableWidgetJobs->setItem(0,1,tmpJobID);
+        qDebug() << v.name;
+        qDebug() << v.process->processId();
+        QTableWidgetItem *tmpJobName = new QTableWidgetItem(v.name);
+        ui->tableWidgetJobs->setItem(0,0,tmpJobName);
+        QTableWidgetItem *tmpJobPath = new QTableWidgetItem(v.outdir);
+        ui->tableWidgetJobs->setItem(0,1,tmpJobPath);
+        QTableWidgetItem *tmpJobPID = new QTableWidgetItem(QString::number(v.process->processId()));
+        ui->tableWidgetJobs->setItem(0,2,tmpJobPID);
+        QTableWidgetItem *tmpJobID = new QTableWidgetItem(v.pid);
+        ui->tableWidgetJobs->setItem(0,3,tmpJobID);
     }
 
 }
@@ -1406,6 +1458,19 @@ void Dialog::detachJob(){
 
 }
 
+void Dialog::reject(){
+    updateRetrieveJobs();
+    if (retrieverList.size()>0){
+        auto reply = QMessageBox::question(this, "Quit", "Some retrieve processes haven't finished yet. Do you really want to quit now and abort these processes?");
+        if (reply == QMessageBox::Yes) {
+          QDialog::reject();
+          return;
+        } else {
+            return;
+        }
+    }
+    QDialog::reject();
+}
 
 Dialog::~Dialog()
 {
