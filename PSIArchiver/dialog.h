@@ -110,7 +110,7 @@ struct defaultSettings_t {
                                         "/PSI/SMUS/LTF"};
     uint serverID = 0;
     bool printIngestion = true;
-    bool disableSystemCalls = true;
+    bool disableSystemCalls = false;
     bool usePgroupAsDefaultPath = true;
     bool saveProposalInfo = true;
     bool loadProposalInfo = true;
@@ -274,8 +274,11 @@ private slots:
     void requestRetrieve();
     void saveRetrievedData();
     void retrieverFailed(QProcess::ProcessError error);
-//    void readRetrieverOutput();
     void retrieverFinished(int val);
+    void goToRequest();
+    void goToJobs();
+    void killJob();
+    void detachJob();
 
 
 
@@ -326,6 +329,7 @@ private:
     std::vector<retrieveContainer_t> retrieveContainer;
     std::vector<QProcess *> retrieverList;
     void startRetriever(const QString& pid, const QString& outdir);
+    void updateJobTable();
 
 
 };

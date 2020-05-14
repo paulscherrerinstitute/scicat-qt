@@ -3,9 +3,11 @@
 
 
 int DatasetModel::rowCount(const QModelIndex &parent) const {
+    (void) parent;
     return datasetContainerModel.size();
 }
 int DatasetModel::columnCount(const QModelIndex &parent) const {
+    (void) parent;
     return 2;
 }
 
@@ -68,6 +70,7 @@ void DatasetModel::sort(int column, Qt::SortOrder order) {
                 //something
                 return a.at(column)>b.at(column);
             }
+            return false;
         }
     };
     std::sort(datasetContainerModel.begin(), datasetContainerModel.end(), customCompare(column, order));

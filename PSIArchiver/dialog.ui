@@ -589,6 +589,19 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="pushButtonJobs">
+             <property name="styleSheet">
+              <string notr="true">QPushButton{background-color:rgb(0, 70, 91); border-radius:0px; border:0px; color:rgb(200, 200, 200)}
+QPushButton:hover{background-color:rgb(0, 79,103); border-radius:0px; border:0px; color:rgb(255, 255, 255)}
+QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:rgb(112, 112, 112)}
+</string>
+             </property>
+             <property name="text">
+              <string>Jobs</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <spacer name="verticalSpacer_12">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -663,7 +676,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             <enum>QFrame::Sunken</enum>
            </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>5</number>
            </property>
            <widget class="QWidget" name="startPage">
             <layout class="QHBoxLayout" name="horizontalLayout_15">
@@ -2413,6 +2426,124 @@ QTableWidget QTableCornerButton::section  { background-color: rgba(0, 153, 200, 
                </item>
                <item>
                 <spacer name="horizontalSpacer_25">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Fixed</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="page_2">
+            <layout class="QVBoxLayout" name="verticalLayout_36">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_20">
+               <item>
+                <spacer name="horizontalSpacer_29">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Fixed</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_35">
+                 <item>
+                  <spacer name="verticalSpacer_26">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QTableWidget" name="tableWidgetJobs">
+                   <property name="styleSheet">
+                    <string notr="true">QTableWidget::item{ selection-background-color: rgb(0, 153, 200)}
+QTableWidget:hover{color: rgb(255, 255, 255)}
+QTableWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); border-style:solid}
+QHeaderView::section { background-color: rgba(0, 153, 200, 0.2)}
+QTableWidget QTableCornerButton::section  { background-color: rgba(0, 153, 200, 0.2)}</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_19">
+                   <item>
+                    <widget class="QPushButton" name="pushButtonKill">
+                     <property name="text">
+                      <string>Kill</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_28">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButtonDetach">
+                     <property name="text">
+                      <string>Detach from GUI</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <spacer name="verticalSpacer_27">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_30">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>

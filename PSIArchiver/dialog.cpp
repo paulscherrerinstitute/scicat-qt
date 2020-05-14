@@ -98,6 +98,10 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonArchiveData, SIGNAL(clicked()), this, SLOT(goToArchive()));
     connect(ui->pushButtonRetrieveData, SIGNAL(clicked()), this, SLOT(goToRetrieve()));
     connect(ui->pushButtonRetrieve, SIGNAL(clicked()), this, SLOT(requestRetrieve()));
+    connect(ui->pushButtonRequest, SIGNAL(clicked()), this, SLOT(goToRequest()));
+    connect(ui->pushButtonJobs, SIGNAL(clicked()), this, SLOT(goToJobs()));
+    connect(ui->pushButtonKill, SIGNAL(clicked()), this, SLOT(killJob()));
+    connect(ui->pushButtonDetach, SIGNAL(clicked()), this, SLOT(detachJob()));
     connect(ui->pushButtonSave, SIGNAL(clicked()), this, SLOT(saveRetrievedData()));
     connect(ui->pushButtonSettings, SIGNAL(clicked()), this, SLOT(openSettings()));
     connect(ui->pushButtonOpenLog, SIGNAL(clicked()), this, SLOT(openIngestionLog()));
@@ -183,7 +187,7 @@ Dialog::Dialog(QWidget *parent)
     ui->pushButtonGoToRetrieve->installEventFilter(retrieveWatcher);
 
 
-
+    // dataset retriever
     ui->tableWidgetRetriever->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidgetRetriever->insertColumn(0);
     ui->tableWidgetRetriever->insertColumn(1);
@@ -195,6 +199,14 @@ Dialog::Dialog(QWidget *parent)
     ui->tableWidgetRetriever->setColumnWidth(3, 300);
     ui->tableWidgetRetriever->setHorizontalHeaderLabels(QStringList({"Name", "Retrievable", "Retrieved", "PID"}));
 
+
+    // job viewer
+    ui->tableWidgetJobs->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableWidgetJobs->insertColumn(0);
+    ui->tableWidgetJobs->insertColumn(1);
+    ui->tableWidgetJobs->setColumnWidth(0, 200);
+    ui->tableWidgetJobs->setColumnWidth(1, 200);
+    ui->tableWidgetJobs->setHorizontalHeaderLabels(QStringList({"Job", "ID"}));
 
     ingestionLog = new LogBrowser(this);
 
@@ -293,7 +305,7 @@ void Dialog::goToRetrieve(){
         }
         toggleNavigationBar(2);
         ui->stackedWidget->setCurrentIndex(numPagesLogin+numPagesArchive);
-        ui->nextSlideButton->show();
+        ui->nextSlideButton->hide();
         qApp->processEvents();
         updateRetrieveList();
 
@@ -1292,7 +1304,7 @@ void Dialog::requestRetrieve(){
         std::string cmd = "curl -X PUT --header 'Content-Type: application/json' --header 'Accept: application/json' -d '" + QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toStdString() +  "' 'https://dacat-qa.psi.ch/api/v3/Jobs?access_token=" + token + "'";
         auto successfulJobs = utils::system_call(cmd);
         qDebug().noquote() << cmd;
-        QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat Archiver to copy the data.") );
+        QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat Archiver.") );
     }
 
 
@@ -1343,6 +1355,13 @@ void Dialog::startRetriever(const QString &pid, const QString &outdir){
     qDebug() << arguments;
 
     retrieverList.push_back(retriever);
+
+    // add dummy process for test purposes
+    QProcess *dummy = new QProcess(this);
+    QStringList dummyArgs;
+    dummyArgs << "10";
+    dummy->start("sleep", dummyArgs);
+    retrieverList.push_back(dummy);
 }
 
 void Dialog::retrieverFinished(int val){
@@ -1350,22 +1369,45 @@ void Dialog::retrieverFinished(int val){
 }
 
 void Dialog::retrieverFailed(QProcess::ProcessError error){
+    (void) error;
     sendWarning("Retriever failed.");
 
 }
 
-//void Dialog::readRetrieverOutput(){
-//    while(retriever->canReadLine()){
-//        qDebug().noquote() << retriever->readLine();
-//    }
-//}
+void Dialog::goToRequest(){
+    goToPage(4);
+}
+
+void Dialog::goToJobs(){
+    goToPage(5);
+    updateJobTable();
+}
+
+void Dialog::updateJobTable(){
+    ui->tableWidgetJobs->setRowCount(0);
+    ui->tableWidgetJobs->clearContents();
+    for (auto v: retrieverList){
+        ui->tableWidgetJobs->insertRow(0);
+        QTableWidgetItem *tmpJobID = new QTableWidgetItem(v->processId());
+        ui->tableWidgetRetriever->setItem(0,1,tmpJobID);
+    }
+
+}
+
+void Dialog::killJob(){
+
+}
+
+void Dialog::detachJob(){
+
+}
+
 
 Dialog::~Dialog()
 {
     delete datasets_m;
     delete ui;
 }
-
 
 QString extractSourceFolder(std::vector<QString> container){
 // a quick and dirty solution... not very efficient though
