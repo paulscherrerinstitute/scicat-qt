@@ -30,12 +30,16 @@ void Login::getLoginData(){
         // try BL accounts
         tmp = utils::system_call("curl -s -X POST --header 'Content-Type: application/json'  -d '{\"username\":\"" + uiLogin->lineEditUsername->text().toStdString() + "\",\"password\":\"" + uiLogin->lineEditPassword->text().toStdString() + "\"}' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "Users/login'");
         if ((tmp.compare("\"authentication error\"")==0) || (tmp.find("error") != std::string::npos)){
-//            QMessageBox::information(this, tr("Authentication error"), tr("Please check your username and password") );
             errorMessage("Please check your username and password");
             uiLogin->lineEditPassword->clear();
             return;
         } else {
             baseUi->metadataContainer.isBeamlineAccount = true;
+
+            // can be removed once the pgroup selection is fixed:
+            errorMessage("Beamline accounts are currently not supported.");
+            uiLogin->lineEditPassword->clear();
+            return;
         }
     }
 
