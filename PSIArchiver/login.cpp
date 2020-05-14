@@ -94,7 +94,8 @@ void Login::readKeberosOutput(){
 
     qDebug() << "reading output";
     while(kerberosAuth->canReadLine()){
-        qDebug() << kerberosAuth->readLine();
+        auto tmp = kerberosAuth->readLine();
+        qDebug() << tmp;
     }
 
 }
