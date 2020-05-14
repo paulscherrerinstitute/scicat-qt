@@ -1359,8 +1359,10 @@ void Dialog::startRetriever(const QString &pid, const QString &outdir){
     // add dummy process for test purposes
     QProcess *dummy = new QProcess(this);
     QStringList dummyArgs;
-    dummyArgs << "10";
+    dummyArgs << "30";
     dummy->start("sleep", dummyArgs);
+    qDebug() << dummy->pid();
+    qDebug() << dummy->processId();
     retrieverList.push_back(dummy);
 }
 
@@ -1388,8 +1390,10 @@ void Dialog::updateJobTable(){
     ui->tableWidgetJobs->clearContents();
     for (auto v: retrieverList){
         ui->tableWidgetJobs->insertRow(0);
-        QTableWidgetItem *tmpJobID = new QTableWidgetItem(v->processId());
-        ui->tableWidgetRetriever->setItem(0,1,tmpJobID);
+	qDebug() << v->pid();
+    	qDebug() << v->processId(); 
+        QTableWidgetItem *tmpJobID = new QTableWidgetItem(QString::number(v->processId()));
+        ui->tableWidgetJobs->setItem(0,1,tmpJobID);
     }
 
 }
