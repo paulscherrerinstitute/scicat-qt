@@ -310,6 +310,10 @@ void Dialog::goToArchive(){
 }
 
 void Dialog::goToRetrieve(){
+    if (metadataContainer.isBeamlineAccount){
+        QMessageBox::information(this, tr("Permission error"), tr("Retrieving data with beamline accounts is not supported. Please use your personal PSI account instead.") );
+        return;
+    }
     if (checkPIInfo()){
         if (secID!=2){
             updateNavigationIcons(2);
