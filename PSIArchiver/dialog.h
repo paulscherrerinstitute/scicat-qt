@@ -120,6 +120,7 @@ struct defaultSettings_t {
     bool enableIngest = true;
     bool investigatorIsPI = false;
     bool requestAlreadyRetrievedData = true;
+    bool guessDatasetname = true;
 
 
 

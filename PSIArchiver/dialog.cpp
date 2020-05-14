@@ -66,6 +66,7 @@ Dialog::Dialog(QWidget *parent)
     updateSettingsContainer(settingsContainer, "disableEmails", defaultSettings.disableEmails);
     updateSettingsContainer(settingsContainer, "saveLog", defaultSettings.saveLog);
     updateSettingsContainer(settingsContainer, "requestAlreadyRetrievedData", defaultSettings.requestAlreadyRetrievedData);
+    updateSettingsContainer(settingsContainer, "guessDatasetname", defaultSettings.guessDatasetname);
 
 
 
@@ -490,6 +491,23 @@ bool Dialog::filelistingCheckAndUpdate(){
     filelistingContainer.clear();
     for (int ii=0; ii<ui->filelistingListWidget->count(); ii++ ){
         filelistingContainer.push_back(ui->filelistingListWidget->item(ii)->text());
+    }
+
+    // guess dataset name
+    if (settingsContainer.value("guessDatasetname", defaultSettings.guessDatasetname).toBool()){
+        if (filelistingContainer.size()==1){
+            QFileInfo info(filelistingContainer[0]);
+            qDebug() << "File name: " << info.fileName();
+            qDebug() << "File extension: " << info.baseName();
+            qDebug() << "File extension: " << info.suffix();
+
+            ui->lineEditDatasetName->setText(info.baseName());
+
+        } else if (filelistingContainer.size()>1){
+            auto sourceFolder = extractSourceFolder(filelistingContainer);
+            QFileInfo info(sourceFolder);
+            ui->lineEditDatasetName->setText(info.baseName());
+        }
     }
 
     return true;

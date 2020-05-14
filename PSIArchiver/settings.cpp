@@ -38,6 +38,7 @@ Settings::Settings(QWidget *parent) :
     ui->checkBoxEnableIngest->setChecked(settingsContainer.value("enableIngest").toBool());
     ui->checkBoxUsePgroupAsPath->setChecked(settingsContainer.value("usePgroupAsDefaultPath").toBool());
     ui->checkBoxInvestigatorIsPI->setChecked(settingsContainer.value("investigatorIsPI").toBool());
+    ui->checkBoxGuessDatasetname->setChecked(settingsContainer.value("guessDatasetname").toBool());
     ui->checkBoxPrintCalls->setChecked(settingsContainer.value("printIngestion").toBool());
     ui->checkBoxSystemCalls->setChecked(settingsContainer.value("disableSystemCalls").toBool());
     ui->comboBoxServer->setCurrentIndex(settingsContainer.value("serverID").toInt());
@@ -57,6 +58,7 @@ void Settings::reset(){
     ui->checkBoxEnableIngest->setChecked(baseUi->defaultSettings.enableIngest);
     ui->checkBoxUsePgroupAsPath->setChecked(baseUi->defaultSettings.usePgroupAsDefaultPath);
     ui->checkBoxInvestigatorIsPI->setChecked(baseUi->defaultSettings.investigatorIsPI);
+    ui->checkBoxGuessDatasetname->setChecked(baseUi->defaultSettings.guessDatasetname);
     ui->checkBoxPrintCalls->setChecked(baseUi->defaultSettings.printIngestion);
     ui->checkBoxSystemCalls->setChecked(baseUi->defaultSettings.disableSystemCalls);
     ui->comboBoxServer->setCurrentIndex(baseUi->defaultSettings.serverID);
@@ -104,6 +106,7 @@ void Settings::updateSettings(){
     settingsContainer.setValue("enableIngest", (bool) ui->checkBoxEnableIngest->checkState());
     settingsContainer.setValue("usePgroupAsDefaultPath", (bool) ui->checkBoxUsePgroupAsPath->checkState());
     settingsContainer.setValue("investigatorIsPI", (bool) ui->checkBoxInvestigatorIsPI->checkState());
+    settingsContainer.setValue("guessDatasetname", (bool) ui->checkBoxGuessDatasetname->checkState());
     settingsContainer.setValue("printIngestion", (bool) ui->checkBoxPrintCalls->checkState());
     settingsContainer.setValue("disableSystemCalls", (bool) ui->checkBoxSystemCalls->checkState());
     settingsContainer.setValue("serverID", ui->comboBoxServer->currentIndex());
