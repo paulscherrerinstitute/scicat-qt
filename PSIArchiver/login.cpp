@@ -83,8 +83,8 @@ void Login::authenticateUser(QString pass){
     QStringList argument(baseUi->metadataContainer.username);
     kerberosAuth->start("kinit", argument);
     const QByteArray byteArray = pass.toUtf8();
-    const char *mytext = byteArray.constData();
-    kerberosAuth->write(mytext,pass.length()+1);
+    const char *passConv = byteArray.constData();
+    kerberosAuth->write(passConv,pass.length()+1);
     kerberosAuth->closeWriteChannel();
 
 

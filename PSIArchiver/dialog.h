@@ -233,7 +233,7 @@ public:
     ButtonHoverWatcher *pgroupWatcher = new ButtonHoverWatcher;
     ButtonHoverWatcher *archiveWatcher = new ButtonHoverWatcher;
     ButtonHoverWatcher *retrieveWatcher = new ButtonHoverWatcher;
-    void json2TreeModel(QTreeWidgetItem *item, QJsonObject &inObj);
+//    void json2TreeModel(QTreeWidgetItem *item, QJsonObject &inObj);
 
 
 
@@ -333,6 +333,9 @@ private:
 
 QString extractSourceFolder(std::vector<QString> container);
 QJsonObject treeModel2Json(QTreeWidgetItem *item);
+void json2TreeModel(QJsonObject &inObj, QTreeWidgetItem *item, QTreeWidget* parentWidget=nullptr);
+//void json2TreeModel(QJsonObject &inObj, QTreeWidget* widget);
+
 
 #endif // DIALOG_H
 

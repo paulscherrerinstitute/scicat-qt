@@ -1068,31 +1068,6 @@ void Dialog::exportMetadata(){
 
 }
 
-void Dialog::json2TreeModel(QTreeWidgetItem *item, QJsonObject &inObj){
-    for (auto v:inObj){
-        qDebug() << v.isArray();
-        qDebug() << v;
-        if (v.isArray()){
-            for (int ii=0; ii<v.toArray().size(); ii++){
-                qDebug() << v.toArray()[ii].isObject();
-                auto entries = v.toArray()[ii];
-                if (entries.isObject()){
-                    if (entries.toObject().size()==1){
-                        addEntryMetadataTreeView(entries.toObject().keys()[0],entries.toObject().value(entries.toObject().keys()[0]).toString(),item, false, 4);
-                    } else {
-//                        json2TreeModel()
-                    }
-                } else {
-                    qDebug() << entries;
-//                    json2TreeModel(item, entries.toObject());
-                }
-
-            }
-
-        }
-        v.toArray().size();
-    }
-}
 
 void Dialog::importMetadata(){
 
@@ -1109,7 +1084,9 @@ void Dialog::importMetadata(){
     QJsonDocument importJsonFile = QJsonDocument::fromJson(val.toUtf8());
     auto jsonObj = importJsonFile.object();
     ui->treeWidget->clear();
-    json2TreeModel(nullptr, jsonObj);
+//    addEntryMetadataTreeView("scientificMetadata", "", nullptr, false, 2);
+//    auto res = ui->treeWidget->findItems("scientificMetadata", Qt::MatchExactly|Qt::MatchRecursive, 0);
+    json2TreeModel(jsonObj, nullptr, ui->treeWidget);
 }
 
 void Dialog::comboBoxDatatypeChanged(int val){
@@ -1430,6 +1407,42 @@ QJsonObject treeModel2Json(QTreeWidgetItem *item){
     }
 
     return retObj;
+}
+
+
+void json2TreeModel(QJsonObject &inObj, QTreeWidgetItem *item, QTreeWidget* parentWidget){
+    qDebug() << "entry: " << inObj;
+    auto entryKeys = inObj.keys();
+    for (int kk=0;kk<entryKeys.size(); kk++){
+        qDebug() << "Creating new item for " << entryKeys[kk];
+        QTreeWidgetItem * treeItem;
+        if (parentWidget!=nullptr){
+            treeItem = new QTreeWidgetItem(parentWidget);
+        } else {
+            treeItem = new QTreeWidgetItem();
+        }
+        treeItem->setText(0,entryKeys[kk]);
+        auto entryVal = inObj.value(entryKeys[kk]);
+        if (entryVal.isArray()){
+            qDebug() << "Array: " << entryVal;
+            for (int ii=0; ii<entryVal.toArray().size(); ii++){
+                auto tmpArrayEntry = entryVal.toArray().at(ii).toObject();
+                qDebug() << "calling rec. for " << tmpArrayEntry;
+                json2TreeModel(tmpArrayEntry, treeItem);
+            }
+        } else if (entryVal.isObject()){
+            qDebug() << "Object: " << entryVal;
+            auto tmpObject = entryVal.toObject();
+            json2TreeModel(tmpObject, treeItem);
+        } else {
+            qDebug() << "Value: " << entryVal;
+            treeItem->setText(1,entryVal.toString());
+
+        }
+        if (item!=nullptr){
+            item->addChild(treeItem);
+        }
+    }
 }
 
 ButtonHoverWatcher::ButtonHoverWatcher(QObject * parent) :
