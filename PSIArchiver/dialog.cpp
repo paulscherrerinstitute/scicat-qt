@@ -79,7 +79,7 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->clearButtonDatasets, SIGNAL (clicked()), this, SLOT (clearDatasets()));
     connect(ui->clearAllButtonDatasets, SIGNAL (clicked()), this, SLOT (clearAllDatasets()));
     connect(ui->lineEditPgroup, SIGNAL (editingFinished()), this, SLOT (getPI()));
-    connect(ui->pushButtonNavigationPgroup, SIGNAL (clicked()), this, SLOT (goToPgroup()));
+    connect(ui->pushButtonGoToPgroup, SIGNAL (clicked()), this, SLOT (goToPgroup()));
     connect(ui->pushButtonNavigationFiles, SIGNAL (clicked()), this, SLOT (goToFiles()));
     connect(ui->pushButtonNavigationMetadata, SIGNAL (clicked()), this, SLOT (goToMetadata()));
     connect(ui->pushButtonNavigationSubmit, SIGNAL (clicked()), this, SLOT (goToSubmit()));
@@ -133,7 +133,7 @@ Dialog::Dialog(QWidget *parent)
 
 
     // navigation buttons
-    navigationButtons.push_back(ui->pushButtonNavigationPgroup);
+    navigationButtons.push_back(ui->pushButtonGoToPgroup);
     navigationButtons.push_back(ui->pushButtonNavigationFiles);
     navigationButtons.push_back(ui->pushButtonNavigationMetadata);
     navigationButtons.push_back(ui->pushButtonNavigationSubmit);
@@ -170,8 +170,8 @@ Dialog::Dialog(QWidget *parent)
     if (!movie->isValid())
         return;
 
-    ui->pushButtonNavigationPgroup->setIcon(QIcon(":/images/login.svg"));
-    ui->pushButtonNavigationPgroup->setIconSize(QSize(50,50));
+    ui->pushButtonGoToPgroup->setIcon(QIcon(":/images/login.svg"));
+    ui->pushButtonGoToPgroup->setIconSize(QSize(50,50));
 
     loginIcons.push_back(":/images/login.svg");
     loginIcons.push_back(":/images/login-active.svg");
@@ -189,7 +189,7 @@ Dialog::Dialog(QWidget *parent)
     archiveWatcher->setIcons(archiveIcons);
     retrieveWatcher->setIcons(retrieveIcons);
 
-    ui->pushButtonNavigationPgroup->installEventFilter(pgroupWatcher);
+    ui->pushButtonGoToPgroup->installEventFilter(pgroupWatcher);
     ui->pushButtonGoToArchive->installEventFilter(archiveWatcher);
     ui->pushButtonGoToRetrieve->installEventFilter(retrieveWatcher);
 
@@ -248,8 +248,8 @@ void Dialog::updateNavigationIcons(int targetID){
 
         switch (secID) {
         case 0:{
-            ui->pushButtonNavigationPgroup->setIcon(QIcon(":/images/login-not-active.svg"));
-            ui->pushButtonNavigationPgroup->setIconSize(QSize(50,50));
+            ui->pushButtonGoToPgroup->setIcon(QIcon(":/images/login-not-active.svg"));
+            ui->pushButtonGoToPgroup->setIconSize(QSize(50,50));
             pgroupWatcher->setButtonIsActive(false);
             break;
         }
@@ -271,8 +271,8 @@ void Dialog::updateNavigationIcons(int targetID){
         }
         switch (targetID) {
         case 0:{
-            ui->pushButtonNavigationPgroup->setIcon(QIcon(":/images/login-active.svg"));
-            ui->pushButtonNavigationPgroup->setIconSize(QSize(50,50));
+            ui->pushButtonGoToPgroup->setIcon(QIcon(":/images/login-active.svg"));
+            ui->pushButtonGoToPgroup->setIconSize(QSize(50,50));
             pgroupWatcher->setButtonIsActive(true);
             break;
         }
@@ -497,10 +497,6 @@ bool Dialog::filelistingCheckAndUpdate(){
     if (settingsContainer.value("guessDatasetname", defaultSettings.guessDatasetname).toBool()){
         if (filelistingContainer.size()==1){
             QFileInfo info(filelistingContainer[0]);
-            qDebug() << "File name: " << info.fileName();
-            qDebug() << "File extension: " << info.baseName();
-            qDebug() << "File extension: " << info.suffix();
-
             ui->lineEditDatasetName->setText(info.baseName());
 
         } else if (filelistingContainer.size()>1){
@@ -522,10 +518,14 @@ void Dialog::metadataNextSlide(){
 
 void Dialog::setButtonsEnabled(bool enabled){
     ui->nextSlideButton->setEnabled(enabled);
-    ui->pushButtonNavigationPgroup->setEnabled(enabled);
+    ui->pushButtonGoToPgroup->setEnabled(enabled);
     ui->pushButtonNavigationFiles->setEnabled(enabled);
     ui->pushButtonNavigationMetadata->setEnabled(enabled);
     ui->pushButtonNavigationSubmit->setEnabled(enabled);
+    ui->pushButtonGoToArchive->setEnabled(enabled);
+    ui->pushButtonGoToRetrieve->setEnabled(enabled);
+
+
 }
 
 void Dialog::prepareIngestion(){
@@ -622,6 +622,7 @@ void Dialog::startIngestion(){
     QSettings settingsContainer("PSI", "SciCat");
 
     ui->waitingMessage->show();
+    ui->pleaseWait->setText("Please wait.");
     ui->waitingCircle->setMovie(movie);
     ui->waitingCircle->show();
     movie->start();
