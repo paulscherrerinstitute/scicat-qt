@@ -629,6 +629,7 @@ void Dialog::startIngestion(){
 
     // disable buttons
     setButtonsEnabled(false);
+    ui->pushButtonRestart->setEnabled(false);
 
     // compile ingestion command
     QStringList arguments;
@@ -696,6 +697,7 @@ void Dialog::ingestionFinished(int exitCode){
     ui->waitingCircle->hide();
     ui->nextSlideButton->setEnabled(true);
     ingested = true;
+    ui->pushButtonRestart->setEnabled(true);
     ui->pushButtonRestart->setText("Restart");
 
     if (exitCode==0){
@@ -1481,6 +1483,14 @@ void Dialog::reject(){
     updateRetrieveJobs();
     if (retrieverList.size()>0){
         auto reply = QMessageBox::question(this, "Quit", "Some retrieve processes haven't finished yet. Do you really want to quit now and abort these processes?");
+        if (reply == QMessageBox::Yes) {
+          QDialog::reject();
+          return;
+        } else {
+            return;
+        }
+    } else if (ingestion->state()==QProcess::Running){
+        auto reply = QMessageBox::question(this, "Quit", "The ingestion job is still running. Do you really want to quit now and abort the ingestion?");
         if (reply == QMessageBox::Yes) {
           QDialog::reject();
           return;
