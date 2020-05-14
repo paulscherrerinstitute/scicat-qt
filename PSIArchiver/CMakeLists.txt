@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(PSIArchiver LANGUAGES CXX)
+project(SciCatArchiver LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -31,7 +31,7 @@ find_package(Qt5 COMPONENTS Widgets REQUIRED)
 QT5_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
 
 if(ANDROID)
-  add_library(PSIArchiver SHARED
+  add_library(SciCatArchiver SHARED
     main.cpp
     dialog.cpp
     dialog.h
@@ -46,7 +46,7 @@ if(ANDROID)
     datasetbrowser.ui
   )
 else()
-  add_executable(PSIArchiver
+  add_executable(SciCatArchiver
     main.cpp
     dialog.cpp
     dialog.h
@@ -75,4 +75,4 @@ else()
   )
 endif()
 
-target_link_libraries(PSIArchiver PRIVATE Qt5::Widgets)
+target_link_libraries(SciCatArchiver PRIVATE Qt5::Widgets)
