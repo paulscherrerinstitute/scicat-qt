@@ -1653,6 +1653,7 @@ int countFilesAndDirRecursive(QString dirName){
     QDir dir(dirName);
     int count = 0;
     QStringList fileNameList = dir.entryList();
+    qDebug() << fileNameList;
     for (auto v:fileNameList){
         if (!(v.compare(".") || v.compare(".."))){ // ignore .. and .
             QFileInfo info(dirName + "/" + v);
