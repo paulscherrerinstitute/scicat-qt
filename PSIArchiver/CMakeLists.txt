@@ -71,6 +71,8 @@ else()
     settings.cpp
     settings.h
     settings.ui
+    filecountcontainer.cpp
+    filecountcontainer.h
     ${RES_SOURCES}
   )
 endif()

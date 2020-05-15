@@ -28,6 +28,8 @@
 #include <QCoreApplication>
 #include <QProcess>
 #include <QVersionNumber>
+#include <QFuture>
+#include <QtConcurrent/QtConcurrentRun>
 #include "qfiledialog.h"
 #include "QMessageBox"
 
@@ -47,7 +49,11 @@ class LogBrowser;
 #include "datasetbrowser.h"
 
 
-
+struct fileCounter_t {
+    int numFiles;
+    QString name;
+    QList<fileCounter_t> subDir;
+};
 
 struct styleSheets_t {
     QString buttonNavigation;
@@ -121,6 +127,7 @@ struct defaultSettings_t {
     bool investigatorIsPI = false;
     bool requestAlreadyRetrievedData = true;
     bool guessDatasetname = true;
+    int maxFileNum = 5000;
 
 
 
@@ -342,6 +349,7 @@ private:
     std::vector<retrieveJobsContainer_t> retrieverList;
     void startRetriever(const QString& pid, const QString& outdir, const QString& name);
     void updateRetrieveJobs();
+    QFuture<int> futureGetFileNum;
 
 
 };
@@ -351,7 +359,8 @@ QString extractSourceFolder(std::vector<QString> container);
 QJsonObject treeModel2Json(QTreeWidgetItem *item);
 void json2TreeModel(QJsonObject &inObj, QTreeWidgetItem *item, QTreeWidget* parentWidget=nullptr);
 //void json2TreeModel(QJsonObject &inObj, QTreeWidget* widget);
-int countFilesAndDirRecursive(QString dirName);
+fileCounter_t countFilesAndDirRecursive(QString dirName);
+int getFileNum(std::vector<QString> container);
 
 
 #endif // DIALOG_H

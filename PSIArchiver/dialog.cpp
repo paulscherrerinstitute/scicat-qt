@@ -510,15 +510,31 @@ bool Dialog::filelistingCheckAndUpdate(){
         }
     }
 
+
+
     // count files
-    int count = 0;
-    for (auto v:filelistingContainer) {
-        count += countFilesAndDirRecursive(v);
-    }
-    if (count>150000){
-        QMessageBox::information(this, tr("Warning"), tr("The selected directories exceed the maximum number of files per dataset. Your dataset will be split into smaller datasets.") );
-    }
-    qDebug() << "Number of files: " << count;
+    futureGetFileNum = QtConcurrent::run(getFileNum, filelistingContainer);
+
+//    int count = 0;
+//    for (auto v:filelistingContainer) {
+//        count += countFilesAndDirRecursive(v);
+//    }
+//    fileCounter_t res = countFilesAndDirRecursive(filelistingContainer[0]);
+//    count = res.numFiles;
+//    if (count>defaultSettings.maxFileNum){
+//        QMessageBox::information(this, tr("Warning"), tr("The selected directories exceed the maximum number of files per dataset. Your dataset will be split into smaller datasets.") );
+//    }
+//    qDebug() << "Number of files: " << count;
+
+
+//    for (auto v:res.subDir){
+//        qDebug() << v.name << " " << v.numFiles;
+//        if (v.numFiles>defaultSettings.maxFileNum){
+//            for (auto sub:v.subDir){
+//                qDebug() << sub.name << " " << sub.numFiles;
+//            }
+//        }
+//    }
 
 
     return true;
@@ -752,8 +768,17 @@ void Dialog::restart(){
         resetContent();
         goToPgroup(); // go back to PI
     } else {
-        prepareIngestion();
-        startIngestion();
+        int result = futureGetFileNum.result();
+        qDebug() << result;
+        if (result<defaultSettings.maxFileNum){
+            prepareIngestion();
+            startIngestion();
+        } else {
+            auto maxnum = QString::number(defaultSettings.maxFileNum).toUtf8();
+            QMessageBox::information(this, tr("Error"), tr("Maximum number of " + maxnum + " files per dataset exceeded. Please reduce the number of files and try again.") );
+            goToFiles();
+        }
+
     }
 
 }
@@ -1649,20 +1674,36 @@ void ButtonHoverWatcher::setButtonIsActive(bool val){
 
 
 
-int countFilesAndDirRecursive(QString dirName){
+fileCounter_t countFilesAndDirRecursive(QString dirName){
     QDir dir(dirName);
     int count = 0;
     QStringList fileNameList = dir.entryList();
-    qDebug() << fileNameList;
+    fileCounter_t curDir;
     for (auto v:fileNameList){
-        if (!(v.compare(".") || v.compare(".."))){ // ignore .. and .
+
+        if ((v.compare(".")!=0) && (v.compare("..")!=0)){ // ignore .. and .
             QFileInfo info(dirName + "/" + v);
             if (info.isDir()){
-                count += countFilesAndDirRecursive(dirName + "/" + v);
+                fileCounter_t tmp = countFilesAndDirRecursive(dirName + "/" + v);
+                curDir.subDir.push_back(tmp);
+                count += tmp.numFiles;
             } else {
                 ++count;
             }
         }
     }
+    curDir.name = dirName;
+
+    curDir.numFiles = count;
+
+    return curDir;
+}
+
+int getFileNum(std::vector<QString> container){
+    int count = 0;
+    for (auto v:container){
+        count+= countFilesAndDirRecursive(v).numFiles;
+    }
     return count;
 }
+
