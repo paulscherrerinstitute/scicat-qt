@@ -513,7 +513,9 @@ bool Dialog::filelistingCheckAndUpdate(){
 
 
     // count files
+    connect(&watcherFileCounter, SIGNAL(finished()), this, SLOT(fileCounterFinished()));
     futureGetFileNum = QtConcurrent::run(getFileNum, filelistingContainer);
+    watcherFileCounter.setFuture(futureGetFileNum);
 
 //    int count = 0;
 //    for (auto v:filelistingContainer) {
@@ -652,11 +654,11 @@ void Dialog::prepareIngestion(){
 void Dialog::startIngestion(){
     QSettings settingsContainer("PSI", "SciCat");
 
-    ui->waitingMessage->show();
-    ui->pleaseWait->setText("Please wait.");
-    ui->waitingCircle->setMovie(movie);
-    ui->waitingCircle->show();
-    movie->start();
+//    ui->waitingMessage->show();
+//    ui->pleaseWait->setText("Please wait.");
+//    ui->waitingCircle->setMovie(movie);
+//    ui->waitingCircle->show();
+//    movie->start();
 
     // disable buttons
     setButtonsEnabled(false);
@@ -773,19 +775,33 @@ void Dialog::restart(){
         ui->waitingCircle->setMovie(movie);
         ui->waitingCircle->show();
         movie->start();
+        startIngestionWhenReady = false;
+        if (!futureGetFileNum.isFinished()){
+            startIngestionWhenReady = true;
+        } else {
+            fileCounterFinished(true);
+        }
+
+    }
+}
+
+void Dialog::fileCounterFinished(bool force){
+    if ((startIngestionWhenReady) || force){
         int result = futureGetFileNum.result();
-        qDebug() << result;
         if (result<defaultSettings.maxFileNum){
             prepareIngestion();
             startIngestion();
         } else {
             auto maxnum = QString::number(defaultSettings.maxFileNum).toUtf8();
             QMessageBox::information(this, tr("Error"), tr("Maximum number of " + maxnum + " files per dataset exceeded. Please reduce the number of files and try again.") );
+            movie->stop();
+            ui->waitingCircle->hide();
+            ui->nextSlideButton->setEnabled(true);
+            ui->pushButtonRestart->setEnabled(true);
+            ui->pushButtonRestart->setText("Restart");
             goToFiles();
         }
-
     }
-
 }
 
 void Dialog::nextSlide(){

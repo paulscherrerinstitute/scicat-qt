@@ -30,6 +30,7 @@
 #include <QVersionNumber>
 #include <QFuture>
 #include <QtConcurrent/QtConcurrentRun>
+#include <QFutureWatcher>
 #include "qfiledialog.h"
 #include "QMessageBox"
 
@@ -297,6 +298,7 @@ private slots:
     void killJob();
     void detachJob();
     void updateJobTable();
+    void fileCounterFinished(bool force=false);
 
 
 
@@ -350,6 +352,8 @@ private:
     void startRetriever(const QString& pid, const QString& outdir, const QString& name);
     void updateRetrieveJobs();
     QFuture<int> futureGetFileNum;
+    QFutureWatcher<int> watcherFileCounter;
+    bool startIngestionWhenReady = false;
 
 
 };
