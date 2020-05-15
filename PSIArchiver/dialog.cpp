@@ -1564,7 +1564,6 @@ void Dialog::reject(){
 
 Dialog::~Dialog()
 {
-    delete datasets_m;
     delete ui;
 }
 

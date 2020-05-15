@@ -128,7 +128,7 @@ struct defaultSettings_t {
     bool investigatorIsPI = false;
     bool requestAlreadyRetrievedData = true;
     bool guessDatasetname = true;
-    int maxFileNum = 5000;
+    int maxFileNum = 150000;
 
 
 
@@ -234,7 +234,6 @@ public:
     std::string token;
     void keyPressEvent(QKeyEvent *event);
     std::vector<QStringList> datasetContainer;
-    DatasetModel* datasets_m = new DatasetModel();
     void sendWarning(QString warningMsg);
     QMovie *movie = new QMovie(":/images/ajax-loader.gif");
     void getAvailPgroups();
