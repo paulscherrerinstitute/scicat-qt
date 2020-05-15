@@ -768,6 +768,11 @@ void Dialog::restart(){
         resetContent();
         goToPgroup(); // go back to PI
     } else {
+        ui->waitingMessage->show();
+        ui->pleaseWait->setText("Please wait.");
+        ui->waitingCircle->setMovie(movie);
+        ui->waitingCircle->show();
+        movie->start();
         int result = futureGetFileNum.result();
         qDebug() << result;
         if (result<defaultSettings.maxFileNum){
