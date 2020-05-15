@@ -510,6 +510,17 @@ bool Dialog::filelistingCheckAndUpdate(){
         }
     }
 
+    // count files
+    int count = 0;
+    for (auto v:filelistingContainer) {
+        count += countFilesAndDirRecursive(v);
+    }
+    if (count>150000){
+        QMessageBox::information(this, tr("Warning"), tr("The selected directories exceed the maximum number of files per dataset. Your dataset will be split into smaller datasets.") );
+    }
+    qDebug() << "Number of files: " << count;
+
+
     return true;
 }
 
@@ -1637,3 +1648,20 @@ void ButtonHoverWatcher::setButtonIsActive(bool val){
 }
 
 
+
+int countFilesAndDirRecursive(QString dirName){
+    QDir dir(dirName);
+    int count = 0;
+    QStringList fileNameList = dir.entryList();
+    for (auto v:fileNameList){
+        if (!(v.compare(".") || v.compare(".."))){ // ignore .. and .
+            QFileInfo info(dirName + "/" + v);
+            if (info.isDir()){
+                count += countFilesAndDirRecursive(dirName + "/" + v);
+            } else {
+                ++count;
+            }
+        }
+    }
+    return count;
+}
