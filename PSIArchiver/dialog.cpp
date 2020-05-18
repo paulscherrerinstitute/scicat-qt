@@ -800,6 +800,7 @@ void Dialog::fileCounterFinished(bool force){
         if (result<defaultSettings.maxFileNum){
             prepareIngestion();
             startIngestion();
+            startIngestionWhenReady = false;
         } else {
             auto maxnum = QString::number(defaultSettings.maxFileNum).toUtf8();
             QMessageBox::information(this, tr("Error"), tr("Maximum number of " + maxnum + " files per dataset exceeded. Please reduce the number of files and try again.") );
