@@ -1364,6 +1364,15 @@ void Dialog::openIngestionLog(){
 }
 
 void Dialog::quit(){
+    if (!ingested){
+        auto reply = QMessageBox::question(this, "Quit", "The archiving process has not been submitted yet. Do you really want to quit now?");
+        if (reply == QMessageBox::Yes) {
+          close();
+          return;
+        } else {
+            return;
+        }
+    }
     close();
 }
 
