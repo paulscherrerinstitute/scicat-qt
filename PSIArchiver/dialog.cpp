@@ -771,6 +771,7 @@ void Dialog::resetContent(){
     ui->nextSlideButton->setText("Next");
     ingested = false;
     ingestionLog->clear();
+    ui->lineEditDatasetName->setText("");
 }
 
 void Dialog::restart(){
