@@ -435,6 +435,7 @@ void Dialog::piChanged(){
 }
 
 bool Dialog::checkMetadata(){
+    qDebug() << "checking metadata";
     if (ui->lineEditDatasetName->text().isEmpty()){
         QMessageBox::information(this, tr("Invalid entry"), tr("Dataset name cannot be empty.") );
         ui->metadataGuided->setCurrentIndex(0);
@@ -458,6 +459,7 @@ bool Dialog::checkMetadata(){
     }
 
     metadataContainer.datasetName = ui->lineEditDatasetName->text();
+    qDebug() << metadataContainer.datasetName;
     return true;
 }
 
@@ -499,14 +501,16 @@ bool Dialog::filelistingCheckAndUpdate(){
 
     // guess dataset name
     if (settingsContainer.value("guessDatasetname", defaultSettings.guessDatasetname).toBool()){
-        if (filelistingContainer.size()==1){
-            QFileInfo info(filelistingContainer[0]);
-            ui->lineEditDatasetName->setText(info.baseName());
+        if (ui->lineEditDatasetName->text().length()==0){
+            if (filelistingContainer.size()==1){
+                QFileInfo info(filelistingContainer[0]);
+                ui->lineEditDatasetName->setText(info.baseName());
 
-        } else if (filelistingContainer.size()>1){
-            auto sourceFolder = extractSourceFolder(filelistingContainer);
-            QFileInfo info(sourceFolder);
-            ui->lineEditDatasetName->setText(info.baseName());
+            } else if (filelistingContainer.size()>1){
+                auto sourceFolder = extractSourceFolder(filelistingContainer);
+                QFileInfo info(sourceFolder);
+                ui->lineEditDatasetName->setText(info.baseName());
+            }
         }
     }
 
