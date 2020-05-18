@@ -353,6 +353,7 @@ private:
     QFuture<int> futureGetFileNum;
     QFutureWatcher<int> watcherFileCounter;
     bool startIngestionWhenReady = false;
+    bool ingestionIsRunning = false;
 
 
 };

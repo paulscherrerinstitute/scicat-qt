@@ -658,56 +658,58 @@ void Dialog::prepareIngestion(){
 void Dialog::startIngestion(){
     QSettings settingsContainer("PSI", "SciCat");
 
-//    ui->waitingMessage->show();
-//    ui->pleaseWait->setText("Please wait.");
-//    ui->waitingCircle->setMovie(movie);
-//    ui->waitingCircle->show();
-//    movie->start();
-
     // disable buttons
     setButtonsEnabled(false);
     ui->pushButtonRestart->setEnabled(false);
 
-    // compile ingestion command
-    QStringList arguments;
+    if (!ingestionIsRunning){
+        ingestionIsRunning = true;
 
-    if (ui->checkBoxIngest->isChecked()>0){
-        arguments << "--ingest";
-    }
-    if (ui->checkBoxArchive->isChecked()>0){
-        arguments << "--autoarchive";
-    }
-    switch (settingsContainer.value("serverID", defaultSettings.serverID).toInt()){
-    case 0:
-        break;
-    case 1:
-        arguments << "-testenv";
-        break;
-    case 2:
-        arguments << "-devenv";
-        break;
-    }
+        // compile ingestion command
+        QStringList arguments;
 
-    arguments << "--noninteractive" << "--allowexistingsource" << "--token" << QString::fromStdString(token) << metadataContainer.metadataFilename << metadataContainer.filelistingFilename;
+        if (ui->checkBoxIngest->isChecked()>0){
+            arguments << "--ingest";
+        }
+        if (ui->checkBoxArchive->isChecked()>0){
+            arguments << "--autoarchive";
+        }
+        switch (settingsContainer.value("serverID", defaultSettings.serverID).toInt()){
+        case 0:
+            break;
+        case 1:
+            arguments << "-testenv";
+            break;
+        case 2:
+            arguments << "-devenv";
+            break;
+        }
 
-    // start ingestion
-    qDebug() << "starting ingestion";
-//    ingestor_m = new Ingestor(cmd);
-    ingestion = new QProcess(this);
-    ingestion->setProcessChannelMode(QProcess::MergedChannels);
-    connect(ingestion, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(ingestionFinished(int)));
-    connect(ingestion, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(ingestionFailed(QProcess::ProcessError)));
-    connect(ingestion, SIGNAL(readyReadStandardOutput()), this, SLOT(readIngestionOutput()));
+        arguments << "--noninteractive" << "--allowexistingsource" << "--token" << QString::fromStdString(token) << metadataContainer.metadataFilename << metadataContainer.filelistingFilename;
 
-    if (settingsContainer.value("printIngestion", defaultSettings.printIngestion).toBool()){
-        qDebug() << settingsContainer.value("binaryPath", defaultSettings.binaryPath).toString() << " " << arguments;
-    }
-    if (!settingsContainer.value("disableSystemCalls", defaultSettings.disableSystemCalls).toBool()){
-        ingestion->start(settingsContainer.value("binaryPath", defaultSettings.binaryPath).toString(), arguments);
-//        ingestion->start("ls ./");
+        // start ingestion
+        qDebug() << "starting ingestion";
+    //    ingestor_m = new Ingestor(cmd);
+        ingestion = new QProcess(this);
+        ingestion->setProcessChannelMode(QProcess::MergedChannels);
+        connect(ingestion, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(ingestionFinished(int)));
+        connect(ingestion, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(ingestionFailed(QProcess::ProcessError)));
+        connect(ingestion, SIGNAL(readyReadStandardOutput()), this, SLOT(readIngestionOutput()));
+
+        if (settingsContainer.value("printIngestion", defaultSettings.printIngestion).toBool()){
+            qDebug() << settingsContainer.value("binaryPath", defaultSettings.binaryPath).toString() << " " << arguments;
+        }
+        if (!settingsContainer.value("disableSystemCalls", defaultSettings.disableSystemCalls).toBool()){
+            ingestion->start(settingsContainer.value("binaryPath", defaultSettings.binaryPath).toString(), arguments);
+        } else {
+            ingestion->finished(0, QProcess::NormalExit);
+        }
     } else {
-        ingestion->finished(0, QProcess::NormalExit);
+        qDebug() << "Ingestion is already running.";
     }
+
+
+
 
 
 
@@ -718,6 +720,7 @@ void Dialog::ingestionFailed(QProcess::ProcessError error){
     ingestionLog->ui->textEditIngestionLog->append(ingestion->errorString());
     qDebug() << "Error: " << error;
     ingestionFinished(1);
+    ingestionIsRunning = false;
 }
 
 void Dialog::readIngestionOutput(){
@@ -736,6 +739,7 @@ void Dialog::ingestionFinished(int exitCode){
     ingested = true;
     ui->pushButtonRestart->setEnabled(true);
     ui->pushButtonRestart->setText("Restart");
+    ingestionIsRunning = false;
 
     if (exitCode==0){
         // ingestion finished, reenable buttons
