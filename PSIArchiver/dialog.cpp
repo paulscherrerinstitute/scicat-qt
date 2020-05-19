@@ -114,7 +114,6 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonRefreshJobs, SIGNAL(clicked()), this, SLOT(updateJobTable()));
 
 
-
     // warning label
     ui->warningLabel->setVisible(false);
 
@@ -1041,10 +1040,9 @@ void Dialog::getPI(){
 }
 
 void Dialog::fileDialogFilelisting(){
-    fileBrowser fb(this);
-    fb.exec();
-
-    ui->filelistingListWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    FileDialogFilelisting  dialog(this);
+    dialog.exec();
+    QStringList selection = dialog.selectedFiles();
 }
 
 void Dialog::clearFilelisting(){
@@ -1619,9 +1617,12 @@ QJsonObject treeModel2Json(QTreeWidgetItem *item){
         QJsonObject tmpObject;
         if (item->child(ii)->childCount()>0){
             tmpObject = treeModel2Json(item->child(ii));
+            qDebug() << item->child(ii)->data(1,0).type();
             retObj.insert(item->child(ii)->data(0,0).toString(), tmpObject);
         } else {
             retObj.insert(item->child(ii)->data(0,0).toString(), item->child(ii)->data(1,0).toString());
+            qDebug() << item->child(ii)->data(1,0).type();
+
         }
     }
 
@@ -1655,6 +1656,9 @@ void json2TreeModel(QJsonObject &inObj, QTreeWidgetItem *item, QTreeWidget* pare
             json2TreeModel(tmpObject, treeItem);
         } else {
             qDebug() << "Value: " << entryVal;
+            qDebug() << "[Bool] " << entryVal.isBool();
+            qDebug() << "[String] " << entryVal.isString();
+            qDebug() << "[Double] " << entryVal.isDouble();
             treeItem->setText(1,entryVal.toString());
 
         }

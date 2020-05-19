@@ -73,6 +73,8 @@ else()
     settings.ui
     filecountcontainer.cpp
     filecountcontainer.h
+    filedialogfilelisting.cpp
+    filedialogfilelisting.h
     ${RES_SOURCES}
   )
 endif()

@@ -48,6 +48,7 @@ class LogBrowser;
 #include "filebrowser.h"
 #include "settings.h"
 #include "datasetbrowser.h"
+#include "filedialogfilelisting.h"
 
 
 struct fileCounter_t {

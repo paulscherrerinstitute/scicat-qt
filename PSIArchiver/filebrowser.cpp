@@ -23,7 +23,10 @@ fileBrowser::fileBrowser(QWidget *parent) :
     uiFileBrowser->columnView->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
     connect(uiFileBrowser->pushButtonFileBrowser, SIGNAL (clicked()), this, SLOT (selectButton()));
+
     uiFileBrowser->columnView->selectionModel()->clearSelection();
+
+
 }
 
 void fileBrowser::selectButton(){

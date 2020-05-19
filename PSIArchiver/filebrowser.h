@@ -19,6 +19,7 @@ private slots:
     void selectButton();
 
 
+
 private:
     Ui::fileBrowser *uiFileBrowser;
     QFileSystemModel *fileModel;
