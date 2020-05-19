@@ -36,6 +36,19 @@ FileDialogFilelisting::FileDialogFilelisting(QWidget *parent) : QFileDialog()
         m_treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     }
     baseUi = dynamic_cast<Dialog*>(parent);
+    QSettings settingsContainer("PSI", "SciCat");
+    QDir cwd;
+    QDir pgroupPath = QDir("/das/work/"+QString::fromStdString(baseUi->metadataContainer.pgroup).midRef(0,3)+"/"+QString::fromStdString(baseUi->metadataContainer.pgroup));
+    if (pgroupPath.exists() && settingsContainer.value("usePgroupAsDefaultPath").toBool()){
+         cwd.setPath(pgroupPath.path());
+    } else {
+        cwd.setPath(QDir::homePath());
+    }
+    setDirectory(cwd);
+    QList<QUrl> drives;
+    drives << QUrl::fromLocalFile(pgroupPath.path());
+    drives << QUrl::fromLocalFile(cwd.absolutePath());
+    setSidebarUrls(drives);
 }
 
 bool FileDialogFilelisting::eventFilter( QObject* watched, QEvent* event )
