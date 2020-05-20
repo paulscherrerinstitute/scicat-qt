@@ -47,7 +47,7 @@ FileDialogFilelisting::FileDialogFilelisting(QWidget *parent) : QFileDialog()
     setDirectory(cwd);
     QList<QUrl> drives;
     drives << QUrl::fromLocalFile(pgroupPath.path());
-    drives << QUrl::fromLocalFile(cwd.absolutePath());
+    drives << QUrl::fromLocalFile(QDir::homePath());
     setSidebarUrls(drives);
 }
 
