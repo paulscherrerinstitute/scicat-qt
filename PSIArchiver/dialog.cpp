@@ -922,15 +922,25 @@ void Dialog::getPI(){
     QSettings settingsContainer("PSI", "SciCat");
     if (Dialog::checkPgroup()){
         metadataContainer.pgroup = ui->lineEditPgroup->text().toStdString();
-        auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.pgroup + "%22%7D%7D&access_token=" + token + "'");
-        if (tmp.length()>5){
-            metadataContainer.PIFirstname = utils::extractFromJson(tmp, "pi_firstname");
-            metadataContainer.PILastname = utils::extractFromJson(tmp, "pi_lastname");
-            metadataContainer.PIemail = utils::extractFromJson(tmp, "pi_email");
-            metadataContainer.proposalTitle = utils::extractFromJson(tmp, "title");
-            metadataContainer.proposalAbstract = utils::extractFromJson(tmp, "abstract");
-            metadataContainer.instrument = utils::extractFromJson(tmp, "instrument");
-            metadataContainer.proposalID = utils::extractFromJson(tmp, "proposalId");
+        QNetworkRequest request;
+        request.setRawHeader("Accept", "application/json");
+        QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Proposals?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + QString::fromStdString(metadataContainer.pgroup).toUtf8() + "%22%7D%7D&access_token=" + QString::fromStdString(token).toUtf8()));
+        request.setUrl(serverURL);
+        qDebug() << request.url();
+        QString reply = NetworkManager::startNetworkManager(NetworkManager::GetOperation, request);
+        if (reply.length()>5){
+            qDebug() << reply;
+            QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
+            qDebug() << doc.array()[0].toObject().keys();
+            QJsonObject ob = doc.array()[0].toObject();
+
+            metadataContainer.PIFirstname = ob.value("pi_firstname").toString().toStdString();
+            metadataContainer.PILastname = ob.value("pi_lastname").toString().toStdString();
+            metadataContainer.PIemail = ob.value("pi_email").toString().toStdString();
+            metadataContainer.proposalTitle = ob.value("title").toString().toStdString();
+            metadataContainer.proposalAbstract = ob.value("abstract").toString().toStdString();
+            metadataContainer.instrument = ob.value("instrument").toString().toStdString();
+            metadataContainer.proposalID = ob.value("proposalId").toString().toStdString();
 
             ui->lineEditPIMail->setText(QString::fromStdString(metadataContainer.PIemail));
             ui->lineEditPIFirstname->setText(QString::fromStdString(metadataContainer.PIFirstname));
@@ -1470,32 +1480,6 @@ void Dialog::startRetriever(const QString &pid, const QString &outdir, const QSt
     job.process = retriever;
 
     retrieverList.push_back(job);
-
-//    // add dummy process for test purposes
-//    {
-//    QProcess *dummy = new QProcess(this);
-//    QStringList dummyArgs;
-//    dummyArgs << "30";
-//    dummy->start("sleep", dummyArgs);
-//    retrieveJobsContainer_t dummyjob;
-//    dummyjob.pid = pid;
-//    dummyjob.outdir = outdir;
-//    dummyjob.name = "sleep 30-1";
-//    dummyjob.process = dummy;
-//    retrieverList.push_back(dummyjob);
-//    }
-//    {
-//    QProcess *dummy = new QProcess(this);
-//    QStringList dummyArgs;
-//    dummyArgs << "30";
-//    dummy->start("sleep", dummyArgs);
-//    retrieveJobsContainer_t dummyjob;
-//    dummyjob.pid = pid;
-//    dummyjob.outdir = outdir;
-//    dummyjob.name = "sleep 30-2";
-//    dummyjob.process = dummy;
-//    retrieverList.push_back(dummyjob);
-//    }
 }
 
 void Dialog::retrieverFinished(int val){
