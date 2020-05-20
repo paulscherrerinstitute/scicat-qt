@@ -28,6 +28,7 @@ add_definitions(-DSKIP_KERBEROS_AUTH)
 #endif()
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt5Network REQUIRED)
 QT5_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
 
 if(ANDROID)
@@ -75,8 +76,10 @@ else()
     filecountcontainer.h
     filedialogfilelisting.cpp
     filedialogfilelisting.h
+    networkmanager.cpp
+    networkmanager.h
     ${RES_SOURCES}
   )
 endif()
 
-target_link_libraries(SciCatArchiver PRIVATE Qt5::Widgets)
+target_link_libraries(SciCatArchiver PRIVATE Qt5::Widgets Qt5::Network)

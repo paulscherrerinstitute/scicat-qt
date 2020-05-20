@@ -26,6 +26,7 @@ private slots:
     void authenticationFailed(QProcess::ProcessError error);
     void authenticationFinished(int val);
     void readKeberosOutput();
+    void replyFinished(QNetworkReply *reply);
 
 
 

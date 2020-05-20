@@ -33,6 +33,8 @@
 #include <QFutureWatcher>
 #include "qfiledialog.h"
 #include "QMessageBox"
+#include <QtNetwork/QNetworkAccessManager>
+#include <QNetworkReply>
 
 // forward declaration for external header files
 class DatasetModel;
@@ -49,6 +51,7 @@ class LogBrowser;
 #include "settings.h"
 #include "datasetbrowser.h"
 #include "filedialogfilelisting.h"
+#include "networkmanager.h"
 
 
 struct fileCounter_t {
@@ -197,7 +200,7 @@ struct metadataContainer_t {
     QString userMail;
     QString username;
     QString pass;
-    std::string userInfo;
+    QJsonDocument userInfo;
     bool isBeamlineAccount = false;
     QString metadataFilename;
     QString filelistingFilename;
@@ -237,7 +240,7 @@ public:
     std::vector<QStringList> datasetContainer;
     void sendWarning(QString warningMsg);
     QMovie *movie = new QMovie(":/images/ajax-loader.gif");
-    void getAvailPgroups();
+    void getAvailPgroups(const QJsonDocument& userInfoReponse);
     metadataContainer_t metadataContainer;
     std::vector<QString> filelistingContainer;
     QLabel *labelSlider;

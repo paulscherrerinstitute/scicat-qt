@@ -350,11 +350,11 @@ void Dialog::usedSoftwareChanged(){
     metadataContainer.usedSoftware = ui->textEditUsedSoftware->toPlainText();
 }
 
-void Dialog::getAvailPgroups(){
-    QJsonDocument userInfoReponse = QJsonDocument::fromJson(QString::fromStdString(metadataContainer.userInfo).toUtf8());
+void Dialog::getAvailPgroups(const QJsonDocument& userInfoResponse){
+//    QJsonDocument userInfoReponse = QJsonDocument::fromJson(metadataContainer.userInfo.toUtf8());
     std::vector<QString>finishedSuccessfulPIDs;
-    qDebug() << userInfoReponse;
-    for (auto v:userInfoReponse.object().find("currentGroups").value().toArray()){
+    qDebugLine("Dialog") << userInfoResponse;
+    for (auto v:userInfoResponse.object().find("currentGroups").value().toArray()){
         availPgroups.push_back(v.toString());
     }
 
@@ -881,7 +881,7 @@ bool Dialog::checkPIInfo(){
         metadataContainer.ownerGroup = metadataContainer.pgroup;
         metadataContainer.owner = metadataContainer.PIFirstname + " " + metadataContainer.PILastname;
         metadataContainer.ownerEmail = metadataContainer.PIemail;
-        settingsContainer.value("investigatorIsPI", defaultSettings.investigatorIsPI).toBool() ? metadataContainer.investigator=QString::fromStdString(metadataContainer.PIemail) : metadataContainer.investigator=QString::fromStdString(utils::extractFromJson(metadataContainer.userInfo, "currentUserEmail"));
+        settingsContainer.value("investigatorIsPI", defaultSettings.investigatorIsPI).toBool() ? metadataContainer.investigator=QString::fromStdString(metadataContainer.PIemail) : metadataContainer.investigator=metadataContainer.userMail;
 
         // save PI info if needed
         if ((!metadataContainer.retrievedPIInfoSuccessfully) && (settingsContainer.value("saveProposalInfo", defaultSettings.saveProposalInfo).toBool())){

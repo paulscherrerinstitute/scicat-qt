@@ -17,6 +17,12 @@ void Login::connectToGui(Dialog *ui){
     baseUi = ui;
 }
 
+void Login::replyFinished(QNetworkReply *reply){
+    qDebug() << "replyFinished";
+    qDebug() << reply->readAll();
+
+}
+
 void Login::getLoginData(){
     QSettings settingsContainer("PSI", "SciCat");
 
@@ -24,11 +30,23 @@ void Login::getLoginData(){
     QString pword = uiLogin->lineEditPassword->text();
     baseUi->metadataContainer.pass = pword;
     std::string token;
-    auto tmp = utils::system_call("curl -s -X POST --header 'Content-Type: application/json'  -d '{\"username\":\"" + uiLogin->lineEditUsername->text().toStdString() + "\",\"password\":\"" + uiLogin->lineEditPassword->text().toStdString() + "\"}' '" + baseUi->defaultSettings.serverListAuth[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "'");
-    qDebug() << tmp;
+
+    QNetworkRequest request;
+    QByteArray postData=("{\"username\":\"" + uiLogin->lineEditUsername->text() + "\",\"password\":\"" + uiLogin->lineEditPassword->text() + "\"}").toUtf8();
+    request.setRawHeader("Content-Type", "application/json");
+    QUrl serverURL(baseUi->defaultSettings.serverListAuth[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()]);
+    request.setUrl(serverURL);
+    QString reply = NetworkManager::startNetworkManager(NetworkManager::PostOperation, request, postData);
+
+    auto tmp = reply.toStdString();
+    qDebugLine("Login") << tmp;
     if ((tmp.compare("\"authentication error\"")==0) || (tmp.find("error") != std::string::npos)){
         // try BL accounts
-        tmp = utils::system_call("curl -s -X POST --header 'Content-Type: application/json'  -d '{\"username\":\"" + uiLogin->lineEditUsername->text().toStdString() + "\",\"password\":\"" + uiLogin->lineEditPassword->text().toStdString() + "\"}' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "Users/login'");
+        QUrl serverURLBL(baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()] + "/Users/login");
+        request.setUrl(serverURLBL);
+        QString reply = NetworkManager::startNetworkManager(NetworkManager::PostOperation, request, postData);
+
+        tmp = reply.toStdString();
         if ((tmp.compare("\"authentication error\"")==0) || (tmp.find("error") != std::string::npos)){
             errorMessage("Please check your username and password");
             uiLogin->lineEditPassword->clear();
@@ -45,26 +63,31 @@ void Login::getLoginData(){
 
     accessGranted = true;
     if (tmp.find("access_token") != std::string::npos){
-        token = utils::extractFromJson(tmp, "access_token");
+        token = QJsonDocument::fromJson(reply.toUtf8()).object().find("access_token").value().toString().toStdString();
     } else if (tmp.find("id") != std::string::npos) {
-        token = utils::extractFromJson(tmp, "id");
+        token = QJsonDocument::fromJson(reply.toUtf8()).object().find("id").value().toString().toStdString();
     } else {
-//        QMessageBox::information(this, tr("Connection error"), tr("Could not connect to SciCat.\nPlease make sure that you are within the PSI intranet and try again.") );
         errorMessage("Could not connect to SciCat.\nPlease make sure that you are within the PSI intranet and try again.");
         accessGranted = false;
     }
     if (accessGranted){
-        auto tmpUserInfo = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "/Users/userInfos?access_token=" + token + "'");
-        baseUi->metadataContainer.userMail = QString::fromStdString(utils::extractFromJson(tmpUserInfo, "currentUserEmail"));
-        baseUi->metadataContainer.username = QString::fromStdString(utils::extractFromJson(tmpUserInfo, "currentUser"));
-        baseUi->metadataContainer.userInfo = tmpUserInfo;
+        QNetworkRequest requestUser;
+        requestUser.setRawHeader("Accept", "application/json");
+        QUrl serverURL(baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()]+"Users/userInfos?access_token=" + QString::fromStdString(token));
+        requestUser.setUrl(serverURL);
+        reply = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestUser);
+        qDebugLine("accessGranted") << reply;
+
+        QJsonDocument userInfo = QJsonDocument::fromJson(reply.toUtf8());
+
+        baseUi->metadataContainer.userMail = userInfo.object().value("currentUserEmail").toString();
+        baseUi->metadataContainer.username = userInfo.object().value("currentUser").toString();
+        baseUi->metadataContainer.userInfo = userInfo;
         baseUi->ui->labelUsername->setText("Username: " + baseUi->metadataContainer.username);
         baseUi->ui->labelServer->setText("Server: " + baseUi->defaultSettings.serverListNames[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()]);
-        //            qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()].toStdString() + "Users/userInfos?access_token=" + token + "'";
-        //            qDebug() << baseUi->metadataContainer.userMail;
-        //                    qDebug() << tmpUserInfo;
+
         baseUi->token = token;
-        baseUi->getAvailPgroups();
+        baseUi->getAvailPgroups(userInfo);
 
         if (!baseUi->metadataContainer.isBeamlineAccount){
             authenticateUser(pword);
@@ -72,7 +95,7 @@ void Login::getLoginData(){
             openGate();
         }
 
-        qDebug() << token;
+        qDebugLine("Login") << token;
     }
 }
 
@@ -96,16 +119,16 @@ void Login::authenticateUser(QString pass){
 
 void Login::readKeberosOutput(){
 
-    qDebug() << "reading output";
+    qDebugLine("Login") << "reading output";
     while(kerberosAuth->canReadLine()){
         auto tmp = kerberosAuth->readLine();
-        qDebug() << tmp;
+        qDebugLine("Login") << tmp;
     }
 
 }
 
 void Login::authenticationFinished(int val){
-    qDebug() << "Authentication finished with exit code " << val;
+    qDebugLine("Login") << "Authentication finished with exit code " << val;
 #ifndef SKIP_KERBEROS_AUTH
     if (val!=0){
         errorMessage("Kerberos authentication failed.");
@@ -122,7 +145,7 @@ void Login::errorMessage(QString msg){
 }
 
 void Login::authenticationFailed(QProcess::ProcessError error){
-    qDebug() << "Authentication failed: " << error;
+    qDebugLine("Login") << "Authentication failed: " << error;
     errorMessage("Kerberos authentication failed.");
 }
 
