@@ -72,6 +72,9 @@ else()
     filecountcontainer.h
     filedialogfilelisting.cpp
     filedialogfilelisting.h
+    creationlocationcreator.cpp
+    creationlocationcreator.h
+    creationlocationcreator.ui
     networkmanager.cpp
     networkmanager.h
     ${RES_SOURCES}

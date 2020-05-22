@@ -1460,7 +1460,7 @@ QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); bo
                 <enum>QTabWidget::Rounded</enum>
                </property>
                <property name="currentIndex">
-                <number>1</number>
+                <number>0</number>
                </property>
                <widget class="QWidget" name="General">
                 <attribute name="title">

@@ -7,6 +7,7 @@ class DatasetModel;
 class Ingestor;
 class Dialog;
 class LogBrowser;
+
 #include "pch.h"
 #include "datasetmodel.h"
 #include "logbrowser.h"
@@ -17,6 +18,7 @@ class LogBrowser;
 #include "datasetbrowser.h"
 #include "filedialogfilelisting.h"
 #include "networkmanager.h"
+#include "creationlocationcreator.h"
 
 #define qDebugLine(X) (QMessageLogger(QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC).debug() << "[" <<  X << "]: ")
 
@@ -89,7 +91,10 @@ struct defaultSettings_t {
                                         "/PSI/SMUS/GPS",
                                         "/PSI/SMUS/HAL-9500",
                                         "/PSI/SMUS/LEM",
-                                        "/PSI/SMUS/LTF"};
+                                        "/PSI/SMUS/LTF",
+                                        "/PSI/RA",
+                                        "/PSI/MERLIN",
+                                        "custom"};
     uint serverID = 0;
     bool printIngestion = true;
     bool disableSystemCalls = false;

@@ -468,7 +468,13 @@ bool Dialog::checkMetadata(){
 void Dialog::creationLocationChanged(int val){
     (void) val;
     if (ui->stackedWidget->currentIndex()==2){
-        metadataContainer.creationLocation = ui->comboBoxCreationLocation->currentText();
+        if (val==ui->comboBoxCreationLocation->findText("custom")){
+            // open creationLocationCreator
+            CreationLocationCreator creationLoc(this);
+            creationLoc.exec();
+        } else {
+            metadataContainer.creationLocation = ui->comboBoxCreationLocation->currentText();
+        }
     }
 }
 
