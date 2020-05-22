@@ -698,7 +698,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             <enum>QFrame::Sunken</enum>
            </property>
            <property name="currentIndex">
-            <number>1</number>
+            <number>2</number>
            </property>
            <widget class="QWidget" name="startPage">
             <layout class="QHBoxLayout" name="horizontalLayout_15">
@@ -904,8 +904,8 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>520</width>
-                           <height>278</height>
+                           <width>326</width>
+                           <height>120</height>
                           </rect>
                          </property>
                          <property name="sizePolicy">

@@ -38,7 +38,7 @@ FileDialogFilelisting::FileDialogFilelisting(QWidget *parent) : QFileDialog()
     baseUi = dynamic_cast<Dialog*>(parent);
     QSettings settingsContainer("PSI", "SciCat");
     QDir cwd;
-    QDir pgroupPath = QDir("/das/work/"+QString::fromStdString(baseUi->metadataContainer.pgroup).midRef(0,3)+"/"+QString::fromStdString(baseUi->metadataContainer.pgroup));
+    QDir pgroupPath = QDir("/das/work/"+baseUi->metadataContainer.pgroup.midRef(0,3)+"/"+baseUi->metadataContainer.pgroup);
     if (pgroupPath.exists() && settingsContainer.value("usePgroupAsDefaultPath").toBool()){
          cwd.setPath(pgroupPath.path());
     } else {

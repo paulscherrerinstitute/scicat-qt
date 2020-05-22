@@ -181,8 +181,8 @@ struct metadataContainer_t {
     std::string proposalID;
     std::string proposalTitle;
     std::string proposalAbstract;
-    std::string instrument;
-    std::string pgroup;
+    QString instrument;
+    QString pgroup;
     std::string type;
     QString datasetName;
     std::string sourceFolder;
@@ -192,7 +192,7 @@ struct metadataContainer_t {
     std::string keywords;
     std::string samplename;
     std::string sampleDescription;
-    std::string ownerGroup;
+    QString ownerGroup;
     std::string owner;
     std::string ownerEmail;
     QString investigator;

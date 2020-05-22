@@ -79,7 +79,7 @@ void Login::getLoginData(){
         qDebugLine("accessGranted") << reply;
 
         QJsonDocument userInfo = QJsonDocument::fromJson(reply.toUtf8());
-
+        qDebugLine("Login") << userInfo;
         baseUi->metadataContainer.userMail = userInfo.object().value("currentUserEmail").toString();
         baseUi->metadataContainer.username = userInfo.object().value("currentUser").toString();
         baseUi->metadataContainer.userInfo = userInfo;

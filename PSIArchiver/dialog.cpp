@@ -479,12 +479,12 @@ bool Dialog::filelistingCheckAndUpdate(){
     // prepare metadata entries
     ui->lineEditOwnerEmail->setText(QString::fromStdString(metadataContainer.ownerEmail));
     ui->lineEditOwner->setText(QString::fromStdString(metadataContainer.owner));
-    ui->lineEditOwnerGroup->setText(QString::fromStdString(metadataContainer.ownerGroup));
+    ui->lineEditOwnerGroup->setText(metadataContainer.ownerGroup);
 
     if (metadataContainer.proposalID.length()>0){
         ui->lineEditProposalID->setText(QString::fromStdString(metadataContainer.proposalID));
-        auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals/" + QString::fromStdString(metadataContainer.proposalID).replace("/", "%2F").toStdString() + "?access_token=" + token + "'");
-        metadataContainer.creationLocation = QString::fromStdString(utils::extractFromJson(tmp, "instrument"));
+//        auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals/" + QString::fromStdString(metadataContainer.proposalID).replace("/", "%2F").toStdString() + "?access_token=" + token + "'");
+        metadataContainer.creationLocation = metadataContainer.instrument;
         ui->comboBoxCreationLocation->setCurrentIndex(ui->comboBoxCreationLocation->findText(metadataContainer.creationLocation));
     } else {
         if (metadataContainer.creationLocation.length()==0){
@@ -590,7 +590,7 @@ void Dialog::prepareIngestion(){
     auto sourceFolder = extractSourceFolder(filelistingContainer);
     metadata["sourceFolder"] = sourceFolder;
     metadata["owner"] = QString::fromStdString(metadataContainer.owner);
-    metadata["ownerGroup"] = QString::fromStdString(metadataContainer.ownerGroup);
+    metadata["ownerGroup"] = metadataContainer.ownerGroup;
     metadata["ownerEmail"] = QString::fromStdString(metadataContainer.ownerEmail);
     metadata["description"] = metadataContainer.description;
     metadata["datasetName"] = metadataContainer.datasetName;
@@ -895,7 +895,7 @@ bool Dialog::checkPIInfo(){
                 }
             }
 
-            QString proposalFile = QDir(dirpath).filePath(QString::fromStdString("proposal_" + metadataContainer.pgroup+".dat"));
+            QString proposalFile = QDir(dirpath).filePath("proposal_" + metadataContainer.pgroup+".dat");
 
             QFile file(proposalFile);
             if (!file.open(QIODevice::WriteOnly | QIODevice::Text)){
@@ -921,17 +921,16 @@ bool Dialog::checkPIInfo(){
 void Dialog::getPI(){
     QSettings settingsContainer("PSI", "SciCat");
     if (Dialog::checkPgroup()){
-        metadataContainer.pgroup = ui->lineEditPgroup->text().toStdString();
+        metadataContainer.pgroup = ui->lineEditPgroup->text();
         QNetworkRequest request;
         request.setRawHeader("Accept", "application/json");
-        QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Proposals?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + QString::fromStdString(metadataContainer.pgroup).toUtf8() + "%22%7D%7D&access_token=" + QString::fromStdString(token).toUtf8()));
+        QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Proposals?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.pgroup.toUtf8() + "%22%7D%7D&access_token=" + QString::fromStdString(token).toUtf8()));
         request.setUrl(serverURL);
-        qDebug() << request.url();
+        qDebugLine("Dialog") << request.url();
         QString reply = NetworkManager::startNetworkManager(NetworkManager::GetOperation, request);
         if (reply.length()>5){
-            qDebug() << reply;
             QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
-            qDebug() << doc.array()[0].toObject().keys();
+            qDebugLine("Dialog") << doc.array()[0].toObject().keys();
             QJsonObject ob = doc.array()[0].toObject();
 
             metadataContainer.PIFirstname = ob.value("pi_firstname").toString().toStdString();
@@ -939,7 +938,7 @@ void Dialog::getPI(){
             metadataContainer.PIemail = ob.value("pi_email").toString().toStdString();
             metadataContainer.proposalTitle = ob.value("title").toString().toStdString();
             metadataContainer.proposalAbstract = ob.value("abstract").toString().toStdString();
-            metadataContainer.instrument = ob.value("instrument").toString().toStdString();
+            metadataContainer.instrument = ob.value("MeasurementPeriodList").toArray()[0].toObject().find("instrument").value().toString();
             metadataContainer.proposalID = ob.value("proposalId").toString().toStdString();
 
             ui->lineEditPIMail->setText(QString::fromStdString(metadataContainer.PIemail));
@@ -977,7 +976,7 @@ void Dialog::getPI(){
             bool manualEdit = false;
 
             QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "/proposals/";
-            QString proposalFile = QDir(dirpath).filePath(QString::fromStdString("proposal_" + metadataContainer.pgroup+".dat"));
+            QString proposalFile = QDir(dirpath).filePath("proposal_" + metadataContainer.pgroup+".dat");
 
             if (settingsContainer.value("loadProposalInfo",defaultSettings.loadProposalInfo).toBool()){
                 QFile file(proposalFile);
@@ -1099,19 +1098,19 @@ QStringList Dialog::openFileBrowser(){
 
 void Dialog::openDatasetBrowser(){
     QSettings settingsContainer("PSI", "SciCat");
-    auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22" + metadataContainer.pgroup + "%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=" + token + "'");
-    auto delim = '}';
-    std::vector<std::string> tmpVec = utils::split(tmp, delim);
+    QNetworkRequest request;
+    request.setRawHeader("Accept", "application/json");
+    QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22" + metadataContainer.pgroup + "%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=" + QString::fromStdString(token)).toUtf8());
+    request.setUrl(serverURL);
+    QString reply = NetworkManager::startNetworkManager(NetworkManager::GetOperation, request);
+    QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
 
     datasetContainer.clear();
-    for (auto v: tmpVec) {
-        qDebug() << v;
+    for (auto v:doc.array()){
         QStringList tmpQStringList;
-        if ((v.find("datasetName")!=std::string::npos) && (v.find("pid")!=std::string::npos)){
-            tmpQStringList.push_back(QString::fromStdString(utils::extractFromJson(v, "datasetName")));
-            tmpQStringList.push_back(QString::fromStdString(utils::extractFromJson(v, "pid")));
-        }
-
+        tmpQStringList.push_back(v.toObject().value("datasetName").toString());
+        tmpQStringList.push_back(v.toObject().value("pid").toString());
+        qDebugLine("DatasetBrowser") << tmpQStringList;
         if (tmpQStringList.size()==2)
             datasetContainer.push_back(tmpQStringList);
     }
@@ -1170,7 +1169,7 @@ void Dialog::addEntryMetadataTreeView(QString name, QString description){
 }
 
 void Dialog::exportMetadata(){
-    auto fileName = QFileDialog::getSaveFileName(this,tr("Export scientific metadata"), QDir(QDir::homePath()).filePath(QString::fromStdString(metadataContainer.pgroup + "_scientificMetadata.json")), tr("json files (*.json)"));
+    auto fileName = QFileDialog::getSaveFileName(this,tr("Export scientific metadata"), QDir(QDir::homePath()).filePath(metadataContainer.pgroup + "_scientificMetadata.json"), tr("json files (*.json)"));
     auto res = ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
     QJsonArray scMetadata;
     for (int ii=0; ii<res.size(); ii++){
@@ -1308,14 +1307,24 @@ void Dialog::updateMetadataEntry(QString name, QString targetValue, int flag){
 
 void Dialog::updateRetrieveList(){
     QSettings settingsContainer("PSI", "SciCat");
-    auto currentDatasets = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.ownerGroup + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + token + "'");
-    auto successfulJobs = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'");
-//    qDebug() << "curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40").toStdString() + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + token + "'";
-//    qDebug() << successfulJobs;
+
+    // request a list of all datasets from the current pgroup
+    QNetworkRequest requestCurrentDatasets;
+    requestCurrentDatasets.setRawHeader("Accept", "application/json");
+    QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.ownerGroup + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + QString::fromStdString(token)).toUtf8());
+    requestCurrentDatasets.setUrl(serverURL);
+    QString replyCurrentDatasets = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestCurrentDatasets);
+    QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(replyCurrentDatasets.toUtf8());
+
+    QNetworkRequest requestSuccessfulJobs;
+    requestSuccessfulJobs.setRawHeader("Accept", "application/json");
+    QUrl serverURLJobs = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40") + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + QString::fromStdString(token)).toUtf8());
+    requestSuccessfulJobs.setUrl(serverURLJobs);
+    QString replyJobs = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestSuccessfulJobs);
+    QJsonDocument successfulJobsJson = QJsonDocument::fromJson(replyJobs.toUtf8());
 
     // get all 'finishedSuccessful' jobs
     // sadly, there seems to be no option to filter the jobs by pgroup, so we have to query all and select the ones from the current account
-    QJsonDocument successfulJobsJson = QJsonDocument::fromJson(QString::fromStdString(successfulJobs).toUtf8());
     std::vector<QString>finishedSuccessfulPIDs;
     for (auto v:successfulJobsJson.array()){
         if (v.toObject().find("jobStatusMessage").value().toString().compare("finishedSuccessful")==0){
@@ -1328,11 +1337,9 @@ void Dialog::updateRetrieveList(){
         }
     }
 
-    QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(QString::fromStdString(currentDatasets).toUtf8());
     retrieveContainer.clear();
     for (auto v : currentDatasetsJson.array()){
         retrieveContainer_t tmp;
-//        qDebug() << v.toObject().find("pid").value().toString();
         tmp.pid = v.toObject().find("pid").value().toString();
         tmp.name = v.toObject().find("datasetName").value().toString();
         bool retrievableBool = v.toObject().find("datasetlifecycle").value().toObject().find("retrievable").value().toBool();
@@ -1420,9 +1427,14 @@ void Dialog::requestRetrieve(){
         request["datasetList"] = datasetList;
     }
     if (datasetList.size()>0){
-        std::string cmd = "curl -X PUT --header 'Content-Type: application/json' --header 'Accept: application/json' -d '" + QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toStdString() +  "' 'https://dacat-qa.psi.ch/api/v3/Jobs?access_token=" + token + "'";
-        auto successfulJobs = utils::system_call(cmd);
-        qDebug().noquote() << cmd;
+        QNetworkRequest networkRequest;
+        networkRequest.setRawHeader("Content-Type", "application/json");
+        QUrl serverURL((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Jobs?access_token=" + QString::fromStdString(token)));
+        networkRequest.setUrl(serverURL);
+        QString reply = NetworkManager::startNetworkManager(NetworkManager::PostOperation, networkRequest, QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toUtf8());
+//        std::string cmd = "curl -X PUT --header 'Content-Type: application/json' --header 'Accept: application/json' -d '" + QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toStdString() +  "' 'https://dacat-qa.psi.ch/api/v3/Jobs?access_token=" + token + "'";
+//        auto successfulJobs = utils::system_call(cmd);
+//        qDebug().noquote() << cmd;
         QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat Archiver.") );
     }
 

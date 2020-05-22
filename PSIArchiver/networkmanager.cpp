@@ -37,6 +37,7 @@ QString NetworkManager::startNetworkManager(const NetworkManager::Operation& op,
     switch(op){
     case NetworkManager::PostOperation: manager->post(request, postData); break;
     case NetworkManager::GetOperation: manager->get(request); break;
+    case NetworkManager::PutOperation: manager->put(request, postData); break;
     default: return "";
     }
     manager->waitForReply();
