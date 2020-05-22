@@ -39,9 +39,6 @@ if(ANDROID)
     dialog.ui
     filebrowser.ui
     login.ui
-    archiverutils.cpp
-    archiverutils.h
-    pstream.h
     datasetmodel.cpp
     datasetmodel.h
     datasetbrowser.ui
@@ -58,9 +55,6 @@ else()
     login.cpp
     login.h
     login.ui
-    archiverutils.cpp
-    archiverutils.h
-    pstream.h
     datasetmodel.cpp
     datasetmodel.h
     datasetbrowser.cpp

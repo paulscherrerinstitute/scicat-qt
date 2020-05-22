@@ -1,6 +1,8 @@
 #ifndef DIALOG_H
 #define DIALOG_H
 
+
+
 #include <QDialog>
 #include <QKeyEvent>
 #include <QTableView>
@@ -42,7 +44,6 @@ class Ingestor;
 class Dialog;
 class LogBrowser;
 
-#include "archiverutils.h"
 #include "datasetmodel.h"
 #include "logbrowser.h"
 #include "ui_dialog.h"
@@ -53,6 +54,12 @@ class LogBrowser;
 #include "filedialogfilelisting.h"
 #include "networkmanager.h"
 
+#define qDebugLine(X) (QMessageLogger(QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC).debug() << "[" <<  X << "]: ")
+
+#ifdef QT_NO_DEBUG_MACRO
+#undef qDebugLine
+#define qDebugLine QT_NO_QDEBUG_MACRO
+#endif
 
 struct fileCounter_t {
     int numFiles;
@@ -164,7 +171,11 @@ inline QDebug operator<<(QDebug out, const retrieveContainer_t& container)
     out << container.pid << " " << container.name << " " << container.retrievable << " " << container.retrieved;
     return out;
 }
-
+inline QDebug operator<<(QDebug out, const std::string& str)
+{
+    out << QString::fromStdString(str);
+    return out;
+}
 
 inline void updateSettingsContainer(QSettings &settingsContainer, const QString &key, const QVariant &value){
     if (!settingsContainer.contains(key)){

@@ -1,4 +1,3 @@
-#include "archiverutils.h"
 #include "dialog.h"
 #include "login.h"
 #include <QApplication>
