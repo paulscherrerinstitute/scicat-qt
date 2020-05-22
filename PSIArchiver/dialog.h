@@ -2,48 +2,12 @@
 #define DIALOG_H
 
 
-
-#include <QDialog>
-#include <QKeyEvent>
-#include <QTableView>
-#include <iostream>
-#include <vector>
-#include <string>
-#include <QFileSystemModel>
-#include <QPainter>
-#include <QPropertyAnimation>
-#include <QTableWidgetItem>
-#include <QTreeWidgetItem>
-#include <QTimer>
-#include <QMovie>
-#include <QThread>
-#include <QCompleter>
-#include <QJsonDocument>
-#include <QFile>
-#include <QJsonArray>
-#include <QLabel>
-#include <QSequentialAnimationGroup>
-#include <QBitmap>
-#include <QDateTime>
-#include <QPushButton>
-#include <QSettings>
-#include <QCoreApplication>
-#include <QProcess>
-#include <QVersionNumber>
-#include <QFuture>
-#include <QtConcurrent/QtConcurrentRun>
-#include <QFutureWatcher>
-#include "qfiledialog.h"
-#include "QMessageBox"
-#include <QtNetwork/QNetworkAccessManager>
-#include <QNetworkReply>
-
 // forward declaration for external header files
 class DatasetModel;
 class Ingestor;
 class Dialog;
 class LogBrowser;
-
+#include "pch.h"
 #include "datasetmodel.h"
 #include "logbrowser.h"
 #include "ui_dialog.h"

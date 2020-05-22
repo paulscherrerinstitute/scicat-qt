@@ -31,6 +31,7 @@ find_package(Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt5Network REQUIRED)
 QT5_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
 
+
 if(ANDROID)
   add_library(SciCatArchiver SHARED
     main.cpp
@@ -45,6 +46,7 @@ if(ANDROID)
   )
 else()
   add_executable(SciCatArchiver
+    pch.h
     main.cpp
     dialog.cpp
     dialog.h
@@ -75,5 +77,6 @@ else()
     ${RES_SOURCES}
   )
 endif()
+target_precompile_headers(SciCatArchiver PUBLIC pch.h)
 
 target_link_libraries(SciCatArchiver PRIVATE Qt5::Widgets Qt5::Network)

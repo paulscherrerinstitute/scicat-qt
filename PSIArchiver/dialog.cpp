@@ -1,5 +1,8 @@
 #include "dialog.h"
 
+#include <QDateTime>
+
+
 extern QVersionNumber currentVersionNumber;
 
 Dialog::Dialog(QWidget *parent)
