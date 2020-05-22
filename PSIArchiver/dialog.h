@@ -21,10 +21,11 @@ class LogBrowser;
 #include "creationlocationcreator.h"
 
 #define qDebugLine(X) (QMessageLogger(QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC).debug() << "[" <<  X << "]: ")
+#define QT_NO_QDEBUGLINE_MACRO(X) while (false) QMessageLogger().noDebug()
 
-#ifdef QT_NO_DEBUG_MACRO
+#ifdef QT_NO_DEBUG_OUTPUT
 #undef qDebugLine
-#define qDebugLine QT_NO_QDEBUG_MACRO
+#define qDebugLine(X) QT_NO_QDEBUGLINE_MACRO(X)
 #endif
 
 struct fileCounter_t {
