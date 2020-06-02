@@ -11,7 +11,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set ( RESOURCES  psiArchiverResources.qrc)
-add_definitions(-DQT_NO_DEBUG_OUTPUT)
+#add_definitions(-DQT_NO_DEBUG_OUTPUT)
 add_definitions(-DSKIP_KERBEROS_AUTH)
 
 # QtCreator supports the following variables for Android, which are identical to qmake Android variables.
@@ -32,18 +32,42 @@ find_package(Qt5Network REQUIRED)
 QT5_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
 
 
-if(ANDROID)
-  add_library(SciCatArchiver SHARED
-    main.cpp
-    dialog.cpp
-    dialog.h
-    dialog.ui
-    filebrowser.ui
-    login.ui
-    datasetmodel.cpp
-    datasetmodel.h
-    datasetbrowser.ui
-  )
+if(WIN32)
+    add_executable(SciCatArchiver
+      WIN32
+      pch.h
+      main.cpp
+      dialog.cpp
+      dialog.h
+      dialog.ui
+      filebrowser.cpp
+      filebrowser.h
+      filebrowser.ui
+      login.cpp
+      login.h
+      login.ui
+      datasetmodel.cpp
+      datasetmodel.h
+      datasetbrowser.cpp
+      datasetbrowser.h
+      datasetbrowser.ui
+      logbrowser.cpp
+      logbrowser.h
+      logbrowser.ui
+      settings.cpp
+      settings.h
+      settings.ui
+      filecountcontainer.cpp
+      filecountcontainer.h
+      filedialogfilelisting.cpp
+      filedialogfilelisting.h
+      creationlocationcreator.cpp
+      creationlocationcreator.h
+      creationlocationcreator.ui
+      networkmanager.cpp
+      networkmanager.h
+      ${RES_SOURCES}
+    )
 else()
   add_executable(SciCatArchiver
     pch.h
