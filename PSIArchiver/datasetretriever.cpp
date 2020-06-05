@@ -35,6 +35,7 @@ void DatasetRetriever::readRetrieverOutput(){
 void DatasetRetriever::retrieverFinished(int val){
 
     qDebug() << "Authentication finished with exit code " << val;
+    qDebug() << "TODO: Implement sha1sum check";
 
 }
 

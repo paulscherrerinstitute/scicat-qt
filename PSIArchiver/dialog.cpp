@@ -1440,7 +1440,7 @@ void Dialog::updateRetrieveJobs(){
     // delete all stale PIDs
     for (std::vector<retrieveJobsContainer_t>::iterator it=retrieverList.begin(); it!=retrieverList.end();){
         if ((*it).process->processId()==0){
-            delete it->process;
+//            delete it->process;
             it = retrieverList.erase(it);
         } else {
             ++it;
