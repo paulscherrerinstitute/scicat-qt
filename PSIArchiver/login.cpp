@@ -71,7 +71,7 @@ void Login::authenticateUser(QString pass){
     connect(kerberosAuth, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(authenticationFinished(int)));
     connect(kerberosAuth, SIGNAL(readyReadStandardOutput()), this, SLOT(readKeberosOutput()));
 
-    QStringList argument(baseUi->metadataContainer.username);
+    QStringList argument(baseUi->scicat->user()->getUsername());
     kerberosAuth->start("kinit", argument);
     const QByteArray byteArray = pass.toUtf8();
     const char *passConv = byteArray.constData();

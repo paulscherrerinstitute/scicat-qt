@@ -850,11 +850,12 @@ bool Dialog::checkPgroup(){
 
 bool Dialog::checkPIInfo(){
     QSettings settingsContainer("PSI", "SciCat");
-
-    if ((PIHasChanged) || (!PIIsValid)){
+    if (!checkPgroup()){
+        return false;
+    }
+    if ((PIHasChanged)){
         qDebug() << "checking PI";
         PIHasChanged = false;
-        PIIsValid = checkPgroup(); // this should also check the PI info, not only the pgroup
 
         scicat->experiment()->setPIemail(ui->lineEditPIMail->text());
         scicat->experiment()->setPIFirstname(ui->lineEditPIFirstname->text());
@@ -888,7 +889,6 @@ bool Dialog::checkPIInfo(){
         }
 
 
-        return PIIsValid;
     }
 
     return true;
@@ -1243,14 +1243,14 @@ void Dialog::updateRetrieveList(){
     // request a list of all datasets from the current pgroup
     QNetworkRequest requestCurrentDatasets;
     requestCurrentDatasets.setRawHeader("Accept", "application/json");
-    QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.ownerGroup + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + QString::fromStdString(token)).toUtf8());
+    QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + scicat->experiment()->getOwnerGroup().toUtf8() + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + scicat->user()->getToken()).toUtf8());
     requestCurrentDatasets.setUrl(serverURL);
     QString replyCurrentDatasets = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestCurrentDatasets);
     QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(replyCurrentDatasets.toUtf8());
 
     QNetworkRequest requestSuccessfulJobs;
     requestSuccessfulJobs.setRawHeader("Accept", "application/json");
-    QUrl serverURLJobs = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40") + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + QString::fromStdString(token)).toUtf8());
+    QUrl serverURLJobs = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + scicat->user()->getUserMail().replace("@", "%40") + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + scicat->user()->getToken()).toUtf8());
     requestSuccessfulJobs.setUrl(serverURLJobs);
     QString replyJobs = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestSuccessfulJobs);
     QJsonDocument successfulJobsJson = QJsonDocument::fromJson(replyJobs.toUtf8());
@@ -1327,46 +1327,38 @@ void Dialog::requestRetrieve(){
     QSettings settingsContainer("PSI", "SciCat");
     QJsonArray datasetList;
 
-    QJsonObject request;
-    request["emailJobInitiator"] = metadataContainer.userMail;
-    request["type"] = "retrieve";
-    {
-        QJsonObject jobParams;
-        jobParams["username"] = metadataContainer.username;
-        jobParams["destinationPath"] = "/archive/retrieve";
-        request["jobParams"] = jobParams;
-    }
-    {
-        QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
-        for (int ii=0; ii<indexList.size(); ++ii) {
-            qDebug() << ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0);
-            if (ui->tableWidgetRetriever->item(indexList[ii].row(),1)->data(0).toBool()) { // check retrievable
-                qDebug() << (!ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool());
-                qDebug() << (settingsContainer.value("requestAlreadyRetrievedData").toBool());
-                    if ((!ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool()) || (settingsContainer.value("requestAlreadyRetrievedData").toBool())){
-                        QJsonObject tmpDatasetObject;
-                        tmpDatasetObject["pid"] = ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0).toString();
-                        tmpDatasetObject["file"] = QJsonArray();
-                        datasetList.push_back(tmpDatasetObject);
-                    } else {
-                        sendWarning("Some datasets have already been retrieved and will be skipped.");
-                    }
+    QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
+    for (int ii=0; ii<indexList.size(); ++ii) {
+        qDebug() << ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0);
+        if (ui->tableWidgetRetriever->item(indexList[ii].row(),1)->data(0).toBool()) { // check retrievable
+            qDebug() << (!ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool());
+            qDebug() << (settingsContainer.value("requestAlreadyRetrievedData").toBool());
+            if ((!ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool()) || (settingsContainer.value("requestAlreadyRetrievedData").toBool())){
+                QJsonObject tmpDatasetObject;
+                tmpDatasetObject["pid"] = ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0).toString();
+                tmpDatasetObject["file"] = QJsonArray();
+                datasetList.push_back(tmpDatasetObject);
             } else {
-                sendWarning("Some datasets are not in a retrievable state.");
+                sendWarning("Some datasets have already been retrieved and will be skipped.");
             }
+        } else {
+            sendWarning("Some datasets are not in a retrievable state.");
         }
-
-        request["datasetList"] = datasetList;
     }
-    if (datasetList.size()>0){
-        QNetworkRequest networkRequest;
-        networkRequest.setRawHeader("Content-Type", "application/json");
-        QUrl serverURL((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Jobs?access_token=" + QString::fromStdString(token)));
-        networkRequest.setUrl(serverURL);
-        QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::PostOperation, networkRequest, QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toUtf8());
 
+    if (scicat->requestRetrieve(datasetList)==0){
         QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat Archiver.") );
     }
+
+//    if (datasetList.size()>0){
+//        QNetworkRequest networkRequest;
+//        networkRequest.setRawHeader("Content-Type", "application/json");
+//        QUrl serverURL((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Jobs?access_token=" + QString::fromStdString(token)));
+//        networkRequest.setUrl(serverURL);
+//        QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::PostOperation, networkRequest, QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toUtf8());
+
+//        QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat Archiver.") );
+//    }
 
 
 }
@@ -1389,39 +1381,40 @@ void Dialog::saveRetrievedData(){
 }
 
 void Dialog::startRetriever(const QString &pid, const QString &outdir, const QString &name){
-    QSettings settingsContainer("PSI", "SciCat");
+    DatasetRetriever* retriever = new DatasetRetriever(this);
+//    QSettings settingsContainer("PSI", "SciCat");
 
-    QProcess *retriever = new QProcess(this);
-//    retriever->setProcessChannelMode(QProcess::MergedChannels);
-    connect(retriever, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(retrieverFinished(int)));
-    connect(retriever, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(retrieverFailed(QProcess::ProcessError)));
-//    connect(retriever, SIGNAL(readyReadStandardOutput()), this, SLOT(readRetrieverOutput()));
+//    QProcess *retriever = new QProcess(this);
+////    retriever->setProcessChannelMode(QProcess::MergedChannels);
+//    connect(retriever, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(retrieverFinished(int)));
+//    connect(retriever, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(retrieverFailed(QProcess::ProcessError)));
+////    connect(retriever, SIGNAL(readyReadStandardOutput()), this, SLOT(readRetrieverOutput()));
 
-    QStringList arguments;
+//    QStringList arguments;
 
-    switch (settingsContainer.value("serverID", defaultSettings.serverID).toInt()){
-    case 0:
-        break;
-    case 1:
-        arguments << "-testenv";
-        break;
-    case 2:
-        arguments << "-devenv";
-        break;
-    }
+//    switch (settingsContainer.value("serverID", defaultSettings.serverID).toInt()){
+//    case 0:
+//        break;
+//    case 1:
+//        arguments << "-testenv";
+//        break;
+//    case 2:
+//        arguments << "-devenv";
+//        break;
+//    }
 
-    arguments << "-dataset" << pid << "-token" << QString::fromStdString(token) << "-retrieve" << outdir;
-    retriever->start(settingsContainer.value("datasetRetriever", defaultSettings.datasetRetriever).toString(), arguments);
-    retriever->closeWriteChannel();
-    qDebug() << arguments;
+//    arguments << "-dataset" << pid << "-token" << QString::fromStdString(token) << "-retrieve" << outdir;
+//    retriever->start(settingsContainer.value("datasetRetriever", defaultSettings.datasetRetriever).toString(), arguments);
+//    retriever->closeWriteChannel();
+//    qDebug() << arguments;
 
-    retrieveJobsContainer_t job;
-    job.pid = pid;
-    job.outdir = outdir;
-    job.name = name;
-    job.process = retriever;
+//    retrieveJobsContainer_t job;
+//    job.pid = pid;
+//    job.outdir = outdir;
+//    job.name = name;
+//    job.process = retriever;
 
-    retrieverList.push_back(job);
+//    retrieverList.push_back(job);
 }
 
 void Dialog::retrieverFinished(int val){
@@ -1447,6 +1440,7 @@ void Dialog::updateRetrieveJobs(){
     // delete all stale PIDs
     for (std::vector<retrieveJobsContainer_t>::iterator it=retrieverList.begin(); it!=retrieverList.end();){
         if ((*it).process->processId()==0){
+            delete it->process;
             it = retrieverList.erase(it);
         } else {
             ++it;

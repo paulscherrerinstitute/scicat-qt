@@ -21,6 +21,7 @@ class LogBrowser;
 #include "creationlocationcreator.h"
 #include "datacatalogueClasses.h"
 #include "datacatalogue.h"
+#include "datasetretriever.h"
 
 
 
@@ -326,7 +327,6 @@ private:
     void startIngestion();
     void setButtonsEnabled(bool enabled);
     bool PIHasChanged = true;
-    bool PIIsValid = false;
     bool pgroupIsValid = false;
     void resetContent();
     void quit();

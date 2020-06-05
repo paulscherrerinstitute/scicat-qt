@@ -33,6 +33,7 @@ QT5_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
 
 
 if(WIN32)
+    add_definitions(-DWINDOWS_SPECIFIC_TOOLS)
     add_executable(SciCatArchiver
       WIN32
       pch.h
@@ -73,6 +74,8 @@ if(WIN32)
       datacatalogueUser.cpp
       datacatalogueUser.h
       datacatalogueClasses.h
+      datasetretriever.cpp
+      datasetretriever.h
       ${RES_SOURCES}
     )
 else()
@@ -115,6 +118,8 @@ else()
     datacatalogueUser.cpp
     datacatalogueUser.h
     datacatalogueClasses.h
+    datasetretriever.cpp
+    datasetretriever.h
     ${RES_SOURCES}
   )
 endif()

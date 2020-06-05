@@ -47,3 +47,31 @@ QString DataCatalogue::getServerName() const
     default: return "";
     }
 }
+
+int DataCatalogue::requestRetrieve(const QJsonArray& datasetList){
+    QSettings settingsContainer("PSI", "SciCat");
+
+    QJsonObject request;
+    request["emailJobInitiator"] = scicatUser->getUserMail();
+    request["type"] = "retrieve";
+    {
+        QJsonObject jobParams;
+        jobParams["username"] = scicatUser->getUsername();
+        jobParams["destinationPath"] = "/archive/retrieve";
+        request["jobParams"] = jobParams;
+    }
+    request["datasetList"] = datasetList;
+
+    if (datasetList.size()>0){
+        QNetworkRequest networkRequest;
+        networkRequest.setRawHeader("Content-Type", "application/json");
+        QUrl serverURL(DataCatalogue::serverList()[serverID].toUtf8() + "Jobs?access_token=" + scicatUser->m_token);
+        networkRequest.setUrl(serverURL);
+        QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::PostOperation, networkRequest, QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toUtf8());
+    }
+    return 0;
+}
+
+void DataCatalogue::startDatasetRetriever(){
+
+}

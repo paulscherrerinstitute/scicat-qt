@@ -21,6 +21,8 @@ public:
     void ingest();
     int serverID;
     Dialog * baseUI;
+    int requestRetrieve(const QJsonArray& datasetList);
+    void startDatasetRetriever();
 
 private:
     DataCatalogueCore::User* scicatUser;
