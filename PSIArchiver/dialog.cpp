@@ -71,7 +71,8 @@ Dialog::Dialog(QWidget *parent)
     updateSettingsContainer(settingsContainer, "requestAlreadyRetrievedData", defaultSettings.requestAlreadyRetrievedData);
     updateSettingsContainer(settingsContainer, "guessDatasetname", defaultSettings.guessDatasetname);
 
-
+    // initialize SciCat container
+    scicat = new SciCat::DataCatalogue(this, settingsContainer.value("serverID", defaultSettings.serverID).toInt());
 
 
     // connect button signals to slots
@@ -166,7 +167,7 @@ Dialog::Dialog(QWidget *parent)
     addEntryMetadataTreeView("sample", "", "scientificMetadata", false, 1);
     addEntryMetadataTreeView("description", "", "sample", false, 1);
     addEntryMetadataTreeView("name", "", "sample", false, 1);
-    addEntryMetadataTreeView("principalInvestigator", QString::fromStdString(metadataContainer.PIemail), "sample", false, 1);
+    addEntryMetadataTreeView("principalInvestigator", scicat->experiment()->getPIemail(), "sample", false, 1);
 
     ui->waitingCircle->setText("Dummy");
     if (!movie->isValid())
@@ -226,7 +227,6 @@ Dialog::Dialog(QWidget *parent)
     styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
                                           "QPushButton:hover{background-color:rgb(0, 70, 91); border-radius:0px}; "
                                           "QPushButton:!enabled{background-color:rgb(0, 45, 59); border-radius:0px; color:rgb(198, 198, 198)}";
-    scicat = new SciCat::DataCatalogue(settingsContainer.value("serverID", defaultSettings.serverID).toInt());
 
 }
 
@@ -354,16 +354,10 @@ void Dialog::usedSoftwareChanged(){
     metadataContainer.usedSoftware = ui->textEditUsedSoftware->toPlainText();
 }
 
-void Dialog::getAvailPgroups(const QJsonDocument& userInfoResponse){
-//    QJsonDocument userInfoReponse = QJsonDocument::fromJson(metadataContainer.userInfo.toUtf8());
-    std::vector<QString>finishedSuccessfulPIDs;
-    qDebugLine("Dialog") << userInfoResponse;
-    for (auto v:userInfoResponse.object().find("currentGroups").value().toArray()){
-        availPgroups.push_back(v.toString());
-    }
+void Dialog::setAvailPgroups(){
 
     // set autocomplete for pgroup selection
-    pgroupCompleter = new QCompleter(availPgroups, this);
+    pgroupCompleter = new QCompleter(scicat->user()->getPgroups(), this);
     pgroupCompleter->setCaseSensitivity(Qt::CaseInsensitive);
     ui->lineEditPgroup->setCompleter(pgroupCompleter);
 }
@@ -487,19 +481,15 @@ bool Dialog::filelistingCheckAndUpdate(){
         return false;
     }
     // prepare metadata entries
-    ui->lineEditOwnerEmail->setText(QString::fromStdString(metadataContainer.ownerEmail));
-    ui->lineEditOwner->setText(QString::fromStdString(metadataContainer.owner));
-    ui->lineEditOwnerGroup->setText(metadataContainer.ownerGroup);
+    ui->lineEditOwnerEmail->setText(scicat->experiment()->getOwnerEmail());
+    ui->lineEditOwner->setText(scicat->experiment()->getOwner());
+    ui->lineEditOwnerGroup->setText(scicat->experiment()->getOwnerGroup());
 
-    if (metadataContainer.proposalID.length()>0){
-        ui->lineEditProposalID->setText(QString::fromStdString(metadataContainer.proposalID));
-//        auto tmp = utils::system_call("curl -s -X GET --header 'Accept: application/json' '" + defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toStdString() + "/Proposals/" + QString::fromStdString(metadataContainer.proposalID).replace("/", "%2F").toStdString() + "?access_token=" + token + "'");
-        metadataContainer.creationLocation = metadataContainer.instrument;
-        ui->comboBoxCreationLocation->setCurrentIndex(ui->comboBoxCreationLocation->findText(metadataContainer.creationLocation));
+    if (scicat->experiment()->getProposalID().length()>0){
+        ui->lineEditProposalID->setText(scicat->experiment()->getProposalID());
+        ui->comboBoxCreationLocation->setCurrentIndex(ui->comboBoxCreationLocation->findText(scicat->experiment()->getCreationLocation()));
     } else {
-        if (metadataContainer.creationLocation.length()==0){
-            ui->comboBoxCreationLocation->setCurrentIndex(-1);
-        }
+        ui->comboBoxCreationLocation->setCurrentIndex(-1);
     }
     ui->lineEditInvestigator->setText(scicat->experiment()->getInvestigator());
 
@@ -608,7 +598,7 @@ void Dialog::prepareIngestion(){
 
     if (isRawData){
         qDebug() << "Preparing metadata file for raw data";
-        metadata["principalInvestigator"] = QString::fromStdString(metadataContainer.PIemail); // this should be changed in the future; there is no need to save it as std::string
+        metadata["principalInvestigator"] = scicat->experiment()->getPIemail();
         metadata["creationLocation"] = metadataContainer.creationLocation;
         metadata["type"] = "raw";
         auto res = ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
@@ -849,7 +839,7 @@ bool Dialog::checkPgroup(){
     }
 
     // check if user has access to the given pgroup
-    if (!availPgroups.contains(ui->lineEditPgroup->text())){
+    if (!scicat->user()->getPgroups().contains(ui->lineEditPgroup->text())){
         auto msg = "Cannot access pgroup " + ui->lineEditPgroup->text().toStdString() + ". Permission denied.";
         QMessageBox::information(this, tr("Error"), tr(msg.c_str()));
         pgroupIsValid = false;
@@ -866,58 +856,35 @@ bool Dialog::checkPIInfo(){
         PIHasChanged = false;
         PIIsValid = checkPgroup(); // this should also check the PI info, not only the pgroup
 
-        metadataContainer.PIemail = ui->lineEditPIMail->text().toStdString();
-        metadataContainer.PIFirstname = ui->lineEditPIFirstname->text().toStdString();
-        metadataContainer.PILastname = ui->lineEditPILastname->text().toStdString();
-        metadataContainer.proposalID = ui->lineEditProposalID_2->text().toStdString();
+        scicat->experiment()->setPIemail(ui->lineEditPIMail->text());
+        scicat->experiment()->setPIFirstname(ui->lineEditPIFirstname->text());
+        scicat->experiment()->setPILastname(ui->lineEditPILastname->text());
+        scicat->experiment()->setProposalID(ui->lineEditProposalID_2->text());
 
 
-        if (metadataContainer.PIFirstname.length()==0){
+        if (scicat->experiment()->getPIFirstname().length()==0){
             QMessageBox::information(this, tr("Error"), tr("PI name cannot be empty") );
             return false;
         }
 
-        if (metadataContainer.PILastname.length()==0){
+        if (scicat->experiment()->getPILastname().length()==0){
             QMessageBox::information(this, tr("Error"), tr("PI name cannot be empty") );
             return false;
         }
 
-        if (metadataContainer.PIemail.length()==0){
+        if (scicat->experiment()->getPIemail().length()==0){
             QMessageBox::information(this, tr("Error"), tr("Please enter a valid email address") );
             return false;
         }
 
-        // set defaults for owner/ownergroup etc
-        metadataContainer.ownerGroup = metadataContainer.pgroup;
-        metadataContainer.owner = metadataContainer.PIFirstname + " " + metadataContainer.PILastname;
-        metadataContainer.ownerEmail = metadataContainer.PIemail;
-        settingsContainer.value("investigatorIsPI", defaultSettings.investigatorIsPI).toBool() ? scicat->experiment()->setInvestigator(QString::fromStdString(metadataContainer.PIemail)) : scicat->experiment()->setInvestigator(metadataContainer.userMail);
+        // set default for investigator
+        scicat->experiment()->setInvestigatorToPI(settingsContainer.value("investigatorIsPI", defaultSettings.investigatorIsPI).toBool());
 
         // save PI info if needed
-        if ((!metadataContainer.retrievedPIInfoSuccessfully) && (settingsContainer.value("saveProposalInfo", defaultSettings.saveProposalInfo).toBool())){
-            qDebug() << "Writing PI info";
-            QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "/proposals/";
-            if (!QDir(dirpath).exists()){
-                qDebug()<<"Output directory does not exist";
-                if (!QDir().mkpath(dirpath)){
-                    sendWarning("Could not write to output directory.");
-                    return PIIsValid;
-                }
+        if ((scicat->experiment()->getPgroupRequestState()!=SciCat::DataCatalogueCore::PgroupRequestState::ValidSciCatEntry) && (settingsContainer.value("saveProposalInfo", defaultSettings.saveProposalInfo).toBool())){
+            if (scicat->experiment()->savePIInfo()>0){
+                sendWarning("Failed to write proposal information.");
             }
-
-            QString proposalFile = QDir(dirpath).filePath("proposal_" + metadataContainer.pgroup+".dat");
-
-            QFile file(proposalFile);
-            if (!file.open(QIODevice::WriteOnly | QIODevice::Text)){
-                sendWarning("Could not open proposal file for writing.");
-            } else {
-                QTextStream out(&file);
-                out << QString::fromStdString(metadataContainer.PIFirstname) << "\n";
-                out << QString::fromStdString(metadataContainer.PILastname) << "\n";
-                out << QString::fromStdString(metadataContainer.PIemail) << "\n";
-                file.close();
-            }
-
         }
 
 
@@ -931,32 +898,19 @@ bool Dialog::checkPIInfo(){
 void Dialog::getPI(){
     QSettings settingsContainer("PSI", "SciCat");
     if (Dialog::checkPgroup()){
-        metadataContainer.pgroup = ui->lineEditPgroup->text();
-        QNetworkRequest request;
-        request.setRawHeader("Accept", "application/json");
-        QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Proposals?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.pgroup.toUtf8() + "%22%7D%7D&access_token=" + QString::fromStdString(token).toUtf8()));
-        request.setUrl(serverURL);
-        qDebugLine("Dialog") << request.url();
-        QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, request);
-        if (reply.length()>5){
-            QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
-            qDebugLine("Dialog") << doc.array()[0].toObject().keys();
-            QJsonObject ob = doc.array()[0].toObject();
+        scicat->experiment()->setPgroup(ui->lineEditPgroup->text());
 
-            metadataContainer.PIFirstname = ob.value("pi_firstname").toString().toStdString();
-            metadataContainer.PILastname = ob.value("pi_lastname").toString().toStdString();
-            metadataContainer.PIemail = ob.value("pi_email").toString().toStdString();
-            metadataContainer.proposalTitle = ob.value("title").toString().toStdString();
-            metadataContainer.proposalAbstract = ob.value("abstract").toString().toStdString();
-            metadataContainer.instrument = ob.value("MeasurementPeriodList").toArray()[0].toObject().find("instrument").value().toString();
-            metadataContainer.proposalID = ob.value("proposalId").toString().toStdString();
+        auto state = scicat->experiment()->getPgroupInfo();
 
-            ui->lineEditPIMail->setText(QString::fromStdString(metadataContainer.PIemail));
-            ui->lineEditPIFirstname->setText(QString::fromStdString(metadataContainer.PIFirstname));
-            ui->lineEditPILastname->setText(QString::fromStdString(metadataContainer.PILastname));
-            ui->lineEditProposalID_2->setText(QString::fromStdString(metadataContainer.proposalID));
-            ui->lineEditTitle->setText(QString::fromStdString(metadataContainer.proposalTitle));
-            ui->textEditAbstract->setText(QString::fromStdString(metadataContainer.proposalAbstract));
+        switch (state) {
+        case SciCat::DataCatalogueCore::PgroupRequestState::ValidSciCatEntry:
+
+            ui->lineEditPIMail->setText(scicat->experiment()->getPIemail());
+            ui->lineEditPIFirstname->setText(scicat->experiment()->getPIFirstname());
+            ui->lineEditPILastname->setText(scicat->experiment()->getPILastname());
+            ui->lineEditProposalID_2->setText(scicat->experiment()->getProposalID());
+            ui->lineEditTitle->setText(scicat->experiment()->getProposalTitle());
+            ui->textEditAbstract->setText(scicat->experiment()->getProposalAbstract());
 
             ui->lineEditPIMail->show();
             ui->lineEditPIFirstname->show();
@@ -976,79 +930,47 @@ void Dialog::getPI(){
             ui->lineEditProposalID_2->setEnabled(false);
             ui->lineEditTitle->setEnabled(false);
             ui->textEditAbstract->setEnabled(false);
+            break;
+        case SciCat::DataCatalogueCore::PgroupRequestState::ValidLogFile:
 
-            metadataContainer.retrievedPIInfoSuccessfully = true;
+            ui->labelProposal->hide();
+            ui->groupBoxProposal->show();
+            ui->labelManualEntry->hide();
+            ui->lineEditProposalID_2->hide();
+            ui->lineEditTitle->hide();
+            ui->textEditAbstract->hide();
+            ui->labelTitle->hide();
+            ui->labelAbstract->hide();
 
+            ui->lineEditPIMail->setText(scicat->experiment()->getPIemail());
+            ui->lineEditPIFirstname->setText(scicat->experiment()->getPIFirstname());
+            ui->lineEditPILastname->setText(scicat->experiment()->getPILastname());
+            ui->lineEditProposalID_2->setText(scicat->experiment()->getProposalID());
 
-        } else {
+            ui->lineEditPIMail->setEnabled(true);
+            ui->lineEditPIFirstname->setEnabled(true);
+            ui->lineEditPILastname->setEnabled(true);
+            break;
+        case SciCat::DataCatalogueCore::PgroupRequestState::Invalid:
+            // manual edit
+            ui->labelProposal->hide();
+            ui->groupBoxProposal->show();
+            ui->labelManualEntry->show();
+            ui->lineEditProposalID_2->hide();
+            ui->lineEditTitle->hide();
+            ui->textEditAbstract->hide();
+            ui->labelTitle->hide();
+            ui->labelAbstract->hide();
 
-            metadataContainer.retrievedPIInfoSuccessfully = false;
-            bool manualEdit = false;
+            ui->lineEditPIMail->setText("");
+            ui->lineEditPIFirstname->setText("");
+            ui->lineEditPILastname->setText("");
+            scicat->experiment()->setProposalID("");
+            ui->lineEditProposalID_2->setText(QString::fromStdString(metadataContainer.proposalID));
 
-            QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "/proposals/";
-            QString proposalFile = QDir(dirpath).filePath("proposal_" + metadataContainer.pgroup+".dat");
-
-            if (settingsContainer.value("loadProposalInfo",defaultSettings.loadProposalInfo).toBool()){
-                QFile file(proposalFile);
-                if(!file.open(QIODevice::ReadOnly)) {
-                    manualEdit = true;
-                } else {
-                    QTextStream in(&file);
-
-                    QStringList proposalContent;
-                    while(!in.atEnd()) {
-                        proposalContent.push_back(in.readLine());
-                    }
-                    qDebug() << proposalContent.size();
-                    if (proposalContent.size()<3){
-                        manualEdit = true;
-                    } else {
-                        ui->labelProposal->hide();
-                        ui->groupBoxProposal->show();
-                        ui->labelManualEntry->hide();
-                        ui->lineEditProposalID_2->hide();
-                        ui->lineEditTitle->hide();
-                        ui->textEditAbstract->hide();
-                        ui->labelTitle->hide();
-                        ui->labelAbstract->hide();
-
-                        ui->lineEditPIFirstname->setText(proposalContent[0]);
-                        ui->lineEditPILastname->setText(proposalContent[1]);
-                        ui->lineEditPIMail->setText(proposalContent[2]);
-                        metadataContainer.proposalID = "";
-                        ui->lineEditProposalID_2->setText(QString::fromStdString(metadataContainer.proposalID));
-
-                        ui->lineEditPIMail->setEnabled(true);
-                        ui->lineEditPIFirstname->setEnabled(true);
-                        ui->lineEditPILastname->setEnabled(true);
-                    }
-
-
-                    file.close();
-                }
-
-            }
-           if (manualEdit) {
-                ui->labelProposal->hide();
-                ui->groupBoxProposal->show();
-                ui->labelManualEntry->show();
-                ui->lineEditProposalID_2->hide();
-                ui->lineEditTitle->hide();
-                ui->textEditAbstract->hide();
-                ui->labelTitle->hide();
-                ui->labelAbstract->hide();
-
-                ui->lineEditPIMail->setText("");
-                ui->lineEditPIFirstname->setText("");
-                ui->lineEditPILastname->setText("");
-                metadataContainer.proposalID = "";
-                ui->lineEditProposalID_2->setText(QString::fromStdString(metadataContainer.proposalID));
-
-                ui->lineEditPIMail->setEnabled(true);
-                ui->lineEditPIFirstname->setEnabled(true);
-                ui->lineEditPILastname->setEnabled(true);
-            }
-
+            ui->lineEditPIMail->setEnabled(true);
+            ui->lineEditPIFirstname->setEnabled(true);
+            ui->lineEditPILastname->setEnabled(true);
         }
 
         ui->pushButtonArchiveData->show();

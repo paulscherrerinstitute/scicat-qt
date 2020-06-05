@@ -49,19 +49,11 @@ void Login::getLoginData(){
         baseUi->metadataContainer.isBeamlineAccount = false;
     }
 
+    baseUi->setAvailPgroups();
     baseUi->metadataContainer.pass = pword;
-    std::string token;
 
-    QJsonDocument userInfo = baseUi->scicat->getUserInfo();
-
-    baseUi->metadataContainer.userMail = userInfo.object().value("currentUserEmail").toString();
-    baseUi->metadataContainer.username = userInfo.object().value("currentUser").toString();
-    baseUi->metadataContainer.userInfo = userInfo;
-    baseUi->ui->labelUsername->setText("Username: " + baseUi->metadataContainer.username);
-    baseUi->ui->labelServer->setText("Server: " + baseUi->defaultSettings.serverListNames[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()]);
-
-    baseUi->token = token;
-    baseUi->getAvailPgroups(userInfo);
+    baseUi->ui->labelUsername->setText("Username: " + baseUi->scicat->user()->getUsername());
+    baseUi->ui->labelServer->setText("Server: " + baseUi->scicat->getServerName());
 
     if (!baseUi->metadataContainer.isBeamlineAccount){
         authenticateUser(pword);

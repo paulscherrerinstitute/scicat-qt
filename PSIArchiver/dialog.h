@@ -19,7 +19,9 @@ class LogBrowser;
 #include "filedialogfilelisting.h"
 #include "networkmanager.h"
 #include "creationlocationcreator.h"
+#include "datacatalogueClasses.h"
 #include "datacatalogue.h"
+
 
 
 #define qDebugLine(X) (QMessageLogger(QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC).debug() << "[" <<  X << "]: ")
@@ -148,6 +150,7 @@ inline QDebug operator<<(QDebug out, const std::string& str)
     out << QString::fromStdString(str);
     return out;
 }
+
 inline QDebug operator<<(QDebug out, const SciCat::authenticationStateAccount& auth){
     switch (auth){
         case SciCat::authenticationStateAccount::ValidUser: out << "<authenticationStateAccount: ValidUser>"; return out;
@@ -167,7 +170,6 @@ inline void updateSettingsContainer(QSettings &settingsContainer, const QString 
 
 
 struct metadataContainer_t {
-    std::string PIemail;
     std::string PIFirstname;
     std::string PILastname;
     std::string proposalID;
@@ -175,7 +177,7 @@ struct metadataContainer_t {
     std::string proposalAbstract;
     QString instrument;
     QString pgroup;
-    std::string type;
+    std::string type; // raw or derived
     QString datasetName;
     std::string sourceFolder;
     QString creationLocation;
@@ -231,7 +233,7 @@ public:
     std::vector<QStringList> datasetContainer;
     void sendWarning(QString warningMsg);
     QMovie *movie = new QMovie(":/images/ajax-loader.gif");
-    void getAvailPgroups(const QJsonDocument& userInfoReponse);
+    void setAvailPgroups();
     metadataContainer_t metadataContainer;
     std::vector<QString> filelistingContainer;
     QLabel *labelSlider;

@@ -3,30 +3,34 @@
 #include <QtNetwork/QNetworkAccessManager>
 #include <QNetworkReply>
 
-using namespace SciCat;
+using namespace SciCat::DataCatalogueCore;
 
-DataCatalogueCore::User* DataCatalogue::user()
-{
-    return scicatUser;
-}
 
-QJsonDocument DataCatalogueCore::User::getUserInfo()
+
+void User::updateUserInfo()
 {
     sendUserInfoRequest();
-    return userInfo;
+    setUserMail(m_userInfo.object().value("currentUserEmail").toString());
+    setUsername(m_userInfo.object().value("currentUser").toString());
+    if (!m_isBeamlineAccount){
+        setPgroups();
+    }
 }
 
-DataCatalogueCore::User::User(DataCatalogue * const parent): scicatBase(parent)
+User::User(DataCatalogue * const parent): scicatBase(parent)
 {
 
 }
 
-authenticationStateAccount DataCatalogueCore::User::authenticateUser(const QString& username, const QString& pword, const int& server)
+SciCat::authenticationStateAccount User::authenticateUser(const QString& username, const QString& pword, const int& server)
 {
     // try normal user account first
     if (sendAuthenticationRequest(username, pword, DataCatalogue::serverListAuth()[server])==authenticationState::Valid){
+        updateUserInfo();
         return authenticationStateAccount::ValidUser;
     } else if (sendAuthenticationRequest(username, pword, DataCatalogue::serverList()[server]+ "/Users/login")==authenticationState::Valid) {
+        m_isBeamlineAccount = true;
+        updateUserInfo();
         return authenticationStateAccount::ValidBLAccount;
     } else {
         return authenticationStateAccount::Invalid;
@@ -35,7 +39,7 @@ authenticationStateAccount DataCatalogueCore::User::authenticateUser(const QStri
 }
 
 
-authenticationState DataCatalogueCore::User::sendAuthenticationRequest(const QString& username, const QString& pword, const QString& server){
+SciCat::authenticationState User::sendAuthenticationRequest(const QString& username, const QString& pword, const QString& server){
     QNetworkRequest request;
     QByteArray postData=("{\"username\":\"" + username + "\",\"password\":\"" + pword + "\"}").toUtf8();
     request.setRawHeader("Content-Type", "application/json");
@@ -48,29 +52,73 @@ authenticationState DataCatalogueCore::User::sendAuthenticationRequest(const QSt
         return authenticationState::Invalid;
     } else {
         extractToken(reply);
+
         return authenticationState::Valid;
     }
 }
 
-void DataCatalogueCore::User::extractToken(const QString& reply){
+void User::extractToken(const QString& reply){
     if (reply.contains("access_token")){
-        token = QJsonDocument::fromJson(reply.toUtf8()).object().find("access_token").value().toString();
+        m_token = QJsonDocument::fromJson(reply.toUtf8()).object().find("access_token").value().toString();
     } else if (reply.contains("id")){
-        token = QJsonDocument::fromJson(reply.toUtf8()).object().find("access_token").value().toString();
+        m_token = QJsonDocument::fromJson(reply.toUtf8()).object().find("access_token").value().toString();
     }
-    qDebugLine("Token") << token;
+    qDebugLine("Token") << m_token;
 }
 
-void DataCatalogueCore::User::sendUserInfoRequest(){
+QString User::getUserMail() const
+{
+    return m_userMail;
+}
+
+void User::setUserMail(const QString &userMail)
+{
+    m_userMail = userMail;
+}
+
+QStringList User::getPgroups() const
+{
+    return m_pgroups;
+}
+
+void User::setPgroups()
+{
+    qDebugLine("UpdatePgroups:") << m_userInfo;
+    for (auto v:m_userInfo.object().find("currentGroups").value().toArray()){
+        m_pgroups.push_back(v.toString());
+    }
+}
+
+QString User::getUsername() const
+{
+    return m_username;
+}
+
+void User::setUsername(const QString &value)
+{
+    m_username = value;
+}
+
+QString User::getToken() const
+{
+    return m_token;
+}
+
+void User::setToken(const QString &value)
+{
+    m_token = value;
+}
+
+void User::sendUserInfoRequest(){
     QNetworkRequest requestUser;
     requestUser.setRawHeader("Accept", "application/json");
-    QUrl serverURL(DataCatalogue::serverList()[scicatBase->serverID]+"Users/userInfos?access_token=" + token);
+    QUrl serverURL(DataCatalogue::serverList()[scicatBase->serverID]+"Users/userInfos?access_token=" + m_token);
     requestUser.setUrl(serverURL);
 
     auto nwm = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestUser);
     auto reply = nwm->pull();
 
     qDebugLine("sendUserInfoRequest") << reply;
-    userInfo = QJsonDocument::fromJson(reply.toUtf8());
+    m_userInfo = QJsonDocument::fromJson(reply.toUtf8());
 
 }

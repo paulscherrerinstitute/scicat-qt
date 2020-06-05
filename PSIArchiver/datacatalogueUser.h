@@ -10,7 +10,19 @@ class User
 {
 public:
     QStringList getJobs();
-    QJsonDocument getUserInfo();
+    void updateUserInfo();
+
+    QString getToken() const;
+    void setToken(const QString &value);
+
+    QString getUsername() const;
+    void setUsername(const QString &value);
+
+    QStringList getPgroups() const;
+
+    QString getUserMail() const;
+    void setUserMail(const QString &userMail);
+
 private:
     User(DataCatalogue * const parent);
     friend class SciCat::DataCatalogue;
@@ -19,13 +31,16 @@ private:
     void sendUserInfoRequest();
     void extractToken(const QString& reply);
 
-    QString username;
-    QString pword;
-    QString token;
-    QString pgroup;
-    QString proposal;
-    QJsonDocument userInfo;
+    void setPgroups();
+
+    QString m_username;
+    QString m_pword;
+    QString m_token;
+    QStringList m_pgroups;
+    QJsonDocument m_userInfo;
+    QString m_userMail;
     DataCatalogue * const scicatBase;
+    bool m_isBeamlineAccount = false;
 };
 
 }
