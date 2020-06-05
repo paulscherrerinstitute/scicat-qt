@@ -19,6 +19,8 @@ class LogBrowser;
 #include "filedialogfilelisting.h"
 #include "networkmanager.h"
 #include "creationlocationcreator.h"
+#include "datacatalogue.h"
+
 
 #define qDebugLine(X) (QMessageLogger(QT_MESSAGELOG_FILE, QT_MESSAGELOG_LINE, QT_MESSAGELOG_FUNC).debug() << "[" <<  X << "]: ")
 #define QT_NO_QDEBUGLINE_MACRO(X) while (false) QMessageLogger().noDebug()
@@ -146,6 +148,15 @@ inline QDebug operator<<(QDebug out, const std::string& str)
     out << QString::fromStdString(str);
     return out;
 }
+inline QDebug operator<<(QDebug out, const SciCat::authenticationStateAccount& auth){
+    switch (auth){
+        case SciCat::authenticationStateAccount::ValidUser: out << "<authenticationStateAccount: ValidUser>"; return out;
+        case SciCat::authenticationStateAccount::ValidBLAccount: out << "<authenticationStateAccount: ValidBLAccount>"; return out;
+        case SciCat::authenticationStateAccount::Invalid: out << "<authenticationStateAccount: Invalid>"; return out;
+        case SciCat::authenticationStateAccount::ConnectionError: out << "<authenticationStateAccount: ConnectionError>"; return out;
+
+    }
+}
 
 inline void updateSettingsContainer(QSettings &settingsContainer, const QString &key, const QVariant &value){
     if (!settingsContainer.contains(key)){
@@ -176,7 +187,6 @@ struct metadataContainer_t {
     QString ownerGroup;
     std::string owner;
     std::string ownerEmail;
-    QString investigator;
     QString description;
     QString userMail;
     QString username;
@@ -233,6 +243,8 @@ public:
     ButtonHoverWatcher *pgroupWatcher = new ButtonHoverWatcher;
     ButtonHoverWatcher *archiveWatcher = new ButtonHoverWatcher;
     ButtonHoverWatcher *retrieveWatcher = new ButtonHoverWatcher;
+    SciCat::DataCatalogue* scicat = nullptr;
+
 //    void json2TreeModel(QTreeWidgetItem *item, QJsonObject &inObj);
 
 
@@ -328,7 +340,7 @@ private:
     int numPagesRetrieve = 1;
     int numPagesLogin = 1;
     bool ingested = false;
-    QProcess *ingestion;
+    QProcess *ingestion=nullptr;
     void prepareIngestion();
     LogBrowser *ingestionLog;
     std::vector<retrieveContainer_t> retrieveContainer;

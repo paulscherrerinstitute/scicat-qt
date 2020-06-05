@@ -28,75 +28,47 @@ void Login::getLoginData(){
 
     QString uname = uiLogin->lineEditUsername->text();
     QString pword = uiLogin->lineEditPassword->text();
+
+
+    auto status = baseUi->scicat->authenticateUser(uname, pword);
+
+    if (status==SciCat::authenticationStateAccount::Invalid){
+        errorMessage("Please check your username and password");
+        uiLogin->lineEditPassword->clear();
+        return;
+    } else if (status==SciCat::authenticationStateAccount::ConnectionError){
+        errorMessage("Could not connect to SciCat.\nPlease make sure that you are within the PSI intranet and try again.");
+        return;
+    } else if (status==SciCat::authenticationStateAccount::ValidBLAccount){
+        baseUi->metadataContainer.isBeamlineAccount = true;
+        // can be removed once the pgroup selection is fixed:
+        errorMessage("Beamline accounts are currently not supported.");
+        uiLogin->lineEditPassword->clear();
+        return;
+    } else {
+        baseUi->metadataContainer.isBeamlineAccount = false;
+    }
+
     baseUi->metadataContainer.pass = pword;
     std::string token;
 
-    QNetworkRequest request;
-    QByteArray postData=("{\"username\":\"" + uiLogin->lineEditUsername->text() + "\",\"password\":\"" + uiLogin->lineEditPassword->text() + "\"}").toUtf8();
-    request.setRawHeader("Content-Type", "application/json");
-    QUrl serverURL(baseUi->defaultSettings.serverListAuth[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()]);
-    request.setUrl(serverURL);
-    QString reply = NetworkManager::startNetworkManager(NetworkManager::PostOperation, request, postData);
+    QJsonDocument userInfo = baseUi->scicat->getUserInfo();
 
-    auto tmp = reply.toStdString();
-    qDebugLine("Login") << tmp;
-    if ((tmp.compare("\"authentication error\"")==0) || (tmp.find("error") != std::string::npos)){
-        // try BL accounts
-        QUrl serverURLBL(baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()] + "/Users/login");
-        request.setUrl(serverURLBL);
-        QString reply = NetworkManager::startNetworkManager(NetworkManager::PostOperation, request, postData);
+    baseUi->metadataContainer.userMail = userInfo.object().value("currentUserEmail").toString();
+    baseUi->metadataContainer.username = userInfo.object().value("currentUser").toString();
+    baseUi->metadataContainer.userInfo = userInfo;
+    baseUi->ui->labelUsername->setText("Username: " + baseUi->metadataContainer.username);
+    baseUi->ui->labelServer->setText("Server: " + baseUi->defaultSettings.serverListNames[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()]);
 
-        tmp = reply.toStdString();
-        if ((tmp.compare("\"authentication error\"")==0) || (tmp.find("error") != std::string::npos)){
-            errorMessage("Please check your username and password");
-            uiLogin->lineEditPassword->clear();
-            return;
-        } else {
-            baseUi->metadataContainer.isBeamlineAccount = true;
+    baseUi->token = token;
+    baseUi->getAvailPgroups(userInfo);
 
-            // can be removed once the pgroup selection is fixed:
-            errorMessage("Beamline accounts are currently not supported.");
-            uiLogin->lineEditPassword->clear();
-            return;
-        }
-    }
-
-    accessGranted = true;
-    if (tmp.find("access_token") != std::string::npos){
-        token = QJsonDocument::fromJson(reply.toUtf8()).object().find("access_token").value().toString().toStdString();
-    } else if (tmp.find("id") != std::string::npos) {
-        token = QJsonDocument::fromJson(reply.toUtf8()).object().find("id").value().toString().toStdString();
+    if (!baseUi->metadataContainer.isBeamlineAccount){
+        authenticateUser(pword);
     } else {
-        errorMessage("Could not connect to SciCat.\nPlease make sure that you are within the PSI intranet and try again.");
-        accessGranted = false;
+        openGate();
     }
-    if (accessGranted){
-        QNetworkRequest requestUser;
-        requestUser.setRawHeader("Accept", "application/json");
-        QUrl serverURL(baseUi->defaultSettings.serverList[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()]+"Users/userInfos?access_token=" + QString::fromStdString(token));
-        requestUser.setUrl(serverURL);
-        reply = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestUser);
-        qDebugLine("accessGranted") << reply;
 
-        QJsonDocument userInfo = QJsonDocument::fromJson(reply.toUtf8());
-        qDebugLine("Login") << userInfo;
-        baseUi->metadataContainer.userMail = userInfo.object().value("currentUserEmail").toString();
-        baseUi->metadataContainer.username = userInfo.object().value("currentUser").toString();
-        baseUi->metadataContainer.userInfo = userInfo;
-        baseUi->ui->labelUsername->setText("Username: " + baseUi->metadataContainer.username);
-        baseUi->ui->labelServer->setText("Server: " + baseUi->defaultSettings.serverListNames[settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt()]);
-
-        baseUi->token = token;
-        baseUi->getAvailPgroups(userInfo);
-
-        if (!baseUi->metadataContainer.isBeamlineAccount){
-            authenticateUser(pword);
-        } else {
-            openGate();
-        }
-
-        qDebugLine("Login") << token;
-    }
 }
 
 void Login::authenticateUser(QString pass){

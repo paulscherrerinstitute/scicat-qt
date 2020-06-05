@@ -66,6 +66,13 @@ if(WIN32)
       creationlocationcreator.ui
       networkmanager.cpp
       networkmanager.h
+      datacatalogue.cpp
+      datacatalogue.h
+      datacatalogueExperiment.cpp
+      datacatalogueExperiment.h
+      datacatalogueUser.cpp
+      datacatalogueUser.h
+      datacatalogueClasses.h
       ${RES_SOURCES}
     )
 else()
@@ -101,6 +108,13 @@ else()
     creationlocationcreator.ui
     networkmanager.cpp
     networkmanager.h
+    datacatalogue.cpp
+    datacatalogue.h
+    datacatalogueExperiment.cpp
+    datacatalogueExperiment.h
+    datacatalogueUser.cpp
+    datacatalogueUser.h
+    datacatalogueClasses.h
     ${RES_SOURCES}
   )
 endif()

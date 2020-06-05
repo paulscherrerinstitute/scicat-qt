@@ -6,6 +6,10 @@ NetworkManager::NetworkManager() //: manager(new QNetworkAccessManager(parent))
 
 }
 
+NetworkManager::~NetworkManager(){
+//    qDebug() << "destroyed";
+}
+
 
 void NetworkManager::replyFinishedNM(QNetworkReply *reply){
     replyString = reply->readAll();
@@ -22,17 +26,17 @@ void NetworkManager::get(const QNetworkRequest &request){
     reply = this->QNetworkAccessManager::get(request);
 }
 
-void NetworkManager::waitForReply(){
+void NetworkManager::waitForReply() const {
     QEventLoop loop;
     connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     loop.exec();
 }
 
-QString NetworkManager::getReply(){
+QString NetworkManager::getReply() const{
     return replyString;
 }
 
-QString NetworkManager::startNetworkManager(const NetworkManager::Operation& op, const QNetworkRequest& request, const QByteArray& postData){
+QString NetworkManager::startNetworkManagerAndWait(const NetworkManager::Operation& op, const QNetworkRequest& request, const QByteArray& postData){
     NetworkManager* manager = new NetworkManager();
     switch(op){
     case NetworkManager::PostOperation: manager->post(request, postData); break;
@@ -40,9 +44,28 @@ QString NetworkManager::startNetworkManager(const NetworkManager::Operation& op,
     case NetworkManager::PutOperation: manager->put(request, postData); break;
     default: return "";
     }
-    manager->waitForReply();
-    QString doc = manager->getReply().toUtf8();
+    auto doc = manager->pull();
     delete manager;
+    return doc;
+}
+
+std::shared_ptr<NetworkManager> NetworkManager::startNetworkManager(const NetworkManager::Operation& op, const QNetworkRequest& request, const QByteArray& postData){
+    std::shared_ptr<NetworkManager> manager = std::make_shared<NetworkManager>();
+    switch(op){
+    case NetworkManager::PostOperation: manager->post(request, postData); break;
+    case NetworkManager::GetOperation: manager->get(request); break;
+    case NetworkManager::PutOperation: manager->put(request, postData); break;
+    default: return nullptr;
+    }
+    return manager;
+}
+
+QString NetworkManager::pull(){
+    QString doc;
+
+    this->waitForReply();
+    doc = this->getReply().toUtf8();
+
     return doc;
 }
 

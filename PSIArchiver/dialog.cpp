@@ -226,6 +226,7 @@ Dialog::Dialog(QWidget *parent)
     styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
                                           "QPushButton:hover{background-color:rgb(0, 70, 91); border-radius:0px}; "
                                           "QPushButton:!enabled{background-color:rgb(0, 45, 59); border-radius:0px; color:rgb(198, 198, 198)}";
+    scicat = new SciCat::DataCatalogue(settingsContainer.value("serverID", defaultSettings.serverID).toInt());
 
 }
 
@@ -341,7 +342,7 @@ void Dialog::datasetNameCheck(){
 }
 
 void Dialog::investigatorChanged(){
-    metadataContainer.investigator = ui->lineEditInvestigator->text();
+    scicat->experiment()->setInvestigator(ui->lineEditInvestigator->text());
 }
 
 void Dialog::descriptionChanged(){
@@ -500,7 +501,7 @@ bool Dialog::filelistingCheckAndUpdate(){
             ui->comboBoxCreationLocation->setCurrentIndex(-1);
         }
     }
-    ui->lineEditInvestigator->setText(metadataContainer.investigator);
+    ui->lineEditInvestigator->setText(scicat->experiment()->getInvestigator());
 
     filelistingContainer.clear();
     for (int ii=0; ii<ui->filelistingListWidget->count(); ii++ ){
@@ -621,7 +622,7 @@ void Dialog::prepareIngestion(){
     } else {
         qDebug() << "Preparing metadata file for derived data";
         metadata["type"] = "derived";
-        metadata["investigator"] = metadataContainer.investigator;
+        metadata["investigator"] = scicat->experiment()->getInvestigator();
         auto dsmodel = ui->tableWidget->model();
         QStringList inputDatasetsList;
         for (int ii=0; ii<dsmodel->rowCount(); ii++){
@@ -890,7 +891,7 @@ bool Dialog::checkPIInfo(){
         metadataContainer.ownerGroup = metadataContainer.pgroup;
         metadataContainer.owner = metadataContainer.PIFirstname + " " + metadataContainer.PILastname;
         metadataContainer.ownerEmail = metadataContainer.PIemail;
-        settingsContainer.value("investigatorIsPI", defaultSettings.investigatorIsPI).toBool() ? metadataContainer.investigator=QString::fromStdString(metadataContainer.PIemail) : metadataContainer.investigator=metadataContainer.userMail;
+        settingsContainer.value("investigatorIsPI", defaultSettings.investigatorIsPI).toBool() ? scicat->experiment()->setInvestigator(QString::fromStdString(metadataContainer.PIemail)) : scicat->experiment()->setInvestigator(metadataContainer.userMail);
 
         // save PI info if needed
         if ((!metadataContainer.retrievedPIInfoSuccessfully) && (settingsContainer.value("saveProposalInfo", defaultSettings.saveProposalInfo).toBool())){
@@ -936,7 +937,7 @@ void Dialog::getPI(){
         QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Proposals?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.pgroup.toUtf8() + "%22%7D%7D&access_token=" + QString::fromStdString(token).toUtf8()));
         request.setUrl(serverURL);
         qDebugLine("Dialog") << request.url();
-        QString reply = NetworkManager::startNetworkManager(NetworkManager::GetOperation, request);
+        QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, request);
         if (reply.length()>5){
             QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
             qDebugLine("Dialog") << doc.array()[0].toObject().keys();
@@ -1111,7 +1112,7 @@ void Dialog::openDatasetBrowser(){
     request.setRawHeader("Accept", "application/json");
     QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22" + metadataContainer.pgroup + "%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=" + QString::fromStdString(token)).toUtf8());
     request.setUrl(serverURL);
-    QString reply = NetworkManager::startNetworkManager(NetworkManager::GetOperation, request);
+    QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, request);
     QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
 
     datasetContainer.clear();
@@ -1322,14 +1323,14 @@ void Dialog::updateRetrieveList(){
     requestCurrentDatasets.setRawHeader("Accept", "application/json");
     QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + metadataContainer.ownerGroup + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + QString::fromStdString(token)).toUtf8());
     requestCurrentDatasets.setUrl(serverURL);
-    QString replyCurrentDatasets = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestCurrentDatasets);
+    QString replyCurrentDatasets = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestCurrentDatasets);
     QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(replyCurrentDatasets.toUtf8());
 
     QNetworkRequest requestSuccessfulJobs;
     requestSuccessfulJobs.setRawHeader("Accept", "application/json");
     QUrl serverURLJobs = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + metadataContainer.userMail.replace("@", "%40") + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + QString::fromStdString(token)).toUtf8());
     requestSuccessfulJobs.setUrl(serverURLJobs);
-    QString replyJobs = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestSuccessfulJobs);
+    QString replyJobs = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestSuccessfulJobs);
     QJsonDocument successfulJobsJson = QJsonDocument::fromJson(replyJobs.toUtf8());
 
     // get all 'finishedSuccessful' jobs
@@ -1440,10 +1441,8 @@ void Dialog::requestRetrieve(){
         networkRequest.setRawHeader("Content-Type", "application/json");
         QUrl serverURL((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Jobs?access_token=" + QString::fromStdString(token)));
         networkRequest.setUrl(serverURL);
-        QString reply = NetworkManager::startNetworkManager(NetworkManager::PostOperation, networkRequest, QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toUtf8());
-//        std::string cmd = "curl -X PUT --header 'Content-Type: application/json' --header 'Accept: application/json' -d '" + QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toStdString() +  "' 'https://dacat-qa.psi.ch/api/v3/Jobs?access_token=" + token + "'";
-//        auto successfulJobs = utils::system_call(cmd);
-//        qDebug().noquote() << cmd;
+        QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::PostOperation, networkRequest, QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toUtf8());
+
         QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat Archiver.") );
     }
 
@@ -1572,7 +1571,7 @@ void Dialog::reject(){
         } else {
             return;
         }
-    } else if (ingestion->state()==QProcess::Running){
+    } else if ((ingestion!=nullptr) && (ingestion->state()==QProcess::Running)){
         auto reply = QMessageBox::question(this, "Quit", "The ingestion job is still running. Do you really want to quit now and abort the ingestion?");
         if (reply == QMessageBox::Yes) {
           QDialog::reject();
@@ -1586,6 +1585,7 @@ void Dialog::reject(){
 
 Dialog::~Dialog()
 {
+    qDebug() << "delete Dialog";
     delete ui;
 }
 
