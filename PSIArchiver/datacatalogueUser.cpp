@@ -25,7 +25,11 @@ User::User(DataCatalogue * const parent): scicatBase(parent)
 SciCat::authenticationStateAccount User::authenticateUser(const QString& username, const QString& pword, const int& server)
 {
     // try normal user account first
-    if (sendAuthenticationRequest(username, pword, DataCatalogue::serverListAuth()[server])==authenticationState::Valid){
+    auto state = sendAuthenticationRequest(username, pword, DataCatalogue::serverListAuth()[server]);
+    if (state==authenticationState::ConnectionError){
+        return authenticationStateAccount::ConnectionError;
+    }
+    if (state==authenticationState::Valid){
         updateUserInfo();
         return authenticationStateAccount::ValidUser;
     } else if (sendAuthenticationRequest(username, pword, DataCatalogue::serverList()[server]+ "/Users/login")==authenticationState::Valid) {
@@ -52,8 +56,12 @@ SciCat::authenticationState User::sendAuthenticationRequest(const QString& usern
         return authenticationState::Invalid;
     } else {
         extractToken(reply);
+        if (m_token.length()==0){
+            return authenticationState::ConnectionError;
+        } else {
+            return authenticationState::Valid;
+        }
 
-        return authenticationState::Valid;
     }
 }
 
@@ -114,7 +122,7 @@ void User::sendUserInfoRequest(){
     requestUser.setRawHeader("Accept", "application/json");
     QUrl serverURL(DataCatalogue::serverList()[scicatBase->serverID]+"Users/userInfos?access_token=" + m_token);
     requestUser.setUrl(serverURL);
-
+    qDebugLine("sendUserInfoRequest") << serverURL;
     auto nwm = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestUser);
     auto reply = nwm->pull();
 

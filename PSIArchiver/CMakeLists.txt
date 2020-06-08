@@ -64,6 +64,8 @@ if(WIN32)
       datacatalogueClasses.h
       datasetretriever.cpp
       datasetretriever.h
+      processhandler.cpp
+      processhandler.h
       ${RES_SOURCES}
     )
 else()
@@ -108,6 +110,8 @@ else()
     datacatalogueClasses.h
     datasetretriever.cpp
     datasetretriever.h
+    processhandler.cpp
+    processhandler.h
     ${RES_SOURCES}
   )
 endif()

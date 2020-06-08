@@ -7,6 +7,7 @@ class DatasetModel;
 class Ingestor;
 class Dialog;
 class LogBrowser;
+class DatasetRetriever;
 
 #include "pch.h"
 #include "datasetmodel.h"
@@ -138,7 +139,7 @@ struct retrieveJobsContainer_t {
     QString name;
     QString outdir;
     QString pid;
-    QProcess* process;
+    std::shared_ptr<DatasetRetriever> process;
 };
 
 inline QDebug operator<<(QDebug out, const retrieveContainer_t& container)

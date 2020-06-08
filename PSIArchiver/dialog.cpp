@@ -1346,20 +1346,10 @@ void Dialog::requestRetrieve(){
         }
     }
 
+    // start retrieving data from archive; at this point, the data will only be copied to the retrieve server
     if (scicat->requestRetrieve(datasetList)==0){
         QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat Archiver.") );
     }
-
-//    if (datasetList.size()>0){
-//        QNetworkRequest networkRequest;
-//        networkRequest.setRawHeader("Content-Type", "application/json");
-//        QUrl serverURL((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Jobs?access_token=" + QString::fromStdString(token)));
-//        networkRequest.setUrl(serverURL);
-//        QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::PostOperation, networkRequest, QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toUtf8());
-
-//        QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat Archiver.") );
-//    }
-
 
 }
 
@@ -1381,40 +1371,18 @@ void Dialog::saveRetrievedData(){
 }
 
 void Dialog::startRetriever(const QString &pid, const QString &outdir, const QString &name){
-    DatasetRetriever* retriever = new DatasetRetriever(this);
-//    QSettings settingsContainer("PSI", "SciCat");
+    std::shared_ptr<DatasetRetriever> retriever = std::make_shared<DatasetRetriever>(this);
 
-//    QProcess *retriever = new QProcess(this);
-////    retriever->setProcessChannelMode(QProcess::MergedChannels);
-//    connect(retriever, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(retrieverFinished(int)));
-//    connect(retriever, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(retrieverFailed(QProcess::ProcessError)));
-////    connect(retriever, SIGNAL(readyReadStandardOutput()), this, SLOT(readRetrieverOutput()));
+    retriever->start(pid, outdir);
 
-//    QStringList arguments;
+    retrieveJobsContainer_t job;
+    job.pid = pid;
+    job.outdir = outdir;
+    job.name = name;
+    job.process = retriever;
 
-//    switch (settingsContainer.value("serverID", defaultSettings.serverID).toInt()){
-//    case 0:
-//        break;
-//    case 1:
-//        arguments << "-testenv";
-//        break;
-//    case 2:
-//        arguments << "-devenv";
-//        break;
-//    }
+    retrieverList.push_back(job);
 
-//    arguments << "-dataset" << pid << "-token" << QString::fromStdString(token) << "-retrieve" << outdir;
-//    retriever->start(settingsContainer.value("datasetRetriever", defaultSettings.datasetRetriever).toString(), arguments);
-//    retriever->closeWriteChannel();
-//    qDebug() << arguments;
-
-//    retrieveJobsContainer_t job;
-//    job.pid = pid;
-//    job.outdir = outdir;
-//    job.name = name;
-//    job.process = retriever;
-
-//    retrieverList.push_back(job);
 }
 
 void Dialog::retrieverFinished(int val){
@@ -1439,7 +1407,7 @@ void Dialog::goToJobs(){
 void Dialog::updateRetrieveJobs(){
     // delete all stale PIDs
     for (std::vector<retrieveJobsContainer_t>::iterator it=retrieverList.begin(); it!=retrieverList.end();){
-        if ((*it).process->processId()==0){
+        if ((*it).process->getRetrieverJob()->processId()==0){
 //            delete it->process;
             it = retrieverList.erase(it);
         } else {
@@ -1456,12 +1424,12 @@ void Dialog::updateJobTable(){
     for (auto v: retrieverList){
         ui->tableWidgetJobs->insertRow(0);
         qDebug() << v.name;
-        qDebug() << v.process->processId();
+        qDebug() << v.process->getRetrieverJob()->processId();
         QTableWidgetItem *tmpJobName = new QTableWidgetItem(v.name);
         ui->tableWidgetJobs->setItem(0,0,tmpJobName);
         QTableWidgetItem *tmpJobPath = new QTableWidgetItem(v.outdir);
         ui->tableWidgetJobs->setItem(0,1,tmpJobPath);
-        QTableWidgetItem *tmpJobPID = new QTableWidgetItem(QString::number(v.process->processId()));
+        QTableWidgetItem *tmpJobPID = new QTableWidgetItem(QString::number(v.process->getRetrieverJob()->processId()));
         ui->tableWidgetJobs->setItem(0,2,tmpJobPID);
         QTableWidgetItem *tmpJobID = new QTableWidgetItem(v.pid);
         ui->tableWidgetJobs->setItem(0,3,tmpJobID);

@@ -1,45 +1,62 @@
 #include "datasetretriever.h"
 #include "QDebug"
+#include "datacatalogueClasses.h"
 
 DatasetRetriever::DatasetRetriever(QWidget *parent)
 {
-    retriever = new QProcess(parent);
+    retrieverJob = std::make_shared<ProcessHandler>(parent);
+    checkSumProcess = std::make_shared<ProcessHandler>(parent);
+    ProcessHandler::connect(retrieverJob.get(), SIGNAL(finished()), this, SLOT(checkSumVerification()));
+    ProcessHandler::connect(checkSumProcess->getJob(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(checkSumVerificationFinished(int)));
 
-    retriever->setProcessChannelMode(QProcess::MergedChannels);
-    connect(retriever, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(retrieverFailed(QProcess::ProcessError)));
-    connect(retriever, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(retrieverFinished(int)));
-    connect(retriever, SIGNAL(readyReadStandardOutput()), this, SLOT(readRetrieverOutput()));
-
-#ifndef WINDOWS_SPECIFIC_TOOLS
-    QStringList arguments;
-    arguments << "-av" << "-e" << "ssh -o GSSAPIAuthentication=yes -o StrictHostKeyChecking=no" << "wakonig_k@pbt-retrieve.psi.ch:retrieve/dae43524-ad3f-400d-9afb-ee91408931f5" << "./";
-    qDebug() << arguments;
-    retriever->start("rsync", arguments);
-#else
-    QStringList arguments;
-    arguments << "-av" << "-e" << "ssh -o GSSAPIAuthentication=yes -o StrictHostKeyChecking=no" << "wakonig_k@pbt-retrieve.psi.ch:retrieve/dae43524-ad3f-400d-9afb-ee91408931f5" << "./";
-    qDebug() << arguments;
-    retriever->start("rsync.exe", arguments); // to be fixed
-#endif
+    base = dynamic_cast<Dialog*>(parent);
 
 }
 
-void DatasetRetriever::readRetrieverOutput(){
-    qDebug() << "reading output";
-    while(retriever->canReadLine()){
-        auto tmp = retriever->readLine();
-        qDebug() << tmp;
+void DatasetRetriever::start(const QString &pid, const QString &outdir){
+
+#ifndef WINDOWS_SPECIFIC_TOOLS
+    // LINUX + MacOS
+    const QString rsyncPath = "rsync";
+    const QString sshPath = "ssh";
+#else
+    // Windows
+    const QString rsyncPath = "rsync.exe";
+    const QString sshPath = "ssh.exe";
+#endif
+
+
+    QStringList pidSplit = pid.split("/");
+    Q_ASSERT(pidSplit.length()==2);
+
+    m_pid = pid;
+    m_outdir = QDir(outdir).filePath(pidSplit[1]);
+
+    QStringList arguments;
+    arguments << "-av" << "-e" << sshPath + " -o GSSAPIAuthentication=yes -o StrictHostKeyChecking=no" << base->scicat->user()->getUsername() +"@" + SciCat::DataCatalogue::serverListRetrieve()[base->scicat->serverID] + ":retrieve/" + pidSplit[1] << outdir;
+    qDebug() << arguments;
+    retrieverJob->start(rsyncPath, arguments);
+}
+
+QProcess *DatasetRetriever::getRetrieverJob() const
+{
+    return retrieverJob->getJob();
+}
+
+void DatasetRetriever::checkSumVerificationFinished(int val){
+    qDebugLine("checkSumVerification") << "Finished";
+    if (val!=0){
+        base->sendWarning("Retrieval finished but CheckSumVerification failed. Data might be corrupted.");
     }
 }
 
-void DatasetRetriever::retrieverFinished(int val){
-
-    qDebug() << "Authentication finished with exit code " << val;
-    qDebug() << "TODO: Implement sha1sum check";
-
+void DatasetRetriever::checkSumVerification() {
+    auto argumentString = "cd " + m_outdir + " ; sed '/is_directory$/d' __checksum_filename_*__ |  awk -v FS='    ' '/^[^#]/{print $2,$1}' | sha1sum -c";
+    QStringList arguments;
+    arguments << "-c" << argumentString;
+    qDebugLine("checkSumVerification") << arguments;
+    checkSumProcess->start("bash", arguments);
 }
 
-void DatasetRetriever::retrieverFailed(QProcess::ProcessError error){
-    qDebug() << "Retriever failed: " << error;
-}
+
 

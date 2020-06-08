@@ -29,6 +29,10 @@ QStringList DataCatalogue::serverListAuth(){
     return QStringList{"https://dacat.psi.ch/auth/msad", "https://dacat-qa.psi.ch/auth/msad", "https://dacat-development.psi.ch/auth/msad"};
 }
 
+QStringList DataCatalogue::serverListRetrieve(){
+    return QStringList{"pb-retrieve.psi.ch", "pbt-retrieve.psi.ch", "arematest2in.psi.ch"};
+}
+
 DataCatalogueCore::User* DataCatalogue::user()
 {
     return scicatUser;

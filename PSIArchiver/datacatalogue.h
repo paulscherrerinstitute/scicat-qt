@@ -15,6 +15,7 @@ public:
     authenticationStateAccount authenticateUser(const QString &username, const QString &pword);
     static QStringList serverList();
     static QStringList serverListAuth();
+    static QStringList serverListRetrieve();
     DataCatalogueCore::User* user();
     DataCatalogueCore::Experiment* experiment();
     QString getServerName() const;
