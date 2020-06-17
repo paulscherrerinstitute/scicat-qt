@@ -230,9 +230,9 @@ public:
     void updateRetrieveList();
     int secID=-1;
     void updateNavigationIcons(int targetID);
-    ButtonHoverWatcher *pgroupWatcher = new ButtonHoverWatcher;
-    ButtonHoverWatcher *archiveWatcher = new ButtonHoverWatcher;
-    ButtonHoverWatcher *retrieveWatcher = new ButtonHoverWatcher;
+    ButtonHoverWatcher *pgroupWatcher = new ButtonHoverWatcher(this);
+    ButtonHoverWatcher *archiveWatcher = new ButtonHoverWatcher(this);
+    ButtonHoverWatcher *retrieveWatcher = new ButtonHoverWatcher(this);
 //    void json2TreeModel(QTreeWidgetItem *item, QJsonObject &inObj);
 
 
