@@ -23,12 +23,12 @@
    <string>SciCat Archiver</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px; min-width:50px; min-height:20px; padding: 2px; padding-left:10px; padding-right:10px}
+   <string notr="true">QDialog{background-color:rgb(244,244,244); color:rgb(0,0,0)}
+QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px; min-width:50px; min-height:20px; padding: 2px; padding-left:10px; padding-right:10px}
 QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
 QLineEdit{background-color:rgb(255,255,255); color:rgb(0,0,0);border-color:rgb(0, 0, 0)}
 QGroupBox{border-color:rgb(255, 255, 255); background-color:rgb(255,255,255); color:rgb(0,0,0); border:0px; padding-top:10px}
 QGroupBox::title{background:transparent; color:rgb(0,0,0)}
-QDialog{background-color:rgb(244,244,244); color:rgb(0,0,0)}
 QScrollArea{background-color:rgb(255,255,0); margin:0px}
 QLabel{color:rgb(0, 0, 0)}
 QStackedWidget{background-color:rgb(255, 255, 255)}
@@ -37,7 +37,6 @@ QTableWidget{background-color:rgb(255, 255, 255)}
 QTreeWidget{background-color:rgb(255, 255, 255)}
 QTextEdit{background-color:rgb(255, 255, 255);border-color:rgb(0, 0, 0)}
 QCheckBox{color:black}
-
 QTabWidget::pane {
     border: 1px solid black;
     background: white;
@@ -239,6 +238,10 @@ QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {
       </item>
       <item>
        <widget class="QFrame" name="frame_4">
+        <property name="styleSheet">
+         <string notr="true">QFrame#frame_4{background-color:rgba(0, 45, 59, 1); border:0px}
+</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
         </property>
@@ -254,7 +257,8 @@ QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {
            <item>
             <widget class="QLabel" name="labelUsername">
              <property name="styleSheet">
-              <string notr="true">QLabel{color:rgb(255, 255, 255)}</string>
+              <string notr="true">QLabel{color:rgb(255, 255, 255);background-color:rgba(0, 45, 59, 1); border:0px}
+</string>
              </property>
              <property name="text">
               <string>User: username</string>
@@ -270,7 +274,8 @@ QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {
               <string>Current archive server</string>
              </property>
              <property name="styleSheet">
-              <string notr="true">QLabel{color:rgb(255, 255, 255)}</string>
+              <string notr="true">QLabel{color:rgb(255, 255, 255);background-color:rgba(0, 45, 59, 1); border:0px}
+</string>
              </property>
              <property name="text">
               <string>Server: Production</string>
@@ -808,7 +813,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
            </property>
            <widget class="QWidget" name="startPage">
             <property name="styleSheet">
-             <string notr="true">QWidget{background-color:rgb(255, 255, 255)}</string>
+             <string notr="true"/>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_15">
              <item>
@@ -1233,7 +1238,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">QFrame{border:0px}
+                      <string notr="true">
 </string>
                      </property>
                      <property name="frameShape">
@@ -1268,6 +1273,10 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                           <property name="toolTip">
                            <string>Retrieve data from archive</string>
                           </property>
+                          <property name="styleSheet">
+                           <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px; min-width:50px; min-height:20px; padding: 2px; padding-left:10px; padding-right:10px}
+QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}</string>
+                          </property>
                           <property name="text">
                            <string>Retrieve data</string>
                           </property>
@@ -1293,6 +1302,10 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                          <widget class="QPushButton" name="pushButtonArchiveData">
                           <property name="toolTip">
                            <string>Send data to archive</string>
+                          </property>
+                          <property name="styleSheet">
+                           <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px; min-width:50px; min-height:20px; padding: 2px; padding-left:10px; padding-right:10px}
+QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}</string>
                           </property>
                           <property name="text">
                            <string>Archive data</string>
@@ -1582,7 +1595,7 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
                 <enum>QTabWidget::Rounded</enum>
                </property>
                <property name="currentIndex">
-                <number>2</number>
+                <number>0</number>
                </property>
                <widget class="QWidget" name="General">
                 <attribute name="title">
