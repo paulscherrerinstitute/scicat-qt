@@ -702,7 +702,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             <enum>QFrame::Sunken</enum>
            </property>
            <property name="currentIndex">
-            <number>2</number>
+            <number>0</number>
            </property>
            <widget class="QWidget" name="startPage">
             <property name="styleSheet">
@@ -976,7 +976,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                                <string extracomment="First name of the PI for the given pgroup."/>
                               </property>
                               <property name="styleSheet">
-                               <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                               <string notr="true"/>
                               </property>
                               <property name="text">
                                <string/>
@@ -1005,7 +1005,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                                <string>Last name of the PI for the given pgroup.</string>
                               </property>
                               <property name="styleSheet">
-                               <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                               <string notr="true"/>
                               </property>
                               <property name="placeholderText">
                                <string>PI last name</string>
@@ -1031,7 +1031,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                                <string>Email adress of the PI for the given pgroup.</string>
                               </property>
                               <property name="styleSheet">
-                               <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                               <string notr="true"/>
                               </property>
                               <property name="inputMethodHints">
                                <set>Qt::ImhEmailCharactersOnly</set>
@@ -1060,7 +1060,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                                <string>Proposal number for the given pgroup. Leave empty if it does not exist.</string>
                               </property>
                               <property name="styleSheet">
-                               <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                               <string notr="true"/>
                               </property>
                               <property name="echoMode">
                                <enum>QLineEdit::Normal</enum>
@@ -1073,7 +1073,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                             <item row="5" column="1">
                              <widget class="QLineEdit" name="lineEditTitle">
                               <property name="styleSheet">
-                               <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                               <string notr="true"/>
                               </property>
                              </widget>
                             </item>
@@ -1102,7 +1102,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                                </size>
                               </property>
                               <property name="styleSheet">
-                               <string notr="true">QTextEdit::!enabled{color:rgb(0,0,0)}</string>
+                               <string notr="true"/>
                               </property>
                              </widget>
                             </item>

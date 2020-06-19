@@ -1,5 +1,5 @@
 QDialog {
-    background-color: rgb(0, 70, 91);
+    background-color: rgb(0, 94, 122);
     color: rgb(255, 255, 255)
 }
 
@@ -14,70 +14,100 @@ QPushButton {
     padding-right: 10px
 }
 
+
 QPushButton:hover {
     background-color: rgb(244, 122, 0);
     color: rgb(255, 255, 255)
 }
 
+
 QLineEdit {
-    background-color: rgb(0, 70, 91);
-    color: rgb(0, 0, 0);
+    background-color: rgb(0, 94, 122);
+    color: rgb(255, 255, 255);
     border-color: rgb(0, 0, 0)
 }
+
+QLineEdit::!enabled {
+    background-color: rgb(0, 94, 122);
+    color: rgb(244, 244, 244);
+    border-color: rgb(0, 0, 0)
+}
+
 
 QGroupBox {
     border-color: rgb(255, 255, 255);
-    background-color: rgb(0, 70, 91);
-    color: rgb(0, 0, 0);
+    background-color: rgb(0, 94, 122);
+    color: rgb(255, 255, 255);
     border: 0px;
-    padding-top: 10px
+    padding-top: 25px
 }
+
 
 QGroupBox::title {
     background: transparent;
-    color: rgb(0, 0, 0)
+    color: rgb(255, 255, 255)
 }
 
+
 QScrollArea {
-    background-color: rgb(0, 70, 91);
+    background-color: rgb(0, 94, 122);
+    color: rgb(255, 255, 255);
     margin: 0px
 }
 
+
 QLabel {
-    color: rgb(0, 0, 0)
+    color: rgb(255, 255, 255)
 }
 
-;
+
 QStackedWidget {
-    background-color: rgb(0, 70, 91)
+background-color: rgb(0, 94, 122);
+color: rgb(255, 255, 255);
+border-color:none
 }
 
-;
+
 QListWidget {
-    background-color: rgb(0, 70, 91)
+background-color: rgb(0, 94, 122);
+color: rgb(255, 255, 255);
 }
+
 
 QTableWidget {
-    background-color: rgb(0, 70, 91)
+background-color: rgb(0, 94, 122);
+color: rgb(255, 255, 255);
 }
+
 
 QTreeWidget {
-    background-color: rgb(0, 70, 91)
+    background-color: rgb(0, 94, 122);
+    color: rgb(255, 255, 255);
 }
 
+
 QTextEdit {
-    background-color: rgb(0, 70, 91);
-    border-color: rgb(0, 0, 0)
+    background-color: rgb(0, 94, 122);
+    color: rgb(255, 255, 255);
+    border-color: rgb(0, 0, 0);
 }
+
+QTextEdit:!enabled{
+    background-color: rgb(0, 94, 122);
+    color: rgb(255, 255, 255);
+    border-color: rgb(0, 0, 0);
+}
+
 
 QCheckBox {
     color: black
 }
 
+
 QTabWidget::pane {
     border: 1px solid black;
-    background: rgb(0, 70, 91);
-    color: black
+    background-color: rgb(0, 94, 122);
+    color: rgb(255, 255, 255);
 }
 
 QTabWidget::tab-bar:top {
@@ -107,11 +137,11 @@ QTabBar::tab:selected {
 }
 
 QTabBar::tab:!selected {
-    background: silver;
+    background: rgb(244, 244, 244);
 }
 
 QTabBar::tab:!selected:hover {
-    background: #999;
+    background: rgb(244, 244, 244);
 }
 
 QTabBar::tab:top:!selected {
@@ -137,7 +167,7 @@ QTabBar::tab:bottom:selected {
 }
 
 QTabBar::tab:top:last, QTabBar::tab:bottom:last, QTabBar::tab:top:only-one, QTabBar::tab:bottom:only-one {
-    margin-right: 0;
+    margin-right: 3px;
 }
 
 QTabBar::tab:left:!selected {

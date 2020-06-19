@@ -3,6 +3,7 @@
 #include <QDateTime>
 
 
+
 extern QVersionNumber currentVersionNumber;
 
 Dialog::Dialog(QWidget *parent)
@@ -229,8 +230,6 @@ Dialog::Dialog(QWidget *parent)
     QFile fileLight(":/css/lightMode.css");
     fileLight.open(QFile::ReadOnly);
     this->setStyleSheet(fileLight.readAll());
-
-
 
 
 }
