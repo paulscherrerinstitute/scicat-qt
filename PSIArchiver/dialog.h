@@ -317,7 +317,7 @@ private:
     void resetContent();
     void quit();
     QStringList availPgroups;
-    QCompleter *pgroupCompleter;
+    QCompleter *pgroupCompleter=nullptr;
     std::string savePath = "~/scicat/log/";
     void updateItemFlag(QTreeWidgetItem *item, int flag);
     std::vector<std::string> loginIcons;
@@ -328,9 +328,9 @@ private:
     int numPagesRetrieve = 1;
     int numPagesLogin = 1;
     bool ingested = false;
-    QProcess *ingestion;
+    QProcess *ingestion=nullptr;
     void prepareIngestion();
-    LogBrowser *ingestionLog;
+    LogBrowser *ingestionLog=nullptr;
     std::vector<retrieveContainer_t> retrieveContainer;
     std::vector<retrieveJobsContainer_t> retrieverList;
     void startRetriever(const QString& pid, const QString& outdir, const QString& name);

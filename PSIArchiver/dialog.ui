@@ -23,114 +23,7 @@
    <string>SciCat Archiver</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QDialog{background-color:rgb(244,244,244); color:rgb(0,0,0)}
-QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px; min-width:50px; min-height:20px; padding: 2px; padding-left:10px; padding-right:10px}
-QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
-QLineEdit{background-color:rgb(255,255,255); color:rgb(0,0,0);border-color:rgb(0, 0, 0)}
-QGroupBox{border-color:rgb(255, 255, 255); background-color:rgb(255,255,255); color:rgb(0,0,0); border:0px; padding-top:10px}
-QGroupBox::title{background:transparent; color:rgb(0,0,0)}
-QScrollArea{background-color:rgb(255,255,0); margin:0px}
-QLabel{color:rgb(0, 0, 0)}
-QStackedWidget{background-color:rgb(255, 255, 255)}
-QListWidget{background-color:rgb(255, 255, 255)}
-QTableWidget{background-color:rgb(255, 255, 255)}
-QTreeWidget{background-color:rgb(255, 255, 255)}
-QTextEdit{background-color:rgb(255, 255, 255);border-color:rgb(0, 0, 0)}
-QCheckBox{color:black}
-QTabWidget::pane {
-    border: 1px solid black;
-    background: white;
-    color:black
-}
-
-QTabWidget::tab-bar:top {
-    top: 1px;
-}
-
-QTabWidget::tab-bar:bottom {
-    bottom: 1px;
-}
-
-QTabWidget::tab-bar:left {
-    right: 1px;
-}
-
-QTabWidget::tab-bar:right {
-    left: 1px;
-}
-
-QTabBar::tab {
-    border: 1px solid black;
-color:black;
-}
-
-QTabBar::tab:selected {
-    background: rgb(0, 112, 159); color: white
-}
-
-QTabBar::tab:!selected {
-    background: silver;
-}
-
-QTabBar::tab:!selected:hover {
-    background: #999;
-}
-
-QTabBar::tab:top:!selected {
-    margin-top: 3px;
-}
-
-QTabBar::tab:bottom:!selected {
-    margin-bottom: 3px;
-}
-
-QTabBar::tab:top, QTabBar::tab:bottom {
-    min-width: 8ex;
-    margin-right: -1px;
-    padding: 5px 10px 5px 10px;
-}
-
-QTabBar::tab:top:selected {
-    border-bottom-color: none;
-}
-
-QTabBar::tab:bottom:selected {
-    border-top-color: none;
-}
-
-QTabBar::tab:top:last, QTabBar::tab:bottom:last,
-QTabBar::tab:top:only-one, QTabBar::tab:bottom:only-one {
-    margin-right: 0;
-}
-
-QTabBar::tab:left:!selected {
-    margin-right: 3px;
-}
-
-QTabBar::tab:right:!selected {
-    margin-left: 3px;
-}
-
-QTabBar::tab:left, QTabBar::tab:right {
-    min-height: 8ex;
-    margin-bottom: -1px;
-    padding: 10px 5px 10px 5px;
-}
-
-QTabBar::tab:left:selected {
-    border-left-color: none;
-}
-
-QTabBar::tab:right:selected {
-    border-right-color: none;
-}
-
-QTabBar::tab:left:last, QTabBar::tab:right:last,
-QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {
-    margin-bottom: 0;
-}
-
-</string>
+   <string notr="true"/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_7">
    <property name="spacing">
@@ -372,8 +265,8 @@ QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {
           </property>
           <property name="minimumSize">
            <size>
-            <width>50</width>
-            <height>50</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="toolTip">
@@ -404,8 +297,8 @@ QPushButton:!enabled{border-image:url(&quot;:/images/login-not-active.svg&quot;)
           </property>
           <property name="minimumSize">
            <size>
-            <width>50</width>
-            <height>50</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="toolTip">
@@ -433,8 +326,8 @@ QPushButton:!enabled{border-image:url(&quot;:/images/archive-not-active.svg&quot
           </property>
           <property name="minimumSize">
            <size>
-            <width>50</width>
-            <height>50</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="toolTip">
@@ -565,8 +458,8 @@ QPushButton:!enabled{border-image:url(&quot;:/images/settings-not-active.svg&quo
              </property>
              <property name="minimumSize">
               <size>
-               <width>50</width>
-               <height>50</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
              <property name="toolTip">
@@ -596,8 +489,8 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
              </property>
              <property name="minimumSize">
               <size>
-               <width>50</width>
-               <height>50</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
              <property name="toolTip">
@@ -627,8 +520,8 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
              </property>
              <property name="minimumSize">
               <size>
-               <width>50</width>
-               <height>50</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
              <property name="toolTip">
@@ -700,8 +593,8 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
              </property>
              <property name="minimumSize">
               <size>
-               <width>50</width>
-               <height>50</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
              <property name="toolTip">
@@ -1030,8 +923,8 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>502</width>
-                           <height>285</height>
+                           <width>520</width>
+                           <height>242</height>
                           </rect>
                          </property>
                          <property name="sizePolicy">
@@ -1238,8 +1131,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">
-</string>
+                      <string notr="true"/>
                      </property>
                      <property name="frameShape">
                       <enum>QFrame::NoFrame</enum>
@@ -1507,8 +1399,8 @@ QListWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); borde
                        </property>
                        <property name="minimumSize">
                         <size>
-                         <width>70</width>
-                         <height>24</height>
+                         <width>0</width>
+                         <height>0</height>
                         </size>
                        </property>
                        <property name="toolTip">
@@ -2712,7 +2604,7 @@ QTableWidget QTableCornerButton::section  { background-color: rgba(0, 153, 200, 
                        <property name="minimumSize">
                         <size>
                          <width>30</width>
-                         <height>30</height>
+                         <height>0</height>
                         </size>
                        </property>
                        <property name="toolTip">
@@ -2796,19 +2688,19 @@ QPushButton:hover{border-image:url(&quot;:/images/refreshButtonHover.svg&quot;);
               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.AppleSystemUIFont'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;h2 style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:12pt; font-weight:600;&quot;&gt;SciCat Archiver Help&lt;/span&gt;&lt;/h2&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:12pt; text-decoration: underline;&quot;&gt;General information&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Noto Sans'; font-size:12pt; text-decoration: underline;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:12pt;&quot;&gt;The SciCat Archiver is a tool to ease the usage of the scientific data catalogue, as well as the archival and retrieval of scienfitic data at the Paul Scherrer Institute (PSI). &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Noto Sans'; font-size:12pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:12pt; text-decoration: underline;&quot;&gt;Archiving data&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:12pt;&quot;&gt;The archiving procedure comprises four simple steps:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:12pt;&quot;&gt;	1. Select your pgroup. This can be achieved by clicking on the login button on the top left and entering the pgroup number, e.g. p12345. If the pgroup is connected to proposal at PSI, necessary information about the principal investigator can be retrieved automatically. However, if no proposal information is available, the user has to specify the PI's name and the email adress manually. Click on &amp;quot;Archive&amp;quot; to start the archiving procedure. &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:12pt;&quot;&gt;	2. Select the files that need to be archived. &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:12pt;&quot;&gt;	3. Add or modify scientific metadata. In general, two data types are supported: raw data and derived data. &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Noto Sans'; font-size:12pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Noto Sans'; font-size:12pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Noto Sans'; font-size:12pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;h2 style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:x-large; font-weight:600;&quot;&gt;SciCat Archiver Help&lt;/span&gt;&lt;/h2&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;General information&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; text-decoration: underline;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The SciCat Archiver is a tool to ease the usage of the scientific data catalogue, as well as the archival and retrieval of scienfitic data at the Paul Scherrer Institute (PSI). &lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;Archiving data&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The archiving procedure comprises four simple steps:&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;	1. Select your pgroup. This can be achieved by clicking on the login button on the top left and entering the pgroup number, e.g. p12345. If the pgroup is connected to proposal at PSI, necessary information about the principal investigator can be retrieved automatically. However, if no proposal information is available, the user has to specify the PI's name and the email adress manually. Click on &amp;quot;Archive&amp;quot; to start the archiving procedure. &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;	2. Select the files that need to be archived. &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;	3. Add or modify scientific metadata. In general, two data types are supported: raw data and derived data. &lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
            </widget>
@@ -2893,8 +2785,8 @@ p, li { white-space: pre-wrap; }
              </property>
              <property name="minimumSize">
               <size>
-               <width>70</width>
-               <height>24</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
              <property name="styleSheet">

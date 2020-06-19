@@ -226,6 +226,12 @@ Dialog::Dialog(QWidget *parent)
     styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
                                           "QPushButton:hover{background-color:rgb(0, 70, 91); border-radius:0px}; "
                                           "QPushButton:!enabled{background-color:rgb(0, 45, 59); border-radius:0px; color:rgb(198, 198, 198)}";
+    QFile fileLight(":/css/lightMode.css");
+    fileLight.open(QFile::ReadOnly);
+    this->setStyleSheet(fileLight.readAll());
+
+
+
 
 }
 
@@ -1572,13 +1578,15 @@ void Dialog::reject(){
         } else {
             return;
         }
-    } else if (ingestion->state()==QProcess::Running){
-        auto reply = QMessageBox::question(this, "Quit", "The ingestion job is still running. Do you really want to quit now and abort the ingestion?");
-        if (reply == QMessageBox::Yes) {
-          QDialog::reject();
-          return;
-        } else {
-            return;
+    } else if (ingestion!=nullptr){
+        if (ingestion->state()==QProcess::Running){
+            auto reply = QMessageBox::question(this, "Quit", "The ingestion job is still running. Do you really want to quit now and abort the ingestion?");
+            if (reply == QMessageBox::Yes) {
+                QDialog::reject();
+                return;
+            } else {
+                return;
+            }
         }
     }
     QDialog::reject();
