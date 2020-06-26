@@ -299,6 +299,7 @@ private slots:
     void detachJob();
     void updateJobTable();
     void fileCounterFinished(bool force=false);
+    void updateRetrieverFiles();
 
 
 
@@ -354,6 +355,7 @@ private:
     QFutureWatcher<int> watcherFileCounter;
     bool startIngestionWhenReady = false;
     bool ingestionIsRunning = false;
+    QJsonDocument requestDatasetInfoJson;
 
 
 };

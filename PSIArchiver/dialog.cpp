@@ -116,6 +116,7 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonOpenLog, SIGNAL(clicked()), this, SLOT(openIngestionLog()));
     connect(ui->comboBoxCreationLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(creationLocationChanged(int)));
     connect(ui->pushButtonRefreshJobs, SIGNAL(clicked()), this, SLOT(updateJobTable()));
+    connect(ui->tableWidgetRetriever, SIGNAL(itemSelectionChanged()), this, SLOT(updateRetrieverFiles()));
 
 
     // warning label
@@ -208,6 +209,15 @@ Dialog::Dialog(QWidget *parent)
     ui->tableWidgetRetriever->setColumnWidth(2, 100);
     ui->tableWidgetRetriever->setColumnWidth(3, 300);
     ui->tableWidgetRetriever->setHorizontalHeaderLabels(QStringList({"Name", "Retrievable", "Retrieved", "Dataset ID"}));
+    ui->tableWidgetRetrieverFiles->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableWidgetRetrieverFiles->insertColumn(0);
+    ui->tableWidgetRetrieverFiles->insertColumn(1);
+    ui->tableWidgetRetrieverFiles->insertColumn(2);
+    ui->tableWidgetRetrieverFiles->setColumnWidth(0, 100);
+    ui->tableWidgetRetrieverFiles->setColumnWidth(1, 100);
+    ui->tableWidgetRetrieverFiles->setColumnWidth(2, 100);
+    ui->tableWidgetRetrieverFiles->setHorizontalHeaderLabels(QStringList({"File", "Size", "Date"}));
+
 
 
     // job viewer
@@ -813,6 +823,23 @@ void Dialog::fileCounterFinished(bool force){
     }
 }
 
+void Dialog::updateRetrieverFiles(){
+    qDebug() << "Updating retriever files";
+    // get current datasetID
+    QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
+
+    QString datasetID = ui->tableWidgetRetriever->item(indexList[0].row(),3)->data(0).toString();
+    qDebug() << "datasetID: " << datasetID;
+    for (auto v : requestDatasetInfoJson.array()){
+        if (v.toObject()["datasetId"].toString().compare(datasetID)==0){
+            qDebug() << v.toObject()["datasetId"].toString();
+        } else {
+            qDebug() << "not: " << v.toObject()["datasetId"].toString();
+        }
+//        qDebug() << v;
+    }
+}
+
 void Dialog::nextSlide(){
     // update currentSlideIndex
     currentSlideIndex = ui->stackedWidget->indexOf(ui->stackedWidget->currentWidget());
@@ -1243,17 +1270,27 @@ void Dialog::updateRetrieveList(){
     // request a list of all datasets from the current pgroup
     QNetworkRequest requestCurrentDatasets;
     requestCurrentDatasets.setRawHeader("Accept", "application/json");
-    QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + scicat->experiment()->getOwnerGroup().toUtf8() + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + scicat->user()->getToken()).toUtf8());
+    QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + scicat->experiment()->getOwnerGroup().toUtf8() + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + scicat->user()->getToken()).toUtf8());
     requestCurrentDatasets.setUrl(serverURL);
-    QString replyCurrentDatasets = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestCurrentDatasets);
-    QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(replyCurrentDatasets.toUtf8());
+    auto currentDatasetsJob = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestCurrentDatasets);
+//    QString replyCurrentDatasets = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestCurrentDatasets);
 
     QNetworkRequest requestSuccessfulJobs;
     requestSuccessfulJobs.setRawHeader("Accept", "application/json");
     QUrl serverURLJobs = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + scicat->user()->getUserMail().replace("@", "%40") + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + scicat->user()->getToken()).toUtf8());
     requestSuccessfulJobs.setUrl(serverURLJobs);
-    QString replyJobs = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestSuccessfulJobs);
-    QJsonDocument successfulJobsJson = QJsonDocument::fromJson(replyJobs.toUtf8());
+    auto replyJobs = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestSuccessfulJobs);
+
+    QNetworkRequest requestDatasetInfo;
+    requestDatasetInfo.setRawHeader("Accept", "application/json");
+    QUrl serverURLInfo = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Datablocks?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%22" + scicat->experiment()->getOwnerGroup().toUtf8() + "%22%7D%7D&&access_token=" + scicat->user()->getToken()).toUtf8());
+    requestDatasetInfo.setUrl(serverURLInfo);
+    auto replyInfo = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestDatasetInfo);
+
+//    // wait for jobs to finish
+    QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(currentDatasetsJob->pull().toUtf8());
+    QJsonDocument successfulJobsJson = QJsonDocument::fromJson(replyJobs->pull().toUtf8());
+    requestDatasetInfoJson = QJsonDocument::fromJson(replyInfo->pull().toUtf8());
 
     // get all 'finishedSuccessful' jobs
     // sadly, there seems to be no option to filter the jobs by pgroup, so we have to query all and select the ones from the current account
@@ -1289,13 +1326,18 @@ void Dialog::updateRetrieveList(){
     for (auto v : retrieveContainer) {
         ui->tableWidgetRetriever->insertRow(0);
         QTableWidgetItem *tmpItemDataset = new QTableWidgetItem(v.name);
+        tmpItemDataset->setFlags((Qt::ItemFlags)33);
         ui->tableWidgetRetriever->setItem(0,0,tmpItemDataset);
         QTableWidgetItem *tmpItemRetrievable = new QTableWidgetItem(v.retrievable);
+        tmpItemRetrievable->setFlags((Qt::ItemFlags)33);
         ui->tableWidgetRetriever->setItem(0,1,tmpItemRetrievable);
         QTableWidgetItem *tmpItemStatus = new QTableWidgetItem(v.retrieved);
+        tmpItemStatus->setFlags((Qt::ItemFlags)33);
         ui->tableWidgetRetriever->setItem(0,2,tmpItemStatus);
         QTableWidgetItem *tmpItemPID = new QTableWidgetItem(v.pid);
+        tmpItemPID->setFlags((Qt::ItemFlags)33);
         ui->tableWidgetRetriever->setItem(0,3,tmpItemPID);
+
     }
     ui->tableWidgetRetriever->setSortingEnabled(true);
 
@@ -1433,6 +1475,7 @@ void Dialog::updateJobTable(){
         ui->tableWidgetJobs->setItem(0,2,tmpJobPID);
         QTableWidgetItem *tmpJobID = new QTableWidgetItem(v.pid);
         ui->tableWidgetJobs->setItem(0,3,tmpJobID);
+
     }
 
 }

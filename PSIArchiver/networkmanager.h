@@ -19,7 +19,7 @@ public:
 public slots:
     void replyFinishedNM(QNetworkReply *reply);
 private:
-    bool block = false;
+    bool block = true;
     bool requestStarted = false;
     QString replyString;
     QNetworkReply* reply;
