@@ -66,6 +66,8 @@ if(WIN32)
       datasetretriever.h
       processhandler.cpp
       processhandler.h
+      messagehandlergui.cpp
+      messagehandlergui.h
       ${RES_SOURCES}
     )
 else()
@@ -112,6 +114,8 @@ else()
     datasetretriever.h
     processhandler.cpp
     processhandler.h
+    messagehandlergui.cpp
+    messagehandlergui.h
     ${RES_SOURCES}
   )
 endif()

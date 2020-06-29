@@ -7,7 +7,7 @@ NetworkManager::NetworkManager() //: manager(new QNetworkAccessManager(parent))
 }
 
 NetworkManager::~NetworkManager(){
-    qDebug() << "destroyed";
+//    qDebug() << "destroyed";
 }
 
 
@@ -27,7 +27,7 @@ void NetworkManager::get(const QNetworkRequest &request){
 }
 
 void NetworkManager::waitForReply() const {
-    qDebug() << replyString;
+//    qDebug() << replyString;
     if (block){
         QEventLoop loop;
         connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));

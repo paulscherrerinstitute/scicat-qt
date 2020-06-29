@@ -1,6 +1,7 @@
 #include "datasetretriever.h"
 #include "QDebug"
 #include "datacatalogueClasses.h"
+#include "messagehandlergui.h"
 
 DatasetRetriever::DatasetRetriever(QWidget *parent)
 {
@@ -46,7 +47,7 @@ QProcess *DatasetRetriever::getRetrieverJob() const
 void DatasetRetriever::checkSumVerificationFinished(int val){
     qDebugLine("checkSumVerification") << "Finished";
     if (val!=0){
-        base->sendWarning("Retrieval finished but CheckSumVerification failed. Data might be corrupted.");
+        MessageHandlerGUI::sendWarning(base->ui->warningLabel, "Retrieval finished but CheckSumVerification failed. Data might be corrupted.");
     }
 }
 
