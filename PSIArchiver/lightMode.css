@@ -1,0 +1,191 @@
+QDialog {
+    background-color: rgb(244, 244, 244);
+    color: rgb(0, 0, 0)
+}
+
+QPushButton {
+    background-color: rgb(204, 102, 0);
+    color: rgb(255, 255, 255);
+    border-radius: 2px;
+    min-width: 50px;
+    min-height: 20px;
+    padding: 2px;
+    padding-left: 10px;
+    padding-right: 10px
+}
+
+
+QPushButton:hover {
+    background-color: rgb(244, 122, 0);
+    color: rgb(255, 255, 255)
+}
+
+
+QLineEdit {
+    background-color: rgb(255, 255, 255);
+    color: rgb(0, 0, 0);
+    border-color: rgb(0, 0, 0)
+}
+
+QLineEdit:!enabled {
+    background-color: rgb(244, 244, 244);
+    color: rgb(0, 0, 0);
+    border-color: rgb(0, 0, 0)
+}
+
+
+QGroupBox {
+    border-color: rgb(255, 255, 255);
+    background-color: rgb(255, 255, 255);
+    color: rgb(0, 0, 0);
+    border: 0px;
+    padding-top: 25px
+}
+
+
+QGroupBox::title {
+    background: transparent;
+    color: rgb(0, 0, 0)
+}
+
+
+QScrollArea {
+    background-color: rgb(255, 255, 255);
+    margin: 0px
+}
+
+
+QLabel {
+    color: rgb(0, 0, 0)
+}
+
+
+QStackedWidget {
+    background-color: rgb(255, 255, 255)
+}
+
+
+QListWidget {
+    background-color: rgb(255, 255, 255)
+}
+
+
+QTableWidget {
+    background-color: rgb(255, 255, 255)
+}
+
+
+QTreeWidget {
+    background-color: rgb(255, 255, 255)
+}
+
+
+QTextEdit {
+    background-color: rgb(255, 255, 255);
+    border-color: rgb(0, 0, 0);
+    color:rgb(0,0,0)
+}
+
+QTextEdit:!enabled{
+    background-color: rgb(255, 255, 255);
+    border-color: rgb(0, 0, 0);
+    color:rgb(0,0,0)
+}
+
+
+QCheckBox {
+    color: black
+}
+
+
+QTabWidget::pane {
+    border: 1px solid black;
+    background: rgb(255, 255, 255);
+    color: black
+}
+
+QTabWidget::tab-bar:top {
+    top: 1px;
+}
+
+QTabWidget::tab-bar:bottom {
+    bottom: 1px;
+}
+
+QTabWidget::tab-bar:left {
+    right: 1px;
+}
+
+QTabWidget::tab-bar:right {
+    left: 1px;
+}
+
+QTabBar::tab {
+    border: 1px solid black;
+    color: black;
+}
+
+QTabBar::tab:selected {
+    background: rgb(0, 112, 159);
+    color: white
+}
+
+QTabBar::tab:!selected {
+    background: rgb(244, 244, 244);
+}
+
+QTabBar::tab:!selected:hover {
+    background: rgb(244, 244, 244);
+}
+
+QTabBar::tab:top:!selected {
+    margin-top: 3px;
+}
+
+QTabBar::tab:bottom:!selected {
+    margin-bottom: 3px;
+}
+
+QTabBar::tab:top, QTabBar::tab:bottom {
+    min-width: 8ex;
+    margin-right: -1px;
+    padding: 5px 10px 5px 10px;
+}
+
+QTabBar::tab:top:selected {
+    border-bottom-color: none;
+}
+
+QTabBar::tab:bottom:selected {
+    border-top-color: none;
+}
+
+QTabBar::tab:top:last, QTabBar::tab:bottom:last, QTabBar::tab:top:only-one, QTabBar::tab:bottom:only-one {
+    margin-right: 3px;
+}
+
+QTabBar::tab:left:!selected {
+    margin-right: 3px;
+}
+
+QTabBar::tab:right:!selected {
+    margin-left: 3px;
+}
+
+QTabBar::tab:left, QTabBar::tab:right {
+    min-height: 8ex;
+    margin-bottom: -1px;
+    padding: 10px 5px 10px 5px;
+}
+
+QTabBar::tab:left:selected {
+    border-left-color: none;
+}
+
+QTabBar::tab:right:selected {
+    border-right-color: none;
+}
+
+QTabBar::tab:left:last, QTabBar::tab:right:last, QTabBar::tab:left:only-one, QTabBar::tab:right:only-one {
+    margin-bottom: 0;
+}

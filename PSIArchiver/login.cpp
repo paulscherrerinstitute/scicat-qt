@@ -1,5 +1,9 @@
 #include "login.h"
 
+#include <QDesktopWidget>
+#include <QScreen>
+#include <QStyle>
+
 Login::Login(QWidget *parent) :
     QDialog(parent),
     uiLogin(new Ui::Login)
@@ -121,6 +125,11 @@ void Login::authenticationFailed(QProcess::ProcessError error){
 void Login::openGate(){
     close();
     baseUi->show();
+    auto screen = QGuiApplication::primaryScreen();
+    auto rec = screen->geometry();
+    int refSize;
+    rec.height() > rec.width() ? refSize=rec.width()*0.8 : refSize=rec.height()*0.8;
+    baseUi->setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, QSize(refSize, refSize*0.89), rec));
 }
 
 Login::~Login()

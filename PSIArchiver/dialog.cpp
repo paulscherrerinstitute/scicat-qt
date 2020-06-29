@@ -1,6 +1,8 @@
 #include "dialog.h"
 
 #include <QDateTime>
+#include "messagehandlergui.h"
+
 
 
 extern QVersionNumber currentVersionNumber;
@@ -117,6 +119,8 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->comboBoxCreationLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(creationLocationChanged(int)));
     connect(ui->pushButtonRefreshJobs, SIGNAL(clicked()), this, SLOT(updateJobTable()));
     connect(ui->tableWidgetRetriever, SIGNAL(itemSelectionChanged()), this, SLOT(updateRetrieverFiles()));
+    connect(ui->pushButtonToggleFilesMetadata, SIGNAL(clicked()), this, SLOT(toggleFilesMetadata()));
+
 
 
     // warning label
@@ -209,6 +213,7 @@ Dialog::Dialog(QWidget *parent)
     ui->tableWidgetRetriever->setColumnWidth(2, 100);
     ui->tableWidgetRetriever->setColumnWidth(3, 300);
     ui->tableWidgetRetriever->setHorizontalHeaderLabels(QStringList({"Name", "Retrievable", "Retrieved", "Dataset ID"}));
+
     ui->tableWidgetRetrieverFiles->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidgetRetrieverFiles->insertColumn(0);
     ui->tableWidgetRetrieverFiles->insertColumn(1);
@@ -217,7 +222,11 @@ Dialog::Dialog(QWidget *parent)
     ui->tableWidgetRetrieverFiles->setColumnWidth(1, 100);
     ui->tableWidgetRetrieverFiles->setColumnWidth(2, 100);
     ui->tableWidgetRetrieverFiles->setHorizontalHeaderLabels(QStringList({"File", "Size", "Date"}));
-
+    ui->treeWidgetScientificMetadataRetrieve->setColumnCount(2);
+    ui->treeWidgetScientificMetadataRetrieve->setColumnWidth(0, 150);
+    ui->treeWidgetScientificMetadataRetrieve->setColumnWidth(0, ui->treeWidgetScientificMetadataRetrieve->width()-150);
+    ui->treeWidgetScientificMetadataRetrieve->invisibleRootItem()->setFlags((Qt::ItemFlags)32);
+    ui->treeWidgetScientificMetadataRetrieve->setHeaderLabels(QStringList({"Name", "Value"}));
 
 
     // job viewer
@@ -237,11 +246,27 @@ Dialog::Dialog(QWidget *parent)
     styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
                                           "QPushButton:hover{background-color:rgb(0, 70, 91); border-radius:0px}; "
                                           "QPushButton:!enabled{background-color:rgb(0, 45, 59); border-radius:0px; color:rgb(198, 198, 198)}";
+    QFile fileLight(":/css/lightMode.css");
+    fileLight.open(QFile::ReadOnly);
+    this->setStyleSheet(fileLight.readAll());
+
+    // hide file list and metadata
+    ui->treeWidgetScientificMetadataRetrieve->setVisible(false);
+    ui->tableWidgetRetrieverFiles->setVisible(false);
+    ui->horizontalSpacer_22->changeSize(0,0,QSizePolicy::Fixed, QSizePolicy::Fixed);
+    ui->pushButtonToggleFilesMetadata->setText("Show metadata");
+
 
 }
 
 void Dialog::sendWarning(QString warningMsg){
     ui->warningLabel->setText(warningMsg);
+    ui->warningLabel->setVisible(true);
+    QTimer::singleShot(5000, ui->warningLabel, &QLabel::hide);
+}
+
+void Dialog::sendMessage(QString msg){
+    ui->warningLabel->setText(msg);
     ui->warningLabel->setVisible(true);
     QTimer::singleShot(5000, ui->warningLabel, &QLabel::hide);
 }
@@ -582,14 +607,14 @@ void Dialog::prepareIngestion(){
     if (!QDir(dirpath).exists()){
         qDebug()<<"Output directory does not exist";
         if (!QDir().mkpath(dirpath)){
-            sendWarning("Could not write to output directory.");
+            MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not write to output directory.");
         }
     }
 
     QString metafname = QDir(dirpath).filePath(settingsContainer.value("filenameMetadata", defaultSettings.filenameMetadata).toString());
     QFile metadataFile(metafname);
     if (!metadataFile.open(QIODevice::WriteOnly)) {
-        sendWarning("Could not open metadata file.");
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not open metadata file.");
         return;
     }
     metadataContainer.metadataFilename = metafname;
@@ -648,7 +673,7 @@ void Dialog::prepareIngestion(){
     QString filefname = QDir(dirpath).filePath(settingsContainer.value("filenameFilelisting", defaultSettings.filenameFilelisting).toString());
     QFile filelistingFile(filefname);
     if (!filelistingFile.open(QIODevice::WriteOnly | QIODevice::Text)){
-        sendWarning("Could not open filelisting file.");
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not open filelisting file.");
         return;
     }
     metadataContainer.filelistingFilename = filefname;
@@ -761,7 +786,7 @@ void Dialog::ingestionFinished(int exitCode){
         qDebug() << "removing ingestion log files";
 //        qDebug() << metadataContainer.ingestionLogDir;
         if (!QDir(metadataContainer.ingestionLogDir).removeRecursively()){
-            sendWarning("Failed to remove ingestion log files.");
+            MessageHandlerGUI::sendWarning(ui->warningLabel, "Failed to remove ingestion log files.");
         }
     } else if (settingsContainer.value("saveLog", defaultSettings.saveLog).toBool()){
         ingestionLog->saveLog(metadataContainer.ingestionLogDir + "/ingestion.log");
@@ -824,19 +849,87 @@ void Dialog::fileCounterFinished(bool force){
 }
 
 void Dialog::updateRetrieverFiles(){
+    QSettings settingsContainer("PSI", "SciCat");
+
     qDebug() << "Updating retriever files";
     // get current datasetID
     QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
 
-    QString datasetID = ui->tableWidgetRetriever->item(indexList[0].row(),3)->data(0).toString();
+    std::string datasetID = ui->tableWidgetRetriever->item(indexList[0].row(),3)->data(0).toString().toStdString();
     qDebug() << "datasetID: " << datasetID;
+
+    QJsonDocument requestDatasetInfoJson;
+    QJsonDocument requestSMJson;
+    auto searchDatasetID = retrieveDataMap.find(datasetID);
+    if (searchDatasetID != retrieveDataMap.end()) {
+        requestDatasetInfoJson = searchDatasetID->second;
+    } else {
+        // files
+        auto msgHandler = MessageHandlerGUI::sendMessage(ui->warningLabel, "Retrieving dataset info..."); // use scope-based MessageHandler
+        QNetworkRequest requestDatasetInfo;
+        requestDatasetInfo.setRawHeader("Accept", "application/json");
+        QUrl serverURLInfo = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Datasets/" + QString::fromStdString(datasetID).replace("/", "%2F") + "/origdatablocks?access_token=" + scicat->user()->getToken()).toUtf8());
+        requestDatasetInfo.setUrl(serverURLInfo);
+        auto replyInfo = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestDatasetInfo);
+        requestDatasetInfoJson = QJsonDocument::fromJson(replyInfo.toUtf8());
+        retrieveDataMap[datasetID] = requestDatasetInfoJson;
+
+        // scientific metadata
+        QNetworkRequest requestSM;
+        requestSM.setRawHeader("Accept", "application/json");
+        QUrl serverURLSM = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Datasets/" + QString::fromStdString(datasetID).replace("/", "%2F") + "?filter=%7B%22fields%22%3A%22scientificMetadata%22%7D&access_token=" + scicat->user()->getToken()).toUtf8());
+        qDebug() << serverURLSM;
+        requestSM.setUrl(serverURLSM);
+        auto replySM = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestSM);
+        requestSMJson = QJsonDocument::fromJson(replySM.toUtf8());
+//        retrieveDataMap[datasetID] = requestSMJson;
+        qDebug() << requestSMJson;
+        auto jsonObj = requestSMJson.object();
+        ui->treeWidgetScientificMetadataRetrieve->clear();
+        json2TreeModel(jsonObj, nullptr, ui->treeWidgetScientificMetadataRetrieve);
+        ui->treeWidgetScientificMetadataRetrieve->expandAll();
+    }
+
+    ui->tableWidgetRetrieverFiles->setRowCount(0);
+    ui->tableWidgetRetrieverFiles->clearContents();
+    ui->tableWidgetRetrieverFiles->setSortingEnabled(false);
     for (auto v : requestDatasetInfoJson.array()){
-        if (v.toObject()["datasetId"].toString().compare(datasetID)==0){
-            qDebug() << v.toObject()["datasetId"].toString();
-        } else {
-            qDebug() << "not: " << v.toObject()["datasetId"].toString();
-        }
 //        qDebug() << v;
+        for (auto f: v.toObject()["dataFileList"].toArray()){
+            ui->tableWidgetRetrieverFiles->insertRow(0);
+            QTableWidgetItem *tmpItemPath = new QTableWidgetItem(f.toObject()["path"].toString());
+            tmpItemPath->setFlags((Qt::ItemFlags)33);
+            ui->tableWidgetRetrieverFiles->setItem(0,0,tmpItemPath);
+            QTableWidgetItem *tmpItemSize = new QTableWidgetItem(QString::number(f.toObject()["size"].toInt()));
+            tmpItemSize->setFlags((Qt::ItemFlags)33);
+            ui->tableWidgetRetrieverFiles->setItem(0,1,tmpItemSize);
+            QTableWidgetItem *tmpItemTime = new QTableWidgetItem(f.toObject()["time"].toString());
+            tmpItemTime->setFlags((Qt::ItemFlags)33);
+            ui->tableWidgetRetrieverFiles->setItem(0,2,tmpItemTime);
+        }
+    }
+//    ui->tableWidgetRetrieverFiles->setColumnWidth()
+    ui->tableWidgetRetrieverFiles->setSortingEnabled(true);
+    ui->tableWidgetRetrieverFiles->sortItems(0, Qt::SortOrder::AscendingOrder);
+    ui->tableWidgetRetrieverFiles->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->tableWidgetRetrieverFiles->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+
+
+
+}
+
+
+void Dialog::toggleFilesMetadata(){
+    if (ui->tableWidgetRetrieverFiles->isVisible()){
+        ui->treeWidgetScientificMetadataRetrieve->setVisible(false);
+        ui->tableWidgetRetrieverFiles->setVisible(false);
+        ui->horizontalSpacer_22->changeSize(0,0,QSizePolicy::Fixed, QSizePolicy::Fixed);
+        ui->pushButtonToggleFilesMetadata->setText("Show metadata");
+    } else {
+        ui->treeWidgetScientificMetadataRetrieve->setVisible(true);
+        ui->tableWidgetRetrieverFiles->setVisible(true);
+        ui->horizontalSpacer_22->changeSize(20,20,QSizePolicy::Fixed, QSizePolicy::Fixed);
+        ui->pushButtonToggleFilesMetadata->setText("Hide metadata");
     }
 }
 
@@ -911,7 +1004,7 @@ bool Dialog::checkPIInfo(){
         // save PI info if needed
         if ((scicat->experiment()->getPgroupRequestState()!=SciCat::DataCatalogueCore::PgroupRequestState::ValidSciCatEntry) && (settingsContainer.value("saveProposalInfo", defaultSettings.saveProposalInfo).toBool())){
             if (scicat->experiment()->savePIInfo()>0){
-                sendWarning("Failed to write proposal information.");
+                MessageHandlerGUI::sendWarning(ui->warningLabel, "Failed to write proposal information.");
             }
         }
 
@@ -1140,7 +1233,7 @@ void Dialog::exportMetadata(){
     QJsonDocument saveDoc(metadata);
     QFile metadataFile(fileName);
     if (!metadataFile.open(QIODevice::WriteOnly)) {
-        sendWarning("Could not export metadata file.");
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not export metadata file.");
         return;
     }
     metadataFile.write(saveDoc.toJson());
@@ -1154,7 +1247,7 @@ void Dialog::importMetadata(){
     auto fileName = QFileDialog::getOpenFileName(this,tr("Import scientific metadata"), QDir::homePath(), tr("json files (*.json)"));
     QFile importFile(fileName);
     if (!importFile.open(QIODevice::ReadOnly | QIODevice::Text)){
-        sendWarning("Could not open metadata file.");
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not open metadata file.");
         return;
     }
     QString val = importFile.readAll();
@@ -1215,7 +1308,7 @@ void Dialog::appendMetadataEntry(){
                 addEntryMetadataTreeView("name", "value", ui->treeWidget->currentItem(), true, 4);
 
             } else {
-                sendWarning("Cannot append child entry to protected field.");
+                MessageHandlerGUI::sendWarning(ui->warningLabel, "Cannot append child entry to protected field.");
             }
         }
     } else {
@@ -1234,7 +1327,7 @@ void Dialog::removeMetadataEntry(){
             ui->treeWidget->currentItem()->parent()->removeChild(ui->treeWidget->currentItem());
 //        }
     } else {
-        sendWarning("Cannot remove protected field.");
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Cannot remove protected field.");
     }
     }
 
@@ -1281,16 +1374,16 @@ void Dialog::updateRetrieveList(){
     requestSuccessfulJobs.setUrl(serverURLJobs);
     auto replyJobs = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestSuccessfulJobs);
 
-    QNetworkRequest requestDatasetInfo;
-    requestDatasetInfo.setRawHeader("Accept", "application/json");
-    QUrl serverURLInfo = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Datablocks?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%22" + scicat->experiment()->getOwnerGroup().toUtf8() + "%22%7D%7D&&access_token=" + scicat->user()->getToken()).toUtf8());
-    requestDatasetInfo.setUrl(serverURLInfo);
-    auto replyInfo = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestDatasetInfo);
+//    QNetworkRequest requestDatasetInfo;
+//    requestDatasetInfo.setRawHeader("Accept", "application/json");
+//    QUrl serverURLInfo = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "OrigDatablocks?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%22" + scicat->experiment()->getOwnerGroup().toUtf8() + "%22%7D%7D&&access_token=" + scicat->user()->getToken()).toUtf8());
+//    requestDatasetInfo.setUrl(serverURLInfo);
+//    auto replyInfo = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestDatasetInfo);
 
 //    // wait for jobs to finish
     QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(currentDatasetsJob->pull().toUtf8());
     QJsonDocument successfulJobsJson = QJsonDocument::fromJson(replyJobs->pull().toUtf8());
-    requestDatasetInfoJson = QJsonDocument::fromJson(replyInfo->pull().toUtf8());
+
 
     // get all 'finishedSuccessful' jobs
     // sadly, there seems to be no option to filter the jobs by pgroup, so we have to query all and select the ones from the current account
@@ -1301,7 +1394,7 @@ void Dialog::updateRetrieveList(){
 //            qDebug() << v;
             for (int ii=0; ii<datasetListArray.size(); ii++) {
                 finishedSuccessfulPIDs.push_back(datasetListArray.at(ii).toObject().find("pid").value().toString());
-                qDebug() << datasetListArray.at(ii).toObject().find("pid").value().toString();
+//                qDebug() << datasetListArray.at(ii).toObject().find("pid").value().toString();
             }
         }
     }
@@ -1381,10 +1474,10 @@ void Dialog::requestRetrieve(){
                 tmpDatasetObject["file"] = QJsonArray();
                 datasetList.push_back(tmpDatasetObject);
             } else {
-                sendWarning("Some datasets have already been retrieved and will be skipped.");
+                MessageHandlerGUI::sendWarning(ui->warningLabel, "Some datasets have already been retrieved and will be skipped.");
             }
         } else {
-            sendWarning("Some datasets are not in a retrievable state.");
+            MessageHandlerGUI::sendWarning(ui->warningLabel, "Some datasets are not in a retrievable state.");
         }
     }
 
@@ -1405,7 +1498,7 @@ void Dialog::saveRetrievedData(){
             if (ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool()) { // check retrieve status
                 startRetriever(ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0).toString(), dirname, ui->tableWidgetRetriever->item(indexList[ii].row(),0)->data(0).toString());
             } else {
-                sendWarning("Some datasets have not been retrieved yet.");
+                MessageHandlerGUI::sendWarning(ui->warningLabel, "Some datasets have not been retrieved yet.");
             }
         }
     }
@@ -1433,7 +1526,7 @@ void Dialog::retrieverFinished(int val){
 
 void Dialog::retrieverFailed(QProcess::ProcessError error){
     (void) error;
-    sendWarning("Retriever failed.");
+    MessageHandlerGUI::sendWarning(ui->warningLabel, "Retriever failed.");
 
 }
 
@@ -1498,13 +1591,15 @@ void Dialog::reject(){
         } else {
             return;
         }
-    } else if ((ingestion!=nullptr) && (ingestion->state()==QProcess::Running)){
-        auto reply = QMessageBox::question(this, "Quit", "The ingestion job is still running. Do you really want to quit now and abort the ingestion?");
-        if (reply == QMessageBox::Yes) {
-          QDialog::reject();
-          return;
-        } else {
-            return;
+    } else if (ingestion!=nullptr){
+        if (ingestion->state()==QProcess::Running){
+            auto reply = QMessageBox::question(this, "Quit", "The ingestion job is still running. Do you really want to quit now and abort the ingestion?");
+            if (reply == QMessageBox::Yes) {
+                QDialog::reject();
+                return;
+            } else {
+                return;
+            }
         }
     }
     QDialog::reject();
@@ -1626,9 +1721,6 @@ bool ButtonHoverWatcher::eventFilter(QObject * watched, QEvent * event)
             return true;
         }
 
-    } else {
-        button->setIcon(iconsVector[1]);
-        button->setIconSize(QSize(50,50));
     }
 
 

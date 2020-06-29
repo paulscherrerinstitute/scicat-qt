@@ -23,6 +23,7 @@ class DatasetRetriever;
 #include "datacatalogueClasses.h"
 #include "datacatalogue.h"
 #include "datasetretriever.h"
+#include <unordered_map>
 
 
 
@@ -244,11 +245,10 @@ public:
     void updateRetrieveList();
     int secID=-1;
     void updateNavigationIcons(int targetID);
-    ButtonHoverWatcher *pgroupWatcher = new ButtonHoverWatcher;
-    ButtonHoverWatcher *archiveWatcher = new ButtonHoverWatcher;
-    ButtonHoverWatcher *retrieveWatcher = new ButtonHoverWatcher;
     SciCat::DataCatalogue* scicat = nullptr;
-
+    ButtonHoverWatcher *pgroupWatcher = new ButtonHoverWatcher(this);
+    ButtonHoverWatcher *archiveWatcher = new ButtonHoverWatcher(this);
+    ButtonHoverWatcher *retrieveWatcher = new ButtonHoverWatcher(this);
 //    void json2TreeModel(QTreeWidgetItem *item, QJsonObject &inObj);
 
 
@@ -300,6 +300,7 @@ private slots:
     void updateJobTable();
     void fileCounterFinished(bool force=false);
     void updateRetrieverFiles();
+    void toggleFilesMetadata();
 
 
 
@@ -333,7 +334,7 @@ private:
     void resetContent();
     void quit();
     QStringList availPgroups;
-    QCompleter *pgroupCompleter;
+    QCompleter *pgroupCompleter=nullptr;
     std::string savePath = "~/scicat/log/";
     void updateItemFlag(QTreeWidgetItem *item, int flag);
     std::vector<std::string> loginIcons;
@@ -346,7 +347,7 @@ private:
     bool ingested = false;
     QProcess *ingestion=nullptr;
     void prepareIngestion();
-    LogBrowser *ingestionLog;
+    LogBrowser *ingestionLog=nullptr;
     std::vector<retrieveContainer_t> retrieveContainer;
     std::vector<retrieveJobsContainer_t> retrieverList;
     void startRetriever(const QString& pid, const QString& outdir, const QString& name);
@@ -355,9 +356,8 @@ private:
     QFutureWatcher<int> watcherFileCounter;
     bool startIngestionWhenReady = false;
     bool ingestionIsRunning = false;
-    QJsonDocument requestDatasetInfoJson;
-
-
+    std::unordered_map<std::string, QJsonDocument> retrieveDataMap;
+    void sendMessage(QString msg);
 };
 
 

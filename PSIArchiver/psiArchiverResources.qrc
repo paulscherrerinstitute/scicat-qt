@@ -16,4 +16,8 @@
         <file>refreshButton.svg</file>
         <file>refreshButtonHover.svg</file>
     </qresource>
+    <qresource prefix="/css">
+        <file>lightMode.css</file>
+        <file>darkMode.css</file>
+    </qresource>
 </RCC>

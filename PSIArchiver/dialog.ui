@@ -23,9 +23,7 @@
    <string>SciCat Archiver</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px; min-width:50px; min-height:20px; padding: 2px; padding-left:10px; padding-right:10px}
-QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
-</string>
+   <string notr="true"/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_7">
    <property name="spacing">
@@ -133,6 +131,10 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
       </item>
       <item>
        <widget class="QFrame" name="frame_4">
+        <property name="styleSheet">
+         <string notr="true">QFrame#frame_4{background-color:rgba(0, 45, 59, 1); border:0px}
+</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
         </property>
@@ -148,7 +150,8 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
            <item>
             <widget class="QLabel" name="labelUsername">
              <property name="styleSheet">
-              <string notr="true">QLabel{color:rgb(255, 255, 255)}</string>
+              <string notr="true">QLabel{color:rgb(255, 255, 255);background-color:rgba(0, 45, 59, 1); border:0px}
+</string>
              </property>
              <property name="text">
               <string>User: username</string>
@@ -164,7 +167,8 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
               <string>Current archive server</string>
              </property>
              <property name="styleSheet">
-              <string notr="true">QLabel{color:rgb(255, 255, 255)}</string>
+              <string notr="true">QLabel{color:rgb(255, 255, 255);background-color:rgba(0, 45, 59, 1); border:0px}
+</string>
              </property>
              <property name="text">
               <string>Server: Production</string>
@@ -261,8 +265,8 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
           </property>
           <property name="minimumSize">
            <size>
-            <width>50</width>
-            <height>50</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="toolTip">
@@ -293,8 +297,8 @@ QPushButton:!enabled{border-image:url(&quot;:/images/login-not-active.svg&quot;)
           </property>
           <property name="minimumSize">
            <size>
-            <width>50</width>
-            <height>50</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="toolTip">
@@ -322,8 +326,8 @@ QPushButton:!enabled{border-image:url(&quot;:/images/archive-not-active.svg&quot
           </property>
           <property name="minimumSize">
            <size>
-            <width>50</width>
-            <height>50</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
           <property name="toolTip">
@@ -454,8 +458,8 @@ QPushButton:!enabled{border-image:url(&quot;:/images/settings-not-active.svg&quo
              </property>
              <property name="minimumSize">
               <size>
-               <width>50</width>
-               <height>50</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
              <property name="toolTip">
@@ -485,8 +489,8 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
              </property>
              <property name="minimumSize">
               <size>
-               <width>50</width>
-               <height>50</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
              <property name="toolTip">
@@ -516,8 +520,8 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
              </property>
              <property name="minimumSize">
               <size>
-               <width>50</width>
-               <height>50</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
              <property name="toolTip">
@@ -589,8 +593,8 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
              </property>
              <property name="minimumSize">
               <size>
-               <width>50</width>
-               <height>50</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
              <property name="toolTip">
@@ -689,7 +693,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">QStackedWidget{background-color:rgb(255, 255, 255)}</string>
+            <string notr="true"/>
            </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
@@ -698,9 +702,12 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
             <enum>QFrame::Sunken</enum>
            </property>
            <property name="currentIndex">
-            <number>2</number>
+            <number>4</number>
            </property>
            <widget class="QWidget" name="startPage">
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
             <layout class="QHBoxLayout" name="horizontalLayout_15">
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_29">
@@ -768,6 +775,15 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                       <set>Qt::AlignCenter</set>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_4">
+                      <property name="spacing">
+                       <number>0</number>
+                      </property>
+                      <property name="leftMargin">
+                       <number>12</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>12</number>
+                      </property>
                       <item>
                        <layout class="QHBoxLayout" name="horizontalLayout_2">
                         <item>
@@ -890,6 +906,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                           <height>120</height>
                          </size>
                         </property>
+                        <property name="styleSheet">
+                         <string notr="true"/>
+                        </property>
                         <property name="frameShape">
                          <enum>QFrame::NoFrame</enum>
                         </property>
@@ -919,6 +938,9 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                            <width>0</width>
                            <height>120</height>
                           </size>
+                         </property>
+                         <property name="styleSheet">
+                          <string notr="true"/>
                          </property>
                          <layout class="QVBoxLayout" name="verticalLayout_30">
                           <item>
@@ -954,7 +976,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                                <string extracomment="First name of the PI for the given pgroup."/>
                               </property>
                               <property name="styleSheet">
-                               <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                               <string notr="true"/>
                               </property>
                               <property name="text">
                                <string/>
@@ -983,7 +1005,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                                <string>Last name of the PI for the given pgroup.</string>
                               </property>
                               <property name="styleSheet">
-                               <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                               <string notr="true"/>
                               </property>
                               <property name="placeholderText">
                                <string>PI last name</string>
@@ -1009,7 +1031,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                                <string>Email adress of the PI for the given pgroup.</string>
                               </property>
                               <property name="styleSheet">
-                               <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                               <string notr="true"/>
                               </property>
                               <property name="inputMethodHints">
                                <set>Qt::ImhEmailCharactersOnly</set>
@@ -1038,7 +1060,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                                <string>Proposal number for the given pgroup. Leave empty if it does not exist.</string>
                               </property>
                               <property name="styleSheet">
-                               <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                               <string notr="true"/>
                               </property>
                               <property name="echoMode">
                                <enum>QLineEdit::Normal</enum>
@@ -1051,7 +1073,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                             <item row="5" column="1">
                              <widget class="QLineEdit" name="lineEditTitle">
                               <property name="styleSheet">
-                               <string notr="true">QLineEdit::!enabled{color:rgb(0,0,0)}</string>
+                               <string notr="true"/>
                               </property>
                              </widget>
                             </item>
@@ -1080,7 +1102,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                                </size>
                               </property>
                               <property name="styleSheet">
-                               <string notr="true">QTextEdit::!enabled{color:rgb(0,0,0)}</string>
+                               <string notr="true"/>
                               </property>
                              </widget>
                             </item>
@@ -1109,8 +1131,7 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">QFrame{border:0px}
-</string>
+                      <string notr="true"/>
                      </property>
                      <property name="frameShape">
                       <enum>QFrame::NoFrame</enum>
@@ -1144,6 +1165,10 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                           <property name="toolTip">
                            <string>Retrieve data from archive</string>
                           </property>
+                          <property name="styleSheet">
+                           <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px; min-width:50px; min-height:20px; padding: 2px; padding-left:10px; padding-right:10px}
+QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}</string>
+                          </property>
                           <property name="text">
                            <string>Retrieve data</string>
                           </property>
@@ -1169,6 +1194,10 @@ QPushButton:!enabled{background-color:rgb(0, 70, 91); border-radius:0px; color:r
                          <widget class="QPushButton" name="pushButtonArchiveData">
                           <property name="toolTip">
                            <string>Send data to archive</string>
+                          </property>
+                          <property name="styleSheet">
+                           <string notr="true">QPushButton{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2px; min-width:50px; min-height:20px; padding: 2px; padding-left:10px; padding-right:10px}
+QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}</string>
                           </property>
                           <property name="text">
                            <string>Archive data</string>
@@ -1370,8 +1399,8 @@ QListWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); borde
                        </property>
                        <property name="minimumSize">
                         <size>
-                         <width>70</width>
-                         <height>24</height>
+                         <width>0</width>
+                         <height>0</height>
                         </size>
                        </property>
                        <property name="toolTip">
@@ -1449,9 +1478,7 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
              <item>
               <widget class="QTabWidget" name="metadataGuided">
                <property name="styleSheet">
-                <string notr="true">QTabWidget:tab-bar{left:15px; border:0px}
-QTabWidget:tab{background-color: rgb(204, 102, 0); color: rgb(255, 255, 255); border-radius:2p}
-</string>
+                <string notr="true"/>
                </property>
                <property name="tabPosition">
                 <enum>QTabWidget::North</enum>
@@ -2336,106 +2363,226 @@ QPushButton:hover{background-color: rgb(244, 122, 0); color: rgb(255, 255, 255)}
             </layout>
            </widget>
            <widget class="QWidget" name="retrieverPage">
-            <layout class="QVBoxLayout" name="verticalLayout_32">
+            <layout class="QVBoxLayout" name="verticalLayout_41">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_17">
+              <layout class="QVBoxLayout" name="verticalLayout_40">
                <item>
-                <spacer name="horizontalSpacer_24">
+                <spacer name="verticalSpacer_22">
                  <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
+                  <enum>Qt::Vertical</enum>
                  </property>
                  <property name="sizeType">
                   <enum>QSizePolicy::Fixed</enum>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
-                   <width>40</width>
-                   <height>20</height>
+                   <width>20</width>
+                   <height>40</height>
                   </size>
                  </property>
                 </spacer>
                </item>
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_31">
+                <layout class="QHBoxLayout" name="horizontalLayout_23">
                  <item>
-                  <spacer name="verticalSpacer_22">
+                  <spacer name="horizontalSpacer_24">
                    <property name="orientation">
-                    <enum>Qt::Vertical</enum>
+                    <enum>Qt::Horizontal</enum>
                    </property>
                    <property name="sizeType">
                     <enum>QSizePolicy::Fixed</enum>
                    </property>
                    <property name="sizeHint" stdset="0">
                     <size>
-                     <width>20</width>
-                     <height>40</height>
+                     <width>40</width>
+                     <height>20</height>
                     </size>
                    </property>
                   </spacer>
                  </item>
                  <item>
-                  <widget class="QTableWidget" name="tableWidgetRetriever">
-                   <property name="styleSheet">
-                    <string notr="true">QTableWidget::item{ selection-background-color: rgb(0, 153, 200)}
+                  <layout class="QVBoxLayout" name="verticalLayout_39">
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_17">
+                     <item>
+                      <spacer name="horizontalSpacer_21">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>358</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="pushButtonToggleFilesMetadata">
+                       <property name="text">
+                        <string>PushButton</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_22">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <layout class="QVBoxLayout" name="verticalLayout_32">
+                       <item>
+                        <widget class="QTableWidget" name="tableWidgetRetriever">
+                         <property name="styleSheet">
+                          <string notr="true">QTableWidget::item{ selection-background-color: rgb(0, 153, 200)}
 QTableWidget:hover{color: rgb(255, 255, 255)}
 QTableWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); border-style:solid}
 QHeaderView::section { background-color: rgba(0, 153, 200, 0.2)}
 QTableWidget QTableCornerButton::section  { background-color: rgba(0, 153, 200, 0.2)}</string>
-                   </property>
-                   <property name="editTriggers">
-                    <set>QAbstractItemView::NoEditTriggers</set>
-                   </property>
-                   <property name="dragDropOverwriteMode">
-                    <bool>false</bool>
-                   </property>
-                   <property name="sortingEnabled">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_16">
-                   <item>
-                    <widget class="QPushButton" name="pushButtonRetrieve">
-                     <property name="text">
-                      <string>Retrieve</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="horizontalSpacer_23">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="pushButtonSave">
-                     <property name="text">
-                      <string>Save</string>
-                     </property>
-                    </widget>
+                         </property>
+                         <property name="editTriggers">
+                          <set>QAbstractItemView::NoEditTriggers</set>
+                         </property>
+                         <property name="dragDropOverwriteMode">
+                          <bool>false</bool>
+                         </property>
+                         <property name="sortingEnabled">
+                          <bool>true</bool>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="verticalSpacer_14">
+                         <property name="orientation">
+                          <enum>Qt::Vertical</enum>
+                         </property>
+                         <property name="sizeType">
+                          <enum>QSizePolicy::Fixed</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>20</width>
+                           <height>5</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                       <item>
+                        <layout class="QHBoxLayout" name="horizontalLayout_16">
+                         <item>
+                          <widget class="QPushButton" name="pushButtonRetrieve">
+                           <property name="text">
+                            <string>Retrieve</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <spacer name="horizontalSpacer_23">
+                           <property name="orientation">
+                            <enum>Qt::Horizontal</enum>
+                           </property>
+                           <property name="sizeHint" stdset="0">
+                            <size>
+                             <width>40</width>
+                             <height>20</height>
+                            </size>
+                           </property>
+                          </spacer>
+                         </item>
+                         <item>
+                          <widget class="QPushButton" name="pushButtonSave">
+                           <property name="text">
+                            <string>Save</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_22">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeType">
+                        <enum>QSizePolicy::Fixed</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>18</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <layout class="QVBoxLayout" name="verticalLayout_31">
+                       <property name="spacing">
+                        <number>0</number>
+                       </property>
+                       <item>
+                        <widget class="QTableWidget" name="tableWidgetRetrieverFiles">
+                         <property name="styleSheet">
+                          <string notr="true">QTableWidget::item{ selection-background-color: rgb(0, 153, 200)}
+QTableWidget:hover{color: rgb(255, 255, 255)}
+QTableWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); border-style:solid}
+QHeaderView::section { background-color: rgba(0, 153, 200, 0.2)}
+QTableWidget QTableCornerButton::section  { background-color: rgba(0, 153, 200, 0.2)}</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="verticalSpacer_13">
+                         <property name="orientation">
+                          <enum>Qt::Vertical</enum>
+                         </property>
+                         <property name="sizeType">
+                          <enum>QSizePolicy::Fixed</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>0</width>
+                           <height>8</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                       <item>
+                        <widget class="QTreeWidget" name="treeWidgetScientificMetadataRetrieve">
+                         <property name="styleSheet">
+                          <string notr="true">QTreeWidget::item{ selection-background-color: rgb(0, 153, 200)}
+QTreeWidget:hover{color: rgb(255, 255, 255)}
+QTreeWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); border-style:solid}
+QHeaderView::section { background-color: rgba(0, 153, 200, 0.2)}</string>
+                         </property>
+                         <column>
+                          <property name="text">
+                           <string notr="true">1</string>
+                          </property>
+                         </column>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                    </layout>
                    </item>
                   </layout>
                  </item>
                  <item>
-                  <spacer name="verticalSpacer_23">
+                  <spacer name="horizontalSpacer_25">
                    <property name="orientation">
-                    <enum>Qt::Vertical</enum>
+                    <enum>Qt::Horizontal</enum>
                    </property>
                    <property name="sizeType">
                     <enum>QSizePolicy::Fixed</enum>
                    </property>
                    <property name="sizeHint" stdset="0">
                     <size>
-                     <width>20</width>
-                     <height>40</height>
+                     <width>40</width>
+                     <height>20</height>
                     </size>
                    </property>
                   </spacer>
@@ -2443,20 +2590,17 @@ QTableWidget QTableCornerButton::section  { background-color: rgba(0, 153, 200, 
                 </layout>
                </item>
                <item>
-                <widget class="QTableWidget" name="tableWidgetRetrieverFiles"/>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_25">
+                <spacer name="verticalSpacer_23">
                  <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
+                  <enum>Qt::Vertical</enum>
                  </property>
                  <property name="sizeType">
                   <enum>QSizePolicy::Fixed</enum>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
-                   <width>40</width>
-                   <height>20</height>
+                   <width>20</width>
+                   <height>40</height>
                   </size>
                  </property>
                 </spacer>
@@ -2580,7 +2724,7 @@ QTableWidget QTableCornerButton::section  { background-color: rgba(0, 153, 200, 
                        <property name="minimumSize">
                         <size>
                          <width>30</width>
-                         <height>30</height>
+                         <height>0</height>
                         </size>
                        </property>
                        <property name="toolTip">
@@ -2761,8 +2905,8 @@ p, li { white-space: pre-wrap; }
              </property>
              <property name="minimumSize">
               <size>
-               <width>70</width>
-               <height>24</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
              <property name="styleSheet">
