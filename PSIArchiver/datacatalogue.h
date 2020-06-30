@@ -4,6 +4,7 @@
 #include "datacatalogueClasses.h"
 #include "datacatalogueExperiment.h"
 #include "datacatalogueUser.h"
+#include "datasetretriever.h"
 
 namespace SciCat {
 
@@ -18,8 +19,8 @@ public:
     static QStringList serverListRetrieve();
     DataCatalogueCore::User* user();
     DataCatalogueCore::Experiment* experiment();
+    DatasetIngestor *ingestion();
     QString getServerName() const;
-    void ingest();
     int serverID;
     Dialog * baseUI;
     int requestRetrieve(const QJsonArray& datasetList);
@@ -28,6 +29,7 @@ public:
 private:
     DataCatalogueCore::User* scicatUser;
     DataCatalogueCore::Experiment* scicatExperiment;
+    DatasetIngestor* scicatIngestion;
     SciCat::serverType serverType;
 
 };

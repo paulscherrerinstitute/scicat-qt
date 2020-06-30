@@ -1,7 +1,9 @@
 #include "datasetretriever.h"
 #include "QDebug"
-#include "datacatalogueClasses.h"
+#include "datacatalogue.h"
 #include "messagehandlergui.h"
+
+using namespace SciCat;
 
 DatasetRetriever::DatasetRetriever(QWidget *parent)
 {

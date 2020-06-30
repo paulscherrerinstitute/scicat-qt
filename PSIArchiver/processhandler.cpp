@@ -18,10 +18,19 @@ ProcessHandler::~ProcessHandler(){
     qDebug()<< "deleted ProcessHandler";
 }
 
+void ProcessHandler::setOutputStream(QTextEdit* out){
+    m_outStream = out;
+}
+
 void ProcessHandler::readOutput(){
     qDebug() << "reading output";
     while(job->canReadLine()){
         auto tmp = job->readLine();
+
+        // redirect output stream
+        if (m_outStream!=nullptr){
+            m_outStream->append(tmp);
+        }
         qDebug() << tmp;
     }
 }
@@ -30,7 +39,7 @@ void ProcessHandler::processFinished(int val){
 
     qDebug() << "Process finished with exit code " << val;
     if (val==0){
-        emit finished();
+        emit finished(val);
     }
 
 }

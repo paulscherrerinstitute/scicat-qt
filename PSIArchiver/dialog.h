@@ -7,7 +7,6 @@ class DatasetModel;
 class Ingestor;
 class Dialog;
 class LogBrowser;
-class DatasetRetriever;
 
 #include "pch.h"
 #include "datasetmodel.h"
@@ -22,7 +21,7 @@ class DatasetRetriever;
 #include "creationlocationcreator.h"
 #include "datacatalogueClasses.h"
 #include "datacatalogue.h"
-#include "datasetretriever.h"
+#include "datasetingestor.h"
 #include <unordered_map>
 
 
@@ -140,7 +139,7 @@ struct retrieveJobsContainer_t {
     QString name;
     QString outdir;
     QString pid;
-    std::shared_ptr<DatasetRetriever> process;
+    std::shared_ptr<SciCat::DatasetRetriever> process;
 };
 
 inline QDebug operator<<(QDebug out, const retrieveContainer_t& container)
@@ -266,8 +265,6 @@ private slots:
     void creationLocationChanged(int val);
     void requestRetrieve();
     void saveRetrievedData();
-    void retrieverFailed(QProcess::ProcessError error);
-    void retrieverFinished(int val);
     void goToRequest();
     void goToJobs();
     void killJob();

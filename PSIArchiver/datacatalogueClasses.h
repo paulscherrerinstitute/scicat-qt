@@ -21,6 +21,9 @@ class User;
 
 }
 
+class DatasetRetriever;
+class DatasetIngestor;
+
 }
 
 #endif // DATACATALOGUECLASSES_H

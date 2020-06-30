@@ -120,6 +120,7 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonRefreshJobs, SIGNAL(clicked()), this, SLOT(updateJobTable()));
     connect(ui->tableWidgetRetriever, SIGNAL(itemSelectionChanged()), this, SLOT(updateRetrieverFiles()));
     connect(ui->pushButtonToggleFilesMetadata, SIGNAL(clicked()), this, SLOT(toggleFilesMetadata()));
+    connect(scicat->ingestion(), SIGNAL(finished(int)), this, SLOT(ingestionFinished(int)));
 
 
 
@@ -825,8 +826,16 @@ void Dialog::fileCounterFinished(bool force){
     if ((startIngestionWhenReady) || force){
         int result = futureGetFileNum.result();
         if (result<defaultSettings.maxFileNum){
-            prepareIngestion();
-            startIngestion();
+            // disable buttons
+            setButtonsEnabled(false);
+            ui->pushButtonRestart->setEnabled(false);
+            if (!ingestionIsRunning){
+                ingestionIsRunning = true;
+                scicat->ingestion()->prepareIngestion();
+                scicat->ingestion()->start();
+            } else {
+                qDebug() << "Ingestion is already running.";
+            }
             startIngestionWhenReady = false;
         } else {
             auto maxnum = QString::number(defaultSettings.maxFileNum).toUtf8();
@@ -1373,7 +1382,6 @@ void Dialog::updateRetrieveList(){
     QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + scicat->experiment()->getOwnerGroup().toUtf8() + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + scicat->user()->getToken()).toUtf8());
     requestCurrentDatasets.setUrl(serverURL);
     auto currentDatasetsJob = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestCurrentDatasets);
-//    QString replyCurrentDatasets = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestCurrentDatasets);
 
     QNetworkRequest requestSuccessfulJobs;
     requestSuccessfulJobs.setRawHeader("Accept", "application/json");
@@ -1381,13 +1389,7 @@ void Dialog::updateRetrieveList(){
     requestSuccessfulJobs.setUrl(serverURLJobs);
     auto replyJobs = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestSuccessfulJobs);
 
-//    QNetworkRequest requestDatasetInfo;
-//    requestDatasetInfo.setRawHeader("Accept", "application/json");
-//    QUrl serverURLInfo = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "OrigDatablocks?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%22" + scicat->experiment()->getOwnerGroup().toUtf8() + "%22%7D%7D&&access_token=" + scicat->user()->getToken()).toUtf8());
-//    requestDatasetInfo.setUrl(serverURLInfo);
-//    auto replyInfo = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestDatasetInfo);
-
-//    // wait for jobs to finish
+    // wait for jobs to finish
     QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(currentDatasetsJob->pull().toUtf8());
     QJsonDocument successfulJobsJson = QJsonDocument::fromJson(replyJobs->pull().toUtf8());
 
@@ -1398,10 +1400,8 @@ void Dialog::updateRetrieveList(){
     for (auto v:successfulJobsJson.array()){
         if (v.toObject().find("jobStatusMessage").value().toString().compare("finishedSuccessful")==0){
             auto datasetListArray = v.toObject().take("datasetList").toArray();
-//            qDebug() << v;
             for (int ii=0; ii<datasetListArray.size(); ii++) {
                 finishedSuccessfulPIDs.push_back(datasetListArray.at(ii).toObject().find("pid").value().toString());
-//                qDebug() << datasetListArray.at(ii).toObject().find("pid").value().toString();
             }
         }
     }
@@ -1513,7 +1513,7 @@ void Dialog::saveRetrievedData(){
 }
 
 void Dialog::startRetriever(const QString &pid, const QString &outdir, const QString &name){
-    std::shared_ptr<DatasetRetriever> retriever = std::make_shared<DatasetRetriever>(this);
+    std::shared_ptr<SciCat::DatasetRetriever> retriever = std::make_shared<SciCat::DatasetRetriever>(this);
 
     retriever->start(pid, outdir);
 
@@ -1524,16 +1524,6 @@ void Dialog::startRetriever(const QString &pid, const QString &outdir, const QSt
     job.process = retriever;
 
     retrieverList.push_back(job);
-
-}
-
-void Dialog::retrieverFinished(int val){
-    qDebug() << "Retriever finished with exit code " << val;
-}
-
-void Dialog::retrieverFailed(QProcess::ProcessError error){
-    (void) error;
-    MessageHandlerGUI::sendWarning(ui->warningLabel, "Retriever failed.");
 
 }
 

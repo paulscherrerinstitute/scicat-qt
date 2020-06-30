@@ -6,6 +6,7 @@
 #include "dialog.h"
 #include "processhandler.h"
 
+namespace SciCat {
 class DatasetRetriever : public QObject
 {
     Q_OBJECT
@@ -24,5 +25,7 @@ private slots:
     void checkSumVerification();
     void checkSumVerificationFinished(int val);
 };
+
+}
 
 #endif // DATASETRETRIEVER_H

@@ -1,8 +1,13 @@
 #include "datasetingestor.h"
 #include "messagehandlergui.h"
 
+using namespace SciCat;
+
 DatasetIngestor::DatasetIngestor(QWidget *parent) : QObject(parent){
     ingestJob = std::make_shared<ProcessHandler>(parent);
+
+    connect(ingestJob.get(), SIGNAL(finished(int)), this, SLOT(ingestorFinished(int)));
+
     base = dynamic_cast<Dialog*>(parent);
 
 }
@@ -96,12 +101,12 @@ void DatasetIngestor::prepareIngestion(){
     filelistingFile.close();
 }
 
-void DatasetIngestor::start(){
-QSettings settingsContainer("PSI", "SciCat");
+void DatasetIngestor::start(QTextEdit* outStream){
+    QSettings settingsContainer("PSI", "SciCat");
 
-// disable buttons -- move to dialog.cpp
-//base->setButtonsEnabled(false);
-//base->ui->pushButtonRestart->setEnabled(false);
+    if (outStream != nullptr){
+        ingestJob->setOutputStream(outStream);
+    }
 
     // compile ingestion command
     QStringList arguments;
@@ -133,6 +138,12 @@ QSettings settingsContainer("PSI", "SciCat");
     }
     if (!settingsContainer.value("disableSystemCalls", base->defaultSettings.disableSystemCalls).toBool()){
         ingestJob->start(settingsContainer.value("binaryPath", base->defaultSettings.binaryPath).toString(), arguments);
+    } else {
+        ingestJob->finished(0);
     }
 
+}
+
+void DatasetIngestor::ingestorFinished(int val){
+    emit finished(val);
 }

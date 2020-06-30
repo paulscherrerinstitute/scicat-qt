@@ -7,6 +7,7 @@ DataCatalogue::DataCatalogue(Dialog *parent, const int& scicatServerID): serverI
 {
     scicatUser = new DataCatalogueCore::User(this);
     scicatExperiment = new DataCatalogueCore::Experiment(this);
+    scicatIngestion = new DatasetIngestor(parent);
 }
 
 DataCatalogue::~DataCatalogue()
@@ -40,6 +41,11 @@ DataCatalogueCore::User* DataCatalogue::user()
 DataCatalogueCore::Experiment* DataCatalogue::experiment()
 {
     return scicatExperiment;
+}
+
+DatasetIngestor* DataCatalogue::ingestion()
+{
+    return scicatIngestion;
 }
 
 QString DataCatalogue::getServerName() const
@@ -76,6 +82,3 @@ int DataCatalogue::requestRetrieve(const QJsonArray& datasetList){
     return 0;
 }
 
-void DataCatalogue::startDatasetRetriever(){
-
-}
