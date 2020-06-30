@@ -23,6 +23,8 @@ public:
     QString getUserMail() const;
     void setUserMail(const QString &userMail);
 
+    bool getIsBeamlineAccount() const;
+
 private:
     User(DataCatalogue * const parent);
     friend class SciCat::DataCatalogue;

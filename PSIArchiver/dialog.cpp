@@ -344,7 +344,7 @@ void Dialog::goToArchive(){
 }
 
 void Dialog::goToRetrieve(){
-    if (metadataContainer.isBeamlineAccount){
+    if (scicat->user()->getIsBeamlineAccount()){
         QMessageBox::information(this, tr("Permission error"), tr("Retrieving data with beamline accounts is not supported. Please use your personal PSI account instead.") );
         return;
     }
@@ -377,12 +377,11 @@ void Dialog::investigatorChanged(){
 }
 
 void Dialog::descriptionChanged(){
-    metadataContainer.description = ui->textEditDescription->toPlainText();
-    qDebug()<<metadataContainer.description;
+    scicat->experiment()->setDescription(ui->textEditDescription->toPlainText());
 }
 
 void Dialog::usedSoftwareChanged(){
-    metadataContainer.usedSoftware = ui->textEditUsedSoftware->toPlainText();
+    scicat->experiment()->setUsedSoftware(ui->textEditUsedSoftware->toPlainText());
 }
 
 void Dialog::setAvailPgroups(){
@@ -445,7 +444,7 @@ void Dialog::goToSubmit(){
 }
 
 void Dialog::goToPage(int pageIndex){
-    int slideIndex = ui->stackedWidget->currentIndex();
+//    int slideIndex = ui->stackedWidget->currentIndex();
 //    qDebug() <<  "current index: " << slideIndex;
     ui->stackedWidget->setCurrentIndex(pageIndex);
     updateNavigationButton();
@@ -486,8 +485,7 @@ bool Dialog::checkMetadata(){
         }
     }
 
-    metadataContainer.datasetName = ui->lineEditDatasetName->text();
-    qDebug() << metadataContainer.datasetName;
+    scicat->experiment()->setDatasetName(ui->lineEditDatasetName->text());
     return true;
 }
 
@@ -499,7 +497,7 @@ void Dialog::creationLocationChanged(int val){
             CreationLocationCreator creationLoc(this);
             creationLoc.exec();
         } else {
-            metadataContainer.creationLocation = ui->comboBoxCreationLocation->currentText();
+            scicat->experiment()->setCreationLocation(ui->comboBoxCreationLocation->currentText());
         }
     }
 }
@@ -598,7 +596,7 @@ void Dialog::setButtonsEnabled(bool enabled){
 void Dialog::prepareIngestion(){
     QSettings settingsContainer("PSI", "SciCat");
 
-    QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "/ingestion/" + metadataContainer.datasetName + QString::number(QDateTime::currentDateTime().toSecsSinceEpoch());
+    QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "/ingestion/" + scicat->experiment()->getDatasetName() + QString::number(QDateTime::currentDateTime().toSecsSinceEpoch());
     metadataContainer.ingestionLogDir = dirpath;
     if (!QDir(dirpath).exists()){
         qDebug()<<"Output directory does not exist";
@@ -620,17 +618,17 @@ void Dialog::prepareIngestion(){
     bool isRawData = (bool) ui->comboBoxDatatype->currentIndex();
     auto sourceFolder = extractSourceFolder(filelistingContainer);
     metadata["sourceFolder"] = sourceFolder;
-    metadata["owner"] = QString::fromStdString(metadataContainer.owner);
-    metadata["ownerGroup"] = metadataContainer.ownerGroup;
-    metadata["ownerEmail"] = QString::fromStdString(metadataContainer.ownerEmail);
-    metadata["description"] = metadataContainer.description;
-    metadata["datasetName"] = metadataContainer.datasetName;
+    metadata["owner"] = scicat->experiment()->getOwner();
+    metadata["ownerGroup"] = scicat->experiment()->getOwnerGroup();
+    metadata["ownerEmail"] = scicat->experiment()->getOwnerEmail();
+    metadata["description"] = scicat->experiment()->getDescription();
+    metadata["datasetName"] = scicat->experiment()->getDatasetName();
 
 
     if (isRawData){
         qDebug() << "Preparing metadata file for raw data";
         metadata["principalInvestigator"] = scicat->experiment()->getPIemail();
-        metadata["creationLocation"] = metadataContainer.creationLocation;
+        metadata["creationLocation"] = scicat->experiment()->getCreationLocation();
         metadata["type"] = "raw";
         auto res = ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
         QJsonArray scMetadata;
@@ -639,7 +637,6 @@ void Dialog::prepareIngestion(){
             scMetadata.push_back(treeModel2Json(res[ii]));
         }
         metadata["scientificMetadata"] = scMetadata;
-        qDebug() << metadataContainer.datasetName;
     } else {
         qDebug() << "Preparing metadata file for derived data";
         metadata["type"] = "derived";
@@ -654,10 +651,10 @@ void Dialog::prepareIngestion(){
         } else {
             metadata["inputDatasets"] = QJsonArray::fromStringList(inputDatasetsList);
         }
-        if (metadataContainer.usedSoftware.length()==0){
+        if (scicat->experiment()->getUsedSoftware().length()==0){
             metadata["usedSoftware"] = QJsonArray::fromStringList(QStringList("N/A"));
         } else {
-            metadata["usedSoftware"] = QJsonArray::fromStringList(QStringList(metadataContainer.usedSoftware));
+            metadata["usedSoftware"] = QJsonArray::fromStringList(QStringList(scicat->experiment()->getUsedSoftware()));
         }
     }
 
@@ -1096,7 +1093,7 @@ void Dialog::getPI(){
             ui->lineEditPIFirstname->setText("");
             ui->lineEditPILastname->setText("");
             scicat->experiment()->setProposalID("");
-            ui->lineEditProposalID_2->setText(QString::fromStdString(metadataContainer.proposalID));
+            ui->lineEditProposalID_2->setText(scicat->experiment()->getProposalID());
 
             ui->lineEditPIMail->setEnabled(true);
             ui->lineEditPIFirstname->setEnabled(true);
@@ -1162,7 +1159,7 @@ void Dialog::openDatasetBrowser(){
     QSettings settingsContainer("PSI", "SciCat");
     QNetworkRequest request;
     request.setRawHeader("Accept", "application/json");
-    QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22" + metadataContainer.pgroup + "%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=" + QString::fromStdString(token)).toUtf8());
+    QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22" + scicat->experiment()->getOwnerGroup().toUtf8() + "%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=" + scicat->user()->getToken()).toUtf8());
     request.setUrl(serverURL);
     QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, request);
     QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
@@ -1231,7 +1228,7 @@ void Dialog::addEntryMetadataTreeView(QString name, QString description){
 }
 
 void Dialog::exportMetadata(){
-    auto fileName = QFileDialog::getSaveFileName(this,tr("Export scientific metadata"), QDir(QDir::homePath()).filePath(metadataContainer.pgroup + "_scientificMetadata.json"), tr("json files (*.json)"));
+    auto fileName = QFileDialog::getSaveFileName(this,tr("Export scientific metadata"), QDir(QDir::homePath()).filePath(scicat->experiment()->getPgroup() + "_scientificMetadata.json"), tr("json files (*.json)"));
     auto res = ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
     QJsonArray scMetadata;
     for (int ii=0; ii<res.size(); ii++){

@@ -97,6 +97,11 @@ void User::setPgroups()
     }
 }
 
+bool User::getIsBeamlineAccount() const
+{
+    return m_isBeamlineAccount;
+}
+
 QString User::getUsername() const
 {
     return m_username;

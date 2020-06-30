@@ -22,7 +22,6 @@ DatasetBrowser::DatasetBrowser(const std::vector<QStringList>& datasetContainer,
 
 void DatasetBrowser::selectButton(){
     QModelIndexList indexList = ui->tableViewDatasetBrowser->selectionModel()->selectedRows();
-    std::cout << indexList.size() << std::endl;
     for (int ii=0; ii<indexList.size(); ++ii) {
         QStringList tmp;
         baseUi->ui->tableWidget->insertRow(0);

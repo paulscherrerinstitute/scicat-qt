@@ -44,22 +44,18 @@ void Login::getLoginData(){
         errorMessage("Could not connect to SciCat.\nPlease make sure that you are within the PSI intranet and try again.");
         return;
     } else if (status==SciCat::authenticationStateAccount::ValidBLAccount){
-        baseUi->metadataContainer.isBeamlineAccount = true;
         // can be removed once the pgroup selection is fixed:
         errorMessage("Beamline accounts are currently not supported.");
         uiLogin->lineEditPassword->clear();
         return;
-    } else {
-        baseUi->metadataContainer.isBeamlineAccount = false;
     }
 
     baseUi->setAvailPgroups();
-    baseUi->metadataContainer.pass = pword;
 
     baseUi->ui->labelUsername->setText("Username: " + baseUi->scicat->user()->getUsername());
     baseUi->ui->labelServer->setText("Server: " + baseUi->scicat->getServerName());
 
-    if (!baseUi->metadataContainer.isBeamlineAccount){
+    if (!baseUi->scicat->user()->getIsBeamlineAccount()){
         authenticateUser(pword);
     } else {
         openGate();

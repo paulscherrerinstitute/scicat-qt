@@ -41,6 +41,8 @@ if(WIN32)
       datasetbrowser.cpp
       datasetbrowser.h
       datasetbrowser.ui
+      datasetingestor.cpp
+      datasetingestor.h
       logbrowser.cpp
       logbrowser.h
       logbrowser.ui
@@ -89,6 +91,8 @@ else()
     datasetbrowser.cpp
     datasetbrowser.h
     datasetbrowser.ui
+    datasetingestor.cpp
+    datasetingestor.h
     logbrowser.cpp
     logbrowser.h
     logbrowser.ui

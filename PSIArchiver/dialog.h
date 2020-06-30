@@ -173,35 +173,10 @@ inline void updateSettingsContainer(QSettings &settingsContainer, const QString 
 
 
 struct metadataContainer_t {
-    std::string PIFirstname;
-    std::string PILastname;
-    std::string proposalID;
-    std::string proposalTitle;
-    std::string proposalAbstract;
-    QString instrument;
-    QString pgroup;
-    std::string type; // raw or derived
-    QString datasetName;
-    std::string sourceFolder;
-    QString creationLocation;
-    std::string inputDatasets;
-    QString usedSoftware;
-    std::string keywords;
-    std::string samplename;
-    std::string sampleDescription;
-    QString ownerGroup;
-    std::string owner;
-    std::string ownerEmail;
-    QString description;
-    QString userMail;
-    QString username;
-    QString pass;
-    QJsonDocument userInfo;
-    bool isBeamlineAccount = false;
+    QString ingestionLogDir;
     QString metadataFilename;
     QString filelistingFilename;
-    QString ingestionLogDir;
-    bool retrievedPIInfoSuccessfully;
+
 };
 
 class ButtonHoverWatcher : public QObject
