@@ -14,6 +14,7 @@ set ( RESOURCES  psiArchiverResources.qrc)
 
 #add_definitions(-DQT_NO_DEBUG_OUTPUT)
 add_definitions(-DSKIP_KERBEROS_AUTH)
+add_definitions(-DNO_DATACATALOGUE_TOOLS)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt5Network REQUIRED)

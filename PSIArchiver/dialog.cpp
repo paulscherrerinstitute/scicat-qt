@@ -169,10 +169,10 @@ Dialog::Dialog(QWidget *parent)
     ui->treeWidget->setHeaderLabels(QStringList({"Name", "Value"}));
 
     addEntryMetadataTreeView("scientificMetadata", "", nullptr, false, 2);
-    addEntryMetadataTreeView("sample", "", "scientificMetadata", false, 1);
-    addEntryMetadataTreeView("description", "", "sample", false, 1);
-    addEntryMetadataTreeView("name", "", "sample", false, 1);
-    addEntryMetadataTreeView("principalInvestigator", scicat->experiment()->getPIemail(), "sample", false, 1);
+    addEntryMetadataTreeView("sample", "", "scientificMetadata", false, 4);
+    addEntryMetadataTreeView("description", "", "sample", false, 4);
+    addEntryMetadataTreeView("name", "", "sample", false, 4);
+    addEntryMetadataTreeView("principalInvestigator", scicat->experiment()->getPIemail(), "sample", false, 4);
 
     ui->waitingCircle->setText("Dummy");
     if (!movie->isValid())
@@ -218,13 +218,9 @@ Dialog::Dialog(QWidget *parent)
     ui->tableWidgetRetrieverFiles->insertColumn(0);
     ui->tableWidgetRetrieverFiles->insertColumn(1);
     ui->tableWidgetRetrieverFiles->insertColumn(2);
-    ui->tableWidgetRetrieverFiles->setColumnWidth(0, 100);
-    ui->tableWidgetRetrieverFiles->setColumnWidth(1, 100);
-    ui->tableWidgetRetrieverFiles->setColumnWidth(2, 100);
+
     ui->tableWidgetRetrieverFiles->setHorizontalHeaderLabels(QStringList({"File", "Size", "Date"}));
     ui->treeWidgetScientificMetadataRetrieve->setColumnCount(2);
-    ui->treeWidgetScientificMetadataRetrieve->setColumnWidth(0, 150);
-    ui->treeWidgetScientificMetadataRetrieve->setColumnWidth(0, ui->treeWidgetScientificMetadataRetrieve->width()-150);
     ui->treeWidgetScientificMetadataRetrieve->invisibleRootItem()->setFlags((Qt::ItemFlags)32);
     ui->treeWidgetScientificMetadataRetrieve->setHeaderLabels(QStringList({"Name", "Value"}));
 
@@ -450,7 +446,7 @@ void Dialog::goToSubmit(){
 
 void Dialog::goToPage(int pageIndex){
     int slideIndex = ui->stackedWidget->currentIndex();
-    qDebug() <<  "current index: " << slideIndex;
+//    qDebug() <<  "current index: " << slideIndex;
     ui->stackedWidget->setCurrentIndex(pageIndex);
     updateNavigationButton();
 }
@@ -850,7 +846,7 @@ void Dialog::fileCounterFinished(bool force){
 
 void Dialog::updateRetrieverFiles(){
     QSettings settingsContainer("PSI", "SciCat");
-
+    qDebugLine("Width: ") << (int)ui->tableWidgetRetrieverFiles->columnWidth(0);
     qDebug() << "Updating retriever files";
     // get current datasetID
     QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
@@ -878,12 +874,9 @@ void Dialog::updateRetrieverFiles(){
         QNetworkRequest requestSM;
         requestSM.setRawHeader("Accept", "application/json");
         QUrl serverURLSM = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Datasets/" + QString::fromStdString(datasetID).replace("/", "%2F") + "?filter=%7B%22fields%22%3A%22scientificMetadata%22%7D&access_token=" + scicat->user()->getToken()).toUtf8());
-        qDebug() << serverURLSM;
         requestSM.setUrl(serverURLSM);
         auto replySM = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestSM);
         requestSMJson = QJsonDocument::fromJson(replySM.toUtf8());
-//        retrieveDataMap[datasetID] = requestSMJson;
-        qDebug() << requestSMJson;
         auto jsonObj = requestSMJson.object();
         ui->treeWidgetScientificMetadataRetrieve->clear();
         json2TreeModel(jsonObj, nullptr, ui->treeWidgetScientificMetadataRetrieve);
@@ -911,8 +904,25 @@ void Dialog::updateRetrieverFiles(){
 //    ui->tableWidgetRetrieverFiles->setColumnWidth()
     ui->tableWidgetRetrieverFiles->setSortingEnabled(true);
     ui->tableWidgetRetrieverFiles->sortItems(0, Qt::SortOrder::AscendingOrder);
-    ui->tableWidgetRetrieverFiles->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui->tableWidgetRetrieverFiles->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+
+    if (resizeRetrieverFiles){
+        ui->tableWidgetRetrieverFiles->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+        auto minSizeFiles = ui->tableWidgetRetrieverFiles->horizontalHeader()->sectionSize(0);
+        auto sizeSize = ui->tableWidgetRetrieverFiles->horizontalHeader()->sectionSize(1);
+        auto sizeDate = ui->tableWidgetRetrieverFiles->horizontalHeader()->sectionSize(2);
+        int sizeFiles;
+        minSizeFiles > ui->tableWidgetRetrieverFiles->width()/2 ? sizeFiles = ui->tableWidgetRetrieverFiles->width()/2 : sizeFiles = minSizeFiles;
+        ui->tableWidgetRetrieverFiles->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+
+        ui->tableWidgetRetrieverFiles->setColumnWidth(0, sizeFiles);
+        ui->tableWidgetRetrieverFiles->setColumnWidth(1, sizeSize);
+        ui->tableWidgetRetrieverFiles->setColumnWidth(2, sizeDate);
+        resizeRetrieverFiles = false;
+
+        ui->treeWidgetScientificMetadataRetrieve->setColumnWidth(0, (int)ui->treeWidgetScientificMetadataRetrieve->width()/2);
+        ui->treeWidgetScientificMetadataRetrieve->setColumnWidth(1, (int)ui->treeWidgetScientificMetadataRetrieve->width()/2);
+    }
+
 
 
 

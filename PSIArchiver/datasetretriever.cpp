@@ -6,16 +6,20 @@
 DatasetRetriever::DatasetRetriever(QWidget *parent)
 {
     retrieverJob = std::make_shared<ProcessHandler>(parent);
+
+    #ifdef NO_DATACATALOGUE_TOOLS
     checkSumProcess = std::make_shared<ProcessHandler>(parent);
     ProcessHandler::connect(retrieverJob.get(), SIGNAL(finished()), this, SLOT(checkSumVerification()));
     ProcessHandler::connect(checkSumProcess->getJob(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(checkSumVerificationFinished(int)));
-
+#endif
     base = dynamic_cast<Dialog*>(parent);
 
 }
 
 void DatasetRetriever::start(const QString &pid, const QString &outdir){
-
+QSettings settingsContainer("PSI", "SciCat");
+#ifdef NO_DATACATALOGUE_TOOLS
+    // communication without using the datasetRetriever
 #ifndef WINDOWS_SPECIFIC_TOOLS
     // LINUX + MacOS
     const QString rsyncPath = "rsync";
@@ -37,6 +41,25 @@ void DatasetRetriever::start(const QString &pid, const QString &outdir){
     arguments << "-av" << "-e" << sshPath + " -o GSSAPIAuthentication=yes -o StrictHostKeyChecking=no" << base->scicat->user()->getUsername() +"@" + SciCat::DataCatalogue::serverListRetrieve()[base->scicat->serverID] + ":retrieve/" + pidSplit[1] << outdir;
     qDebug() << arguments;
     retrieverJob->start(rsyncPath, arguments);
+#else
+    // use the datasetRetriever to communicate with the retrieve server
+    QStringList arguments;
+
+    switch (settingsContainer.value("serverID", base->defaultSettings.serverID).toInt()){
+    case 0:
+        break;
+    case 1:
+        arguments << "-testenv";
+        break;
+    case 2:
+        arguments << "-devenv";
+        break;
+    }
+
+    arguments << "-dataset" << pid << "-token" << base->scicat->user()->getToken() << "-retrieve" << outdir;
+    retrieverJob->start(settingsContainer.value("datasetRetriever", base->defaultSettings.datasetRetriever).toString(), arguments);
+
+#endif
 }
 
 QProcess *DatasetRetriever::getRetrieverJob() const

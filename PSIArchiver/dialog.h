@@ -358,6 +358,7 @@ private:
     bool ingestionIsRunning = false;
     std::unordered_map<std::string, QJsonDocument> retrieveDataMap;
     void sendMessage(QString msg);
+    bool resizeRetrieverFiles = true;
 };
 
 
