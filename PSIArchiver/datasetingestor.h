@@ -16,8 +16,10 @@ public:
     void start(QTextEdit* outStream = nullptr);
 signals:
     void finished(int);
+    void errorOccurred(QProcess::ProcessError error);
 private slots:
     void ingestorFinished(int);
+    void ingestorFailed(QProcess::ProcessError error);
 private:
     std::shared_ptr<ProcessHandler> ingestJob;
     Dialog *base;

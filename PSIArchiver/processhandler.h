@@ -21,6 +21,7 @@ private slots:
     void processFailed(QProcess::ProcessError);
 signals:
     void finished(int);
+    void errorOccurred(QProcess::ProcessError);
 private:
     QProcess* job;
     QTextEdit* m_outStream=nullptr;

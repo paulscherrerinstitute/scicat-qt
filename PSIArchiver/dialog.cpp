@@ -121,6 +121,7 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->tableWidgetRetriever, SIGNAL(itemSelectionChanged()), this, SLOT(updateRetrieverFiles()));
     connect(ui->pushButtonToggleFilesMetadata, SIGNAL(clicked()), this, SLOT(toggleFilesMetadata()));
     connect(scicat->ingestion(), SIGNAL(finished(int)), this, SLOT(ingestionFinished(int)));
+    connect(scicat->ingestion(), SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(ingestionFailed(QProcess::ProcessError)));
 
 
 

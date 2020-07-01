@@ -38,14 +38,12 @@ void ProcessHandler::readOutput(){
 void ProcessHandler::processFinished(int val){
 
     qDebug() << "Process finished with exit code " << val;
-    if (val==0){
-        emit finished(val);
-    }
+    emit finished(val);
 
 }
 
 void ProcessHandler::processFailed(QProcess::ProcessError error){
-    qDebug() << "Job failed: " << error;
+    emit errorOccurred(error);
 }
 
 QProcess *ProcessHandler::getJob() const

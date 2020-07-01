@@ -7,7 +7,7 @@ DatasetIngestor::DatasetIngestor(QWidget *parent) : QObject(parent){
     ingestJob = std::make_shared<ProcessHandler>(parent);
 
     connect(ingestJob.get(), SIGNAL(finished(int)), this, SLOT(ingestorFinished(int)));
-
+    connect(ingestJob.get(), SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(ingestorFailed(QProcess::ProcessError)));
     base = dynamic_cast<Dialog*>(parent);
 
 }
@@ -145,5 +145,11 @@ void DatasetIngestor::start(QTextEdit* outStream){
 }
 
 void DatasetIngestor::ingestorFinished(int val){
+    qDebugLine("DatasetIngestor") << "ingestion failed";
     emit finished(val);
+}
+
+void DatasetIngestor::ingestorFailed(QProcess::ProcessError error){
+    qDebugLine("DatasetIngestor") << "ingestion finished";
+    emit errorOccurred(error);
 }
