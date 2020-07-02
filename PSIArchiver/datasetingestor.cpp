@@ -153,3 +153,8 @@ void DatasetIngestor::ingestorFailed(QProcess::ProcessError error){
     qDebugLine("DatasetIngestor") << "ingestion finished";
     emit errorOccurred(error);
 }
+
+std::shared_ptr<ProcessHandler> DatasetIngestor::getIngestJob() const
+{
+    return ingestJob;
+}

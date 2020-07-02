@@ -595,169 +595,169 @@ void Dialog::setButtonsEnabled(bool enabled){
 
 }
 
-void Dialog::prepareIngestion(){
-    QSettings settingsContainer("PSI", "SciCat");
+//void Dialog::prepareIngestion(){
+//    QSettings settingsContainer("PSI", "SciCat");
 
-    QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "/ingestion/" + scicat->experiment()->getDatasetName() + QString::number(QDateTime::currentDateTime().toSecsSinceEpoch());
-    metadataContainer.ingestionLogDir = dirpath;
-    if (!QDir(dirpath).exists()){
-        qDebug()<<"Output directory does not exist";
-        if (!QDir().mkpath(dirpath)){
-            MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not write to output directory.");
-        }
-    }
+//    QString dirpath = settingsContainer.value("logPath", defaultSettings.logPath).toString() + "/ingestion/" + scicat->experiment()->getDatasetName() + QString::number(QDateTime::currentDateTime().toSecsSinceEpoch());
+//    metadataContainer.ingestionLogDir = dirpath;
+//    if (!QDir(dirpath).exists()){
+//        qDebug()<<"Output directory does not exist";
+//        if (!QDir().mkpath(dirpath)){
+//            MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not write to output directory.");
+//        }
+//    }
 
-    QString metafname = QDir(dirpath).filePath(settingsContainer.value("filenameMetadata", defaultSettings.filenameMetadata).toString());
-    QFile metadataFile(metafname);
-    if (!metadataFile.open(QIODevice::WriteOnly)) {
-        MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not open metadata file.");
-        return;
-    }
-    metadataContainer.metadataFilename = metafname;
+//    QString metafname = QDir(dirpath).filePath(settingsContainer.value("filenameMetadata", defaultSettings.filenameMetadata).toString());
+//    QFile metadataFile(metafname);
+//    if (!metadataFile.open(QIODevice::WriteOnly)) {
+//        MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not open metadata file.");
+//        return;
+//    }
+//    metadataContainer.metadataFilename = metafname;
 
-    // prepare metadata file
-    QJsonObject metadata;
-    bool isRawData = (bool) ui->comboBoxDatatype->currentIndex();
-    auto sourceFolder = extractSourceFolder(filelistingContainer);
-    metadata["sourceFolder"] = sourceFolder;
-    metadata["owner"] = scicat->experiment()->getOwner();
-    metadata["ownerGroup"] = scicat->experiment()->getOwnerGroup();
-    metadata["ownerEmail"] = scicat->experiment()->getOwnerEmail();
-    metadata["description"] = scicat->experiment()->getDescription();
-    metadata["datasetName"] = scicat->experiment()->getDatasetName();
-
-
-    if (isRawData){
-        qDebug() << "Preparing metadata file for raw data";
-        metadata["principalInvestigator"] = scicat->experiment()->getPIemail();
-        metadata["creationLocation"] = scicat->experiment()->getCreationLocation();
-        metadata["type"] = "raw";
-        auto res = ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
-        QJsonArray scMetadata;
-        for (int ii=0; ii<res.size(); ii++){
-            qDebug() << res[ii]->childCount();
-            scMetadata.push_back(treeModel2Json(res[ii]));
-        }
-        metadata["scientificMetadata"] = scMetadata;
-    } else {
-        qDebug() << "Preparing metadata file for derived data";
-        metadata["type"] = "derived";
-        metadata["investigator"] = scicat->experiment()->getInvestigator();
-        auto dsmodel = ui->tableWidget->model();
-        QStringList inputDatasetsList;
-        for (int ii=0; ii<dsmodel->rowCount(); ii++){
-            inputDatasetsList.push_back(dsmodel->data(dsmodel->index(ii,1), Qt::DisplayRole).toString());
-        }
-        if (inputDatasetsList.length()==0){
-            metadata["inputDatasets"] = QJsonArray::fromStringList(QStringList("N/A"));
-        } else {
-            metadata["inputDatasets"] = QJsonArray::fromStringList(inputDatasetsList);
-        }
-        if (scicat->experiment()->getUsedSoftware().length()==0){
-            metadata["usedSoftware"] = QJsonArray::fromStringList(QStringList("N/A"));
-        } else {
-            metadata["usedSoftware"] = QJsonArray::fromStringList(QStringList(scicat->experiment()->getUsedSoftware()));
-        }
-    }
+//    // prepare metadata file
+//    QJsonObject metadata;
+//    bool isRawData = (bool) ui->comboBoxDatatype->currentIndex();
+//    auto sourceFolder = extractSourceFolder(filelistingContainer);
+//    metadata["sourceFolder"] = sourceFolder;
+//    metadata["owner"] = scicat->experiment()->getOwner();
+//    metadata["ownerGroup"] = scicat->experiment()->getOwnerGroup();
+//    metadata["ownerEmail"] = scicat->experiment()->getOwnerEmail();
+//    metadata["description"] = scicat->experiment()->getDescription();
+//    metadata["datasetName"] = scicat->experiment()->getDatasetName();
 
 
-    QJsonDocument saveDoc(metadata);
-    metadataFile.write(saveDoc.toJson());
-    metadataFile.close();
-
-    QString filefname = QDir(dirpath).filePath(settingsContainer.value("filenameFilelisting", defaultSettings.filenameFilelisting).toString());
-    QFile filelistingFile(filefname);
-    if (!filelistingFile.open(QIODevice::WriteOnly | QIODevice::Text)){
-        MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not open filelisting file.");
-        return;
-    }
-    metadataContainer.filelistingFilename = filefname;
-
-    QTextStream out(&filelistingFile);
-    for (auto v:filelistingContainer){
-        QString tmpFilename = v.remove(sourceFolder);
-        if (tmpFilename[0]=="/"){
-            tmpFilename.remove(0,1);
-        }
-        out << tmpFilename << "\n";
-    }
-    filelistingFile.close();
-}
-
-void Dialog::startIngestion(){
-    QSettings settingsContainer("PSI", "SciCat");
-
-    // disable buttons
-    setButtonsEnabled(false);
-    ui->pushButtonRestart->setEnabled(false);
-
-    if (!ingestionIsRunning){
-        ingestionIsRunning = true;
-
-        // compile ingestion command
-        QStringList arguments;
-
-        if (ui->checkBoxIngest->isChecked()>0){
-            arguments << "--ingest";
-        }
-        if (ui->checkBoxArchive->isChecked()>0){
-            arguments << "--autoarchive";
-        }
-        switch (settingsContainer.value("serverID", defaultSettings.serverID).toInt()){
-        case 0:
-            break;
-        case 1:
-            arguments << "-testenv";
-            break;
-        case 2:
-            arguments << "-devenv";
-            break;
-        }
-
-        arguments << "--noninteractive" << "--allowexistingsource" << "--token" << QString::fromStdString(token) << metadataContainer.metadataFilename << metadataContainer.filelistingFilename;
-
-        // start ingestion
-        qDebug() << "starting ingestion";
-    //    ingestor_m = new Ingestor(cmd);
-        ingestion = new QProcess(this);
-        ingestion->setProcessChannelMode(QProcess::MergedChannels);
-        connect(ingestion, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(ingestionFinished(int)));
-        connect(ingestion, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(ingestionFailed(QProcess::ProcessError)));
-        connect(ingestion, SIGNAL(readyReadStandardOutput()), this, SLOT(readIngestionOutput()));
-
-        if (settingsContainer.value("printIngestion", defaultSettings.printIngestion).toBool()){
-            qDebug() << settingsContainer.value("binaryPath", defaultSettings.binaryPath).toString() << " " << arguments;
-        }
-        if (!settingsContainer.value("disableSystemCalls", defaultSettings.disableSystemCalls).toBool()){
-            ingestion->start(settingsContainer.value("binaryPath", defaultSettings.binaryPath).toString(), arguments);
-        } else {
-            ingestion->finished(0, QProcess::NormalExit);
-        }
-    } else {
-        qDebug() << "Ingestion is already running.";
-    }
+//    if (isRawData){
+//        qDebug() << "Preparing metadata file for raw data";
+//        metadata["principalInvestigator"] = scicat->experiment()->getPIemail();
+//        metadata["creationLocation"] = scicat->experiment()->getCreationLocation();
+//        metadata["type"] = "raw";
+//        auto res = ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
+//        QJsonArray scMetadata;
+//        for (int ii=0; ii<res.size(); ii++){
+//            qDebug() << res[ii]->childCount();
+//            scMetadata.push_back(treeModel2Json(res[ii]));
+//        }
+//        metadata["scientificMetadata"] = scMetadata;
+//    } else {
+//        qDebug() << "Preparing metadata file for derived data";
+//        metadata["type"] = "derived";
+//        metadata["investigator"] = scicat->experiment()->getInvestigator();
+//        auto dsmodel = ui->tableWidget->model();
+//        QStringList inputDatasetsList;
+//        for (int ii=0; ii<dsmodel->rowCount(); ii++){
+//            inputDatasetsList.push_back(dsmodel->data(dsmodel->index(ii,1), Qt::DisplayRole).toString());
+//        }
+//        if (inputDatasetsList.length()==0){
+//            metadata["inputDatasets"] = QJsonArray::fromStringList(QStringList("N/A"));
+//        } else {
+//            metadata["inputDatasets"] = QJsonArray::fromStringList(inputDatasetsList);
+//        }
+//        if (scicat->experiment()->getUsedSoftware().length()==0){
+//            metadata["usedSoftware"] = QJsonArray::fromStringList(QStringList("N/A"));
+//        } else {
+//            metadata["usedSoftware"] = QJsonArray::fromStringList(QStringList(scicat->experiment()->getUsedSoftware()));
+//        }
+//    }
 
 
+//    QJsonDocument saveDoc(metadata);
+//    metadataFile.write(saveDoc.toJson());
+//    metadataFile.close();
+
+//    QString filefname = QDir(dirpath).filePath(settingsContainer.value("filenameFilelisting", defaultSettings.filenameFilelisting).toString());
+//    QFile filelistingFile(filefname);
+//    if (!filelistingFile.open(QIODevice::WriteOnly | QIODevice::Text)){
+//        MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not open filelisting file.");
+//        return;
+//    }
+//    metadataContainer.filelistingFilename = filefname;
+
+//    QTextStream out(&filelistingFile);
+//    for (auto v:filelistingContainer){
+//        QString tmpFilename = v.remove(sourceFolder);
+//        if (tmpFilename[0]=="/"){
+//            tmpFilename.remove(0,1);
+//        }
+//        out << tmpFilename << "\n";
+//    }
+//    filelistingFile.close();
+//}
+
+//void Dialog::startIngestion(){
+//    QSettings settingsContainer("PSI", "SciCat");
+
+//    // disable buttons
+//    setButtonsEnabled(false);
+//    ui->pushButtonRestart->setEnabled(false);
+
+//    if (!ingestionIsRunning){
+//        ingestionIsRunning = true;
+
+//        // compile ingestion command
+//        QStringList arguments;
+
+//        if (ui->checkBoxIngest->isChecked()>0){
+//            arguments << "--ingest";
+//        }
+//        if (ui->checkBoxArchive->isChecked()>0){
+//            arguments << "--autoarchive";
+//        }
+//        switch (settingsContainer.value("serverID", defaultSettings.serverID).toInt()){
+//        case 0:
+//            break;
+//        case 1:
+//            arguments << "-testenv";
+//            break;
+//        case 2:
+//            arguments << "-devenv";
+//            break;
+//        }
+
+//        arguments << "--noninteractive" << "--allowexistingsource" << "--token" << QString::fromStdString(token) << metadataContainer.metadataFilename << metadataContainer.filelistingFilename;
+
+//        // start ingestion
+//        qDebug() << "starting ingestion";
+//    //    ingestor_m = new Ingestor(cmd);
+//        ingestion = new QProcess(this);
+//        ingestion->setProcessChannelMode(QProcess::MergedChannels);
+//        connect(ingestion, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(ingestionFinished(int)));
+//        connect(ingestion, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(ingestionFailed(QProcess::ProcessError)));
+//        connect(ingestion, SIGNAL(readyReadStandardOutput()), this, SLOT(readIngestionOutput()));
+
+//        if (settingsContainer.value("printIngestion", defaultSettings.printIngestion).toBool()){
+//            qDebug() << settingsContainer.value("binaryPath", defaultSettings.binaryPath).toString() << " " << arguments;
+//        }
+//        if (!settingsContainer.value("disableSystemCalls", defaultSettings.disableSystemCalls).toBool()){
+//            ingestion->start(settingsContainer.value("binaryPath", defaultSettings.binaryPath).toString(), arguments);
+//        } else {
+//            ingestion->finished(0, QProcess::NormalExit);
+//        }
+//    } else {
+//        qDebug() << "Ingestion is already running.";
+//    }
 
 
 
 
-}
+
+
+//}
 
 void Dialog::ingestionFailed(QProcess::ProcessError error){
     ingestionLog->ui->textEditIngestionLog->append("Error: " + (QString) error);
-    ingestionLog->ui->textEditIngestionLog->append(ingestion->errorString());
+    ingestionLog->ui->textEditIngestionLog->append(scicat->ingestion()->getIngestJob()->getJob()->errorString());
     qDebug() << "Error: " << error;
     ingestionFinished(1);
     ingestionIsRunning = false;
 }
 
-void Dialog::readIngestionOutput(){
-    while(ingestion->canReadLine()){
-        ingestionLog->ui->textEditIngestionLog->append(ingestion->readLine());
-    }
+//void Dialog::readIngestionOutput(){
+//    while(ingestion->canReadLine()){
+//        ingestionLog->ui->textEditIngestionLog->append(ingestion->readLine());
+//    }
 
-}
+//}
 
 void Dialog::ingestionFinished(int exitCode){
     QSettings settingsContainer("PSI", "SciCat");

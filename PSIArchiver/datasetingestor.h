@@ -14,6 +14,8 @@ public:
     explicit DatasetIngestor(QWidget *parent = nullptr);
     void prepareIngestion();
     void start(QTextEdit* outStream = nullptr);
+    std::shared_ptr<ProcessHandler> getIngestJob() const;
+
 signals:
     void finished(int);
     void errorOccurred(QProcess::ProcessError error);

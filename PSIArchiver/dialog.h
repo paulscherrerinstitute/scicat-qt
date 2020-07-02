@@ -259,7 +259,7 @@ private slots:
     void exportMetadata();
     void importMetadata();
     void openSettings();
-    void readIngestionOutput();
+//    void readIngestionOutput();
     void ingestionFailed(QProcess::ProcessError error);
     void openIngestionLog();
     void creationLocationChanged(int val);
@@ -299,7 +299,7 @@ private:
     styleSheets_t styleSheetsContainer;
     std::vector<QPushButton *> navigationButtons;
     void updateMetadataEntry(QString name, QString targetValue, int flag=2);
-    void startIngestion();
+//    void startIngestion();
     void setButtonsEnabled(bool enabled);
     bool PIHasChanged = true;
     bool pgroupIsValid = false;
@@ -318,7 +318,7 @@ private:
     int numPagesLogin = 1;
     bool ingested = false;
     QProcess *ingestion=nullptr;
-    void prepareIngestion();
+//    void prepareIngestion();
     LogBrowser *ingestionLog=nullptr;
     std::vector<retrieveContainer_t> retrieveContainer;
     std::vector<retrieveJobsContainer_t> retrieverList;
