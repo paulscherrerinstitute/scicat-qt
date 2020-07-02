@@ -223,7 +223,6 @@ public:
     ButtonHoverWatcher *pgroupWatcher = new ButtonHoverWatcher(this);
     ButtonHoverWatcher *archiveWatcher = new ButtonHoverWatcher(this);
     ButtonHoverWatcher *retrieveWatcher = new ButtonHoverWatcher(this);
-//    void json2TreeModel(QTreeWidgetItem *item, QJsonObject &inObj);
 
 
 
@@ -259,7 +258,6 @@ private slots:
     void exportMetadata();
     void importMetadata();
     void openSettings();
-//    void readIngestionOutput();
     void ingestionFailed(QProcess::ProcessError error);
     void openIngestionLog();
     void creationLocationChanged(int val);
@@ -299,7 +297,6 @@ private:
     styleSheets_t styleSheetsContainer;
     std::vector<QPushButton *> navigationButtons;
     void updateMetadataEntry(QString name, QString targetValue, int flag=2);
-//    void startIngestion();
     void setButtonsEnabled(bool enabled);
     bool PIHasChanged = true;
     bool pgroupIsValid = false;
@@ -318,7 +315,6 @@ private:
     int numPagesLogin = 1;
     bool ingested = false;
     QProcess *ingestion=nullptr;
-//    void prepareIngestion();
     LogBrowser *ingestionLog=nullptr;
     std::vector<retrieveContainer_t> retrieveContainer;
     std::vector<retrieveJobsContainer_t> retrieverList;
@@ -337,7 +333,6 @@ private:
 QString extractSourceFolder(std::vector<QString> container);
 QJsonObject treeModel2Json(QTreeWidgetItem *item);
 void json2TreeModel(QJsonObject &inObj, QTreeWidgetItem *item, QTreeWidget* parentWidget=nullptr);
-//void json2TreeModel(QJsonObject &inObj, QTreeWidget* widget);
 fileCounter_t countFilesAndDirRecursive(QString dirName);
 int getFileNum(std::vector<QString> container);
 
