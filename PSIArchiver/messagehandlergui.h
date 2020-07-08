@@ -4,6 +4,7 @@
 
 #include <QTimer>
 #include <QLabel>
+#include <memory>
 
 class MessageHandlerGUI
 {
