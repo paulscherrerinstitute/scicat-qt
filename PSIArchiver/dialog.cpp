@@ -679,7 +679,7 @@ void Dialog::fileCounterFinished(bool force){
             if (!ingestionIsRunning){
                 ingestionIsRunning = true;
                 scicat->ingestion()->prepareIngestion();
-                scicat->ingestion()->start();
+                scicat->ingestion()->start(ingestionLog->ui->textEditIngestionLog);
             } else {
                 qDebug() << "Ingestion is already running.";
             }
