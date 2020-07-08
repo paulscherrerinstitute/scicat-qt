@@ -84,9 +84,9 @@
                 <property name="geometry">
                  <rect>
                   <x>0</x>
-                  <y>0</y>
-                  <width>601</width>
-                  <height>598</height>
+                  <y>-200</y>
+                  <width>602</width>
+                  <height>541</height>
                  </rect>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -267,6 +267,9 @@
                     </item>
                     <item>
                      <widget class="QCheckBox" name="checkBoxDisableEmails">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
                       <property name="text">
                        <string>Disable emails after ingestion</string>
                       </property>

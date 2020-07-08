@@ -43,6 +43,9 @@ Settings::Settings(QWidget *parent) :
     ui->checkBoxSystemCalls->setChecked(settingsContainer.value("disableSystemCalls").toBool());
     ui->comboBoxServer->setCurrentIndex(settingsContainer.value("serverID").toInt());
     updateServerURL(settingsContainer.value("serverID").toInt());
+
+    // not implemented:
+    ui->checkBoxDisableEmails->setVisible(false);
 }
 
 void Settings::reset(){
