@@ -12,8 +12,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set ( RESOURCES  psiArchiverResources.qrc)
 
-add_definitions(-DQT_NO_DEBUG_OUTPUT)
-#add_definitions(-DSKIP_KERBEROS_AUTH)
+#add_definitions(-DQT_NO_DEBUG_OUTPUT)
+add_definitions(-DSKIP_KERBEROS_AUTH)
 #add_definitions(-DNO_DATACATALOGUE_TOOLS)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
@@ -67,6 +67,8 @@ if(WIN32)
       datacatalogueClasses.h
       datasetretriever.cpp
       datasetretriever.h
+      downloadmanager.cpp
+      downloadmanager.h
       processhandler.cpp
       processhandler.h
       messagehandlergui.cpp
@@ -117,6 +119,8 @@ else()
     datacatalogueClasses.h
     datasetretriever.cpp
     datasetretriever.h
+    downloadmanager.cpp
+    downloadmanager.h
     processhandler.cpp
     processhandler.h
     messagehandlergui.cpp
