@@ -59,7 +59,7 @@ QSettings settingsContainer("PSI", "SciCat");
     }
 
     arguments << "-dataset" << pid << "-token" << base->scicat->user()->getToken() << "-retrieve" << outdir;
-    retrieverJob->start(settingsContainer.value("datasetRetriever", base->defaultSettings.datasetRetriever).toString(), arguments);
+    retrieverJob->start(settingsContainer.value("datasetRetrieverBinary", base->defaultSettings.datasetRetrieverBinary).toString(), arguments);
 
 #endif
 }

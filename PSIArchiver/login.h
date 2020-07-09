@@ -20,6 +20,12 @@ private:
     QProcess *kerberosAuth;
     void openGate();
     void errorMessage(QString msg);
+    void updateCLITools();
+    void downloadDatasetIngestor();
+    void downloadDatasetRetriever();
+    bool fileExistsOnPath(const QString& filename);
+    bool fileIsUpToDate(const QString& filename);
+    QString getCurrentVersionRemote(const QString& filename);
 
 private slots:
     void getLoginData();

@@ -3,6 +3,11 @@
 #include <QDesktopWidget>
 #include <QScreen>
 #include <QStyle>
+#include <QFileInfo>
+#include <stdlib.h>
+
+#include "downloadmanager.h"
+#include "messagehandlergui.h"
 
 Login::Login(QWidget *parent) :
     QDialog(parent),
@@ -55,6 +60,10 @@ void Login::getLoginData(){
     baseUi->ui->labelUsername->setText("Username: " + baseUi->scicat->user()->getUsername());
     baseUi->ui->labelServer->setText("Server: " + baseUi->scicat->getServerName());
 
+    // check version and update CLI tools
+    updateCLITools();
+
+    // get Kerberos token
     if (!baseUi->scicat->user()->getIsBeamlineAccount()){
         authenticateUser(pword);
     } else {
@@ -108,6 +117,58 @@ void Login::errorMessage(QString msg){
     QTimer::singleShot(5000, uiLogin->labelErrorMessage, &QLabel::hide);
 }
 
+void Login::updateCLITools(){
+    QSettings settingsContainer("PSI", "SciCat");
+//    settingsContainer.value("datsetIngestorBinary").toString()
+
+    bool filesOnPath = (fileExistsOnPath("datasetIngestor") || fileExistsOnPath("datasetRetriever"));
+    if (!filesOnPath){
+        // executables on not on $PATH. Let's download everything
+        QString dirpath = "./bin";
+        if (!QDir(dirpath).exists()){
+            if (!QDir().mkpath(dirpath)){
+                MessageHandlerGUI::sendWarning(uiLogin->labelErrorMessage, "Could not download dependencies.", 5000);
+            }
+            MessageHandlerGUI::sendMessage(uiLogin->labelErrorMessage, "Downloading dependencies...", 5000);
+            downloadDatasetIngestor();
+            downloadDatasetRetriever();
+        } else {
+            if (!fileIsUpToDate("datasetIngestorVersion.txt") || !QFile(QDir("./bin").filePath("datasetIngestor")).exists()){
+                MessageHandlerGUI::sendMessage(uiLogin->labelErrorMessage, "Downloading dependencies...", 5000);
+                downloadDatasetIngestor();
+            }
+            if (!fileIsUpToDate("datasetRetrieverVersion.txt") || !QFile(QDir("./bin").filePath("datasetRetriever")).exists()){
+                MessageHandlerGUI::sendMessage(uiLogin->labelErrorMessage, "Downloading dependencies...", 5000);
+                downloadDatasetRetriever();
+            }
+        }
+        settingsContainer.setValue("datasetIngestorBinary", "./bin/datasetIngestor");
+        settingsContainer.setValue("datasetRetrieverBinary", "./bin/datasetRetriever");
+    } else {
+        settingsContainer.setValue("datasetIngestorBinary", "datasetIngestor");
+        settingsContainer.setValue("datasetRetrieverBinary", "datasetRetriever");
+    }
+
+}
+
+void Login::downloadDatasetIngestor(){
+    DownloadManager* ingestor = new DownloadManager;
+    ingestor->setOutputPath("./bin");
+    QStringList urlList{"https://intranet.psi.ch/pub/Daas/WebHome/datasetIngestorVersion.txt", "https://intranet.psi.ch/pub/Daas/WebHome/datasetIngestor"};
+    ingestor->append(urlList);
+    ingestor->wait();
+    delete ingestor;
+}
+
+void Login::downloadDatasetRetriever(){
+    DownloadManager* retriever = new DownloadManager;
+    retriever->setOutputPath("./bin");
+    QStringList urlList{"https://intranet.psi.ch/pub/Daas/WebHome/datasetRetrieverVersion.txt", "https://intranet.psi.ch/pub/Daas/WebHome/datasetRetriever"};
+    retriever->append(urlList);
+    retriever->wait();
+    delete retriever;
+}
+
 void Login::authenticationFailed(QProcess::ProcessError error){
     qDebugLine("Login") << "Authentication failed: " << error;
 #ifdef SKIP_KERBEROS_AUTH
@@ -126,6 +187,47 @@ void Login::openGate(){
     int refSize;
     rec.height() > rec.width() ? refSize=rec.width()*0.8 : refSize=rec.height()*0.8;
     baseUi->setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, QSize(refSize, refSize*0.89), rec));
+}
+
+bool Login::fileExistsOnPath(const QString& filename){
+    QString envPath = QString(getenv("PATH"));
+    for (auto p : envPath.split(":")){
+        QString fPath = QDir(p).filePath(filename);
+        if (QFile(fPath).exists()){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Login::fileIsUpToDate(const QString &filename){
+    QString fPath = QDir("./bin").filePath(filename);
+    if (!QFile(fPath).exists()){
+        return false;
+    } else {
+        QString remoteVersion = getCurrentVersionRemote(filename).split("\n")[0];
+        QFile f(fPath);
+        if (!f.open(QFile::ReadOnly | QFile::Text)){
+            return false;
+        }
+        QTextStream in(&f);
+        QString currentVersion = in.readAll().split("\n")[0];
+        if (currentVersion.compare(remoteVersion)==0){
+            qDebugLine("Login") << "Executable is up to date (" + filename + ")";
+            return true;
+        }
+    }
+    return false;
+}
+
+
+QString Login::getCurrentVersionRemote(const QString &filename){
+    QNetworkRequest getCurrentVersion;
+    getCurrentVersion.setRawHeader("Accept", "application/json");
+    QUrl serverURL = QUrl::fromEncoded("https://intranet.psi.ch/pub/Daas/WebHome/" + filename.toUtf8());
+    getCurrentVersion.setUrl(serverURL);
+    QString currentVersion = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, getCurrentVersion);
+    return currentVersion;
 }
 
 Login::~Login()

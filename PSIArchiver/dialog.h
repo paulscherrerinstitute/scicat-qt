@@ -46,8 +46,8 @@ struct styleSheets_t {
 };
 
 struct defaultSettings_t {
-    QString binaryPath = "datasetIngestor";
-    QString datasetRetriever = "datasetRetriever";
+    QString datasetIngestorBinary = "datasetIngestor";
+    QString datasetRetrieverBinary = "datasetRetrieverBinary";
     QString logPath = QDir::homePath() + "/.scicat/log";
     QString filenameFilelisting = "filelisting.txt";
     QString filenameMetadata = "metadata.json";

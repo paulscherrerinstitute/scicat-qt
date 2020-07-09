@@ -134,10 +134,10 @@ void DatasetIngestor::start(QTextEdit* outStream){
     qDebug() << "starting ingestion";
 
     if (settingsContainer.value("printIngestion", base->defaultSettings.printIngestion).toBool()){
-        qDebug() << settingsContainer.value("binaryPath", base->defaultSettings.binaryPath).toString() << " " << arguments;
+        qDebug() << settingsContainer.value("datasetIngestorBinary", base->defaultSettings.datasetIngestorBinary).toString() << " " << arguments;
     }
     if (!settingsContainer.value("disableSystemCalls", base->defaultSettings.disableSystemCalls).toBool()){
-        ingestJob->start(settingsContainer.value("binaryPath", base->defaultSettings.binaryPath).toString(), arguments);
+        ingestJob->start(settingsContainer.value("datasetIngestorBinary", base->defaultSettings.datasetIngestorBinary).toString(), arguments);
     } else {
         ingestJob->finished(0);
     }

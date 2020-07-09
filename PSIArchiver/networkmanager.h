@@ -11,10 +11,12 @@ public:
     ~NetworkManager();
     void post(const QNetworkRequest &request, const QByteArray &postData);
     void get(const QNetworkRequest &request);
+    void custom(const QNetworkRequest &request, const QByteArray &postData);
     QString pull();
-    QString getReply() const;
+    QString getReplyString() const;
     static QString startNetworkManagerAndWait(const NetworkManager::Operation& op, const QNetworkRequest& request, const QByteArray& postData="");
     static std::shared_ptr<NetworkManager> startNetworkManager(const NetworkManager::Operation& op, const QNetworkRequest& request, const QByteArray& postData="");
+    QNetworkReply *getReply() const;
 
 public slots:
     void replyFinishedNM(QNetworkReply *reply);

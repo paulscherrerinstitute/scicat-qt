@@ -23,8 +23,6 @@ void MessageHandlerGUI::hide(){
 }
 
 MessageHandlerGUI::~MessageHandlerGUI(){
-    qDebug() << m_time;
-    qDebug() << "destroying MessageHandlerGUI";
     if (m_time < 0){
         MessageHandlerGUI::hide();
     }

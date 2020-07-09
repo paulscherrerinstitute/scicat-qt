@@ -54,8 +54,8 @@ Dialog::Dialog(QWidget *parent)
 
     updateSettingsContainer(settingsContainer, "version", currentVersionNumber.toString());
     updateSettingsContainer(settingsContainer, "investigatorIsPI", defaultSettings.investigatorIsPI);
-    updateSettingsContainer(settingsContainer, "binaryPath", defaultSettings.binaryPath);
-    updateSettingsContainer(settingsContainer, "datasetRetriever", defaultSettings.datasetRetriever);
+    updateSettingsContainer(settingsContainer, "datasetIngestorBinary", defaultSettings.datasetIngestorBinary);
+    updateSettingsContainer(settingsContainer, "datasetRetrieverBinary", defaultSettings.datasetRetrieverBinary);
     updateSettingsContainer(settingsContainer, "logPath", defaultSettings.logPath);
     updateSettingsContainer(settingsContainer, "filenameFilelisting", defaultSettings.filenameFilelisting);
     updateSettingsContainer(settingsContainer, "filenameMetadata", defaultSettings.filenameMetadata);
