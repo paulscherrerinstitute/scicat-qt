@@ -16,6 +16,8 @@ DatasetBrowser::DatasetBrowser(const std::vector<QStringList>& datasetContainer,
 
     connect(ui->pushButton, SIGNAL (clicked()), this, SLOT (selectButton()));
 
+    datasets_m = new DatasetModel();
+
     // connect to parent
     baseUi = dynamic_cast<Dialog*>(parent);
 }

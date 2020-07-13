@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(SciCatArchiver LANGUAGES CXX)
+project(SciCat LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -23,7 +23,7 @@ QT5_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
 
 if(WIN32)
     add_definitions(-DWINDOWS_SPECIFIC_TOOLS)
-    add_executable(SciCatArchiver
+    add_executable(SciCat
       WIN32
       pch.h
       main.cpp
@@ -76,7 +76,7 @@ if(WIN32)
       ${RES_SOURCES}
     )
 else()
-  add_executable(SciCatArchiver
+  add_executable(SciCat
     pch.h
     main.cpp
     dialog.cpp
@@ -128,6 +128,10 @@ else()
     ${RES_SOURCES}
   )
 endif()
-#target_precompile_headers(SciCatArchiver PUBLIC pch.h)
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16.5")
+    target_precompile_headers(SciCat PUBLIC pch.h)
+else()
+    message("Please consider upgrading to CMake version > 3.16 for faster compilation.")
+endif()
 
-target_link_libraries(SciCatArchiver PRIVATE Qt5::Widgets Qt5::Network)
+target_link_libraries(SciCat PRIVATE Qt5::Widgets Qt5::Network)

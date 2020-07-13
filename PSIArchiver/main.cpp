@@ -1,6 +1,7 @@
 #include "dialog.h"
 #include "login.h"
 #include <QApplication>
+#include <QCoreApplication>
 
 QVersionNumber currentVersionNumber(0,3);
 

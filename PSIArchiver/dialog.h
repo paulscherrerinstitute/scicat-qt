@@ -220,9 +220,9 @@ public:
     int secID=-1;
     void updateNavigationIcons(int targetID);
     SciCat::DataCatalogue* scicat = nullptr;
-    ButtonHoverWatcher *pgroupWatcher = new ButtonHoverWatcher(this);
-    ButtonHoverWatcher *archiveWatcher = new ButtonHoverWatcher(this);
-    ButtonHoverWatcher *retrieveWatcher = new ButtonHoverWatcher(this);
+    ButtonHoverWatcher *pgroupWatcher;
+    ButtonHoverWatcher *archiveWatcher;
+    ButtonHoverWatcher *retrieveWatcher;
 
 
 

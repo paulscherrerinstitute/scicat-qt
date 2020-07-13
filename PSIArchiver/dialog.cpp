@@ -41,7 +41,9 @@ Dialog::Dialog(QWidget *parent)
     ui->labelProposal->hide();
     ui->comboBoxCreationLocation->setCurrentIndex(-1);
 
-
+    pgroupWatcher = new ButtonHoverWatcher(this);
+    archiveWatcher = new ButtonHoverWatcher(this);
+    retrieveWatcher = new ButtonHoverWatcher(this);
 
     QSettings settingsContainer("PSI", "SciCat");
 
@@ -387,7 +389,6 @@ void Dialog::usedSoftwareChanged(){
 }
 
 void Dialog::setAvailPgroups(){
-
     // set autocomplete for pgroup selection
     pgroupCompleter = new QCompleter(scicat->user()->getPgroups(), this);
     pgroupCompleter->setCaseSensitivity(Qt::CaseInsensitive);
@@ -745,7 +746,7 @@ void Dialog::updateRetrieverFiles(){
             ui->tableWidgetRetrieverFiles->insertRow(0);
             QTableWidgetItem *tmpItemPath = new QTableWidgetItem(f.toObject()["path"].toString());
             tmpItemPath->setFlags((Qt::ItemFlags)33);
-            ui->tableWidgetRetrieverFiles->setItem(0,0,tmpItemPath);
+            ui->tableWidgetRetrieverFiles->setItem(0,0,tmpItemPath); // setItem takes ownership -- no delete necessary
             QTableWidgetItem *tmpItemSize = new QTableWidgetItem(QString::number(f.toObject()["size"].toInt()));
             tmpItemSize->setFlags((Qt::ItemFlags)33);
             ui->tableWidgetRetrieverFiles->setItem(0,1,tmpItemSize);
@@ -1405,7 +1406,7 @@ void Dialog::updateJobTable(){
         qDebug() << v.name;
         qDebug() << v.process->getRetrieverJob()->processId();
         QTableWidgetItem *tmpJobName = new QTableWidgetItem(v.name);
-        ui->tableWidgetJobs->setItem(0,0,tmpJobName);
+        ui->tableWidgetJobs->setItem(0,0,tmpJobName); // takes ownership -- no delete necessary
         QTableWidgetItem *tmpJobPath = new QTableWidgetItem(v.outdir);
         ui->tableWidgetJobs->setItem(0,1,tmpJobPath);
         QTableWidgetItem *tmpJobPID = new QTableWidgetItem(QString::number(v.process->getRetrieverJob()->processId()));
@@ -1452,6 +1453,13 @@ void Dialog::reject(){
 Dialog::~Dialog()
 {
     qDebug() << "delete Dialog";
+    delete retrieveWatcher;
+    delete archiveWatcher;
+    delete pgroupWatcher;
+    delete scicat;
+    delete ingestionLog;
+    delete pgroupCompleter;
+
     delete ui;
 }
 
@@ -1541,7 +1549,9 @@ void json2TreeModel(QJsonObject &inObj, QTreeWidgetItem *item, QTreeWidget* pare
 
 ButtonHoverWatcher::ButtonHoverWatcher(QObject * parent) :
     QObject(parent)
-{}
+{
+//    qDebug() << "constructed ButtonHoverWatcher";
+}
 
 bool ButtonHoverWatcher::eventFilter(QObject * watched, QEvent * event)
 {

@@ -16,7 +16,7 @@ private slots:
 private:
     Ui::DatasetBrowser *ui;
     Dialog *baseUi;
-    DatasetModel* datasets_m = new DatasetModel();
+    DatasetModel* datasets_m;
 };
 
 
