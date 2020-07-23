@@ -154,7 +154,7 @@ void Login::updateCLITools(){
 void Login::downloadDatasetIngestor(){
     DownloadManager* ingestor = new DownloadManager;
     ingestor->setOutputPath("./bin");
-    QStringList urlList{"https://intranet.psi.ch/pub/Daas/WebHome/datasetIngestorVersion.txt", "https://intranet.psi.ch/pub/Daas/WebHome/datasetIngestor"};
+    QStringList urlList{"https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetIngestorVersion.txt", " https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetIngestor"};
     ingestor->append(urlList);
     ingestor->wait();
     delete ingestor;
@@ -163,7 +163,7 @@ void Login::downloadDatasetIngestor(){
 void Login::downloadDatasetRetriever(){
     DownloadManager* retriever = new DownloadManager;
     retriever->setOutputPath("./bin");
-    QStringList urlList{"https://intranet.psi.ch/pub/Daas/WebHome/datasetRetrieverVersion.txt", "https://intranet.psi.ch/pub/Daas/WebHome/datasetRetriever"};
+    QStringList urlList{ "https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetRetrieverVersion.txt",  "https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetRetriever"};
     retriever->append(urlList);
     retriever->wait();
     delete retriever;
@@ -224,7 +224,7 @@ bool Login::fileIsUpToDate(const QString &filename){
 QString Login::getCurrentVersionRemote(const QString &filename){
     QNetworkRequest getCurrentVersion;
     getCurrentVersion.setRawHeader("Accept", "application/json");
-    QUrl serverURL = QUrl::fromEncoded("https://intranet.psi.ch/pub/Daas/WebHome/" + filename.toUtf8());
+    QUrl serverURL = QUrl::fromEncoded( "https://gitlab.psi.ch/scicat/tools/raw/master/linux/" + filename.toUtf8());
     getCurrentVersion.setUrl(serverURL);
     QString currentVersion = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, getCurrentVersion);
     return currentVersion;
