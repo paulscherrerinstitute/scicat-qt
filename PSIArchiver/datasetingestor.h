@@ -16,6 +16,8 @@ public:
     void start(QTextEdit* outStream = nullptr);
     std::shared_ptr<ProcessHandler> getIngestJob() const;
 
+    QString getIngestionLogDir() const;
+
 signals:
     void finished(int);
     void errorOccurred(QProcess::ProcessError error);
