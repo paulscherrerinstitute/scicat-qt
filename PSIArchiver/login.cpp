@@ -19,6 +19,17 @@ Login::Login(QWidget *parent) :
 
     // connect to login UI
     connect(uiLogin->pushButtonLogin, SIGNAL (clicked()), this, SLOT (getLoginData()));
+
+    #ifndef WINDOWS_SPECIFIC_TOOLS
+    // Linux and MacOS
+    urlListIngestor = QStringList{"https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetIngestorVersion.txt", "https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetIngestor"};
+    urlListRetriever = QStringList{"https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetRetrieverVersion.txt", "https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetRetriever"};
+    #else
+    // Windows
+    urlListIngestor = QStringList{"https://gitlab.psi.ch/scicat/tools/raw/master/windows/datasetIngestorVersion.txt", "https://gitlab.psi.ch/scicat/tools/raw/master/windows/datasetIngestor.exe"};
+    urlListRetriever = QStringList{"https://gitlab.psi.ch/scicat/tools/raw/master/windows/datasetRetrieverVersion.txt", "https://gitlab.psi.ch/scicat/tools/raw/master/windows/datasetRetriever.exe"};
+    #endif
+
 }
 
 
@@ -133,11 +144,11 @@ void Login::updateCLITools(){
             downloadDatasetIngestor();
             downloadDatasetRetriever();
         } else {
-            if (!fileIsUpToDate("datasetIngestorVersion.txt") || !QFile(QDir("./bin").filePath("datasetIngestor")).exists()){
+            if (!fileIsUpToDate("datasetIngestorVersion.txt") || !QFile(QDir("./bin").filePath("datasetIngestor.exe")).exists()){
                 MessageHandlerGUI::sendMessage(uiLogin->labelErrorMessage, "Downloading dependencies...", 5000);
                 downloadDatasetIngestor();
             }
-            if (!fileIsUpToDate("datasetRetrieverVersion.txt") || !QFile(QDir("./bin").filePath("datasetRetriever")).exists()){
+            if (!fileIsUpToDate("datasetRetrieverVersion.txt") || !QFile(QDir("./bin").filePath("datasetRetriever.exe")).exists()){
                 MessageHandlerGUI::sendMessage(uiLogin->labelErrorMessage, "Downloading dependencies...", 5000);
                 downloadDatasetRetriever();
             }
@@ -154,8 +165,7 @@ void Login::updateCLITools(){
 void Login::downloadDatasetIngestor(){
     DownloadManager* ingestor = new DownloadManager;
     ingestor->setOutputPath("./bin");
-    QStringList urlList{"https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetIngestorVersion.txt", " https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetIngestor"};
-    ingestor->append(urlList);
+    ingestor->append(urlListIngestor);
     ingestor->wait();
     delete ingestor;
 }
@@ -163,8 +173,7 @@ void Login::downloadDatasetIngestor(){
 void Login::downloadDatasetRetriever(){
     DownloadManager* retriever = new DownloadManager;
     retriever->setOutputPath("./bin");
-    QStringList urlList{ "https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetRetrieverVersion.txt",  "https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetRetriever"};
-    retriever->append(urlList);
+    retriever->append(urlListRetriever);
     retriever->wait();
     delete retriever;
 }

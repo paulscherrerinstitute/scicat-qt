@@ -704,7 +704,9 @@ void Dialog::updateRetrieverFiles(){
     qDebug() << "Updating retriever files";
     // get current datasetID
     QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
-
+    if (indexList.length()==0){
+        return;
+    }
     std::string datasetID = ui->tableWidgetRetriever->item(indexList[0].row(),3)->data(0).toString().toStdString();
     qDebug() << "datasetID: " << datasetID;
 
@@ -1338,7 +1340,7 @@ void Dialog::requestRetrieve(){
 
     // start retrieving data from archive; at this point, the data will only be copied to the retrieve server
     if (scicat->requestRetrieve(datasetList)==0){
-        QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat Archiver.") );
+        QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat GUI.") );
     }
 
 }
@@ -1466,8 +1468,15 @@ Dialog::~Dialog()
 QString extractSourceFolder(std::vector<QString> container){
 // a quick and dirty solution... not very efficient though
 
+    #ifdef WINDOWS_SPECIFIC_TOOLS
+    QString lPath = "";
+    int ii=0;
+    #else
     QString lPath = "/";
     int ii=1;
+    #endif
+
+
     bool entryIsValid = true;
     QString subdir;
     while (ii<container[0].length()){
