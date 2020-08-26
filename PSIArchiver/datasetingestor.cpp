@@ -145,13 +145,18 @@ void DatasetIngestor::start(QTextEdit* outStream){
 }
 
 void DatasetIngestor::ingestorFinished(int val){
-    qDebugLine("DatasetIngestor") << "ingestion failed";
+    qDebugLine("DatasetIngestor") << "ingestion finished";
     emit finished(val);
 }
 
 void DatasetIngestor::ingestorFailed(QProcess::ProcessError error){
-    qDebugLine("DatasetIngestor") << "ingestion finished";
+    qDebugLine("DatasetIngestor") << "ingestion failed";
     emit errorOccurred(error);
+}
+
+QString DatasetIngestor::getIngestionLogDir() const
+{
+    return m_ingestionLogDir;
 }
 
 std::shared_ptr<ProcessHandler> DatasetIngestor::getIngestJob() const

@@ -627,11 +627,11 @@ void Dialog::ingestionFinished(int exitCode){
     if (settingsContainer.value("deleteLog", defaultSettings.deleteLog).toBool()){
         qDebug() << "removing ingestion log files";
 //        qDebug() << metadataContainer.ingestionLogDir;
-        if (!QDir(metadataContainer.ingestionLogDir).removeRecursively()){
+        if (!QDir(scicat->ingestion()->getIngestionLogDir()).removeRecursively()){
             MessageHandlerGUI::sendWarning(ui->warningLabel, "Failed to remove ingestion log files.");
         }
     } else if (settingsContainer.value("saveLog", defaultSettings.saveLog).toBool()){
-        ingestionLog->saveLog(metadataContainer.ingestionLogDir + "/ingestion.log");
+        ingestionLog->saveLog(scicat->ingestion()->getIngestionLogDir() + "/ingestion.log");
     }
 
 }
