@@ -32,6 +32,12 @@ void DatasetIngestor::prepareIngestion(){
     }
     m_metadataFilename = metafname;
 
+    #ifdef WINDOWS_SPECIFIC_TOOLS
+    for (auto& f: base->filelistingContainer){
+        f = "/" + f.replace(":","");
+    }
+    #endif
+
     // prepare metadata file
     QJsonObject metadata;
     bool isRawData = (bool) base->ui->comboBoxDatatype->currentIndex();

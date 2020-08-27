@@ -26,6 +26,7 @@ private:
     bool fileExistsOnPath(const QString& filename);
     bool fileIsUpToDate(const QString& filename);
     QString getCurrentVersionRemote(const QString& filename);
+    QStringList urlListIngestor, urlListRetriever;
 
 private slots:
     void getLoginData();
