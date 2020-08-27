@@ -1346,7 +1346,9 @@ void Dialog::requestRetrieve(){
 }
 
 void Dialog::saveRetrievedData(){
-
+#ifdef WINDOWS_SPECIFIC_TOOLS
+    QMessageBox::information(this, tr("Not supported on Windows"), tr("Retrieving data on Windows is currently not supported.") );
+#else
     QString dirname = QFileDialog::getExistingDirectory(this, "Save path",QDir::homePath(),QFileDialog::ShowDirsOnly);
     if (dirname.length()>0){
         QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
@@ -1359,6 +1361,7 @@ void Dialog::saveRetrievedData(){
             }
         }
     }
+#endif
 
 }
 

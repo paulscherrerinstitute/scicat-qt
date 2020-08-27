@@ -3,7 +3,7 @@
 #include <QApplication>
 #include <QCoreApplication>
 
-QVersionNumber currentVersionNumber(0,3);
+QVersionNumber currentVersionNumber(0,4);
 
 int main(int argc, char *argv[])
 {
