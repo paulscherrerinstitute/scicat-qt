@@ -818,8 +818,8 @@ bool Dialog::checkPgroup(){
         QMessageBox::information(this, tr("Error"), tr("pgroup cannot be empty") );
         pgroupIsValid = false;
         return pgroupIsValid;
-    } else if ((ui->lineEditPgroup->text().size() != 6) || (ui->lineEditPgroup->text().toStdString().find("p") != 0)){
-        QMessageBox::information(this, tr("Error"), tr("Please enter a valid pgroup") );
+    } else if (((ui->lineEditPgroup->text().size() != 6) && (ui->lineEditPgroup->text().size() != 7)) || ((ui->lineEditPgroup->text().toStdString().find("p") != 0) && (ui->lineEditPgroup->text().toStdString().find("a") != 0))){
+        QMessageBox::information(this, tr("Error"), tr("Please enter a valid pgroup/agroup") );
         pgroupIsValid = false;
         return pgroupIsValid;
     }
