@@ -74,12 +74,16 @@ void Login::getLoginData(){
     // check version and update CLI tools
     updateCLITools();
 
+#ifndef WINDOWS_SPECIFIC_TOOLS
     // get Kerberos token
     if (!baseUi->scicat->user()->getIsBeamlineAccount()){
         authenticateUser(pword);
     } else {
         openGate();
     }
+#else
+    openGate();
+#endif
 
 }
 

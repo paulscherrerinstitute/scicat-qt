@@ -25,6 +25,8 @@ public:
 
     bool getIsBeamlineAccount() const;
 
+    QString getPword() const;
+
 private:
     User(DataCatalogue * const parent);
     friend class SciCat::DataCatalogue;

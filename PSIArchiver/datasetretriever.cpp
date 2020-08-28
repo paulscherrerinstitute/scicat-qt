@@ -58,7 +58,11 @@ QSettings settingsContainer("PSI", "SciCat");
         break;
     }
 
+#ifdef WINDOWS_SPECIFIC_TOOLS
+    arguments << "-dataset" << pid << "-user" << base->scicat->user()->getUsername() + ":" + base->scicat->user()->getPword() << "-retrieve" << outdir;
+#else
     arguments << "-dataset" << pid << "-token" << base->scicat->user()->getToken() << "-retrieve" << outdir;
+#endif
     retrieverJob->start(settingsContainer.value("datasetRetrieverBinary", base->defaultSettings.datasetRetrieverBinary).toString(), arguments);
 
 #endif

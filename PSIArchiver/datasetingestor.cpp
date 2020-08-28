@@ -134,7 +134,11 @@ void DatasetIngestor::start(QTextEdit* outStream){
         break;
     }
 
+#ifdef WINDOWS_SPECIFIC_TOOLS
+    arguments << "--noninteractive" << "--allowexistingsource" << "--user" << base->scicat->user()->getUsername() + ":" + base->scicat->user()->getPword() << m_metadataFilename << m_filelistingFilename;
+#else
     arguments << "--noninteractive" << "--allowexistingsource" << "--token" << base->scicat->user()->getToken() << m_metadataFilename << m_filelistingFilename;
+#endif
 
     // start ingestion
     qDebug() << "starting ingestion";
