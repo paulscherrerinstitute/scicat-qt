@@ -521,7 +521,9 @@ bool Dialog::filelistingCheckAndUpdate(){
         ui->lineEditProposalID->setText(scicat->experiment()->getProposalID());
         ui->comboBoxCreationLocation->setCurrentIndex(ui->comboBoxCreationLocation->findText(scicat->experiment()->getCreationLocation()));
     } else {
-        ui->comboBoxCreationLocation->setCurrentIndex(-1);
+        if (scicat->experiment()->getCreationLocation().length()==0){
+            ui->comboBoxCreationLocation->setCurrentIndex(-1);
+        }
     }
     ui->lineEditInvestigator->setText(scicat->experiment()->getInvestigator());
 
