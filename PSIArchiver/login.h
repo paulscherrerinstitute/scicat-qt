@@ -27,6 +27,8 @@ private:
     bool fileIsUpToDate(const QString& filename);
     QString getCurrentVersionRemote(const QString& filename);
     QStringList urlListIngestor, urlListRetriever;
+    QString datasetIngestor;
+    QString datasetRetriever;
 
 private slots:
     void getLoginData();

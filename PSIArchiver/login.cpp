@@ -24,10 +24,14 @@ Login::Login(QWidget *parent) :
     // Linux and MacOS
     urlListIngestor = QStringList{"https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetIngestorVersion.txt", "https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetIngestor"};
     urlListRetriever = QStringList{"https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetRetrieverVersion.txt", "https://gitlab.psi.ch/scicat/tools/raw/master/linux/datasetRetriever"};
+    datasetIngestor = "datasetIngestor";
+    datasetRetriever = "datasetRetriever";
     #else
     // Windows
     urlListIngestor = QStringList{"https://gitlab.psi.ch/scicat/tools/raw/master/windows/datasetIngestorVersion.txt", "https://gitlab.psi.ch/scicat/tools/raw/master/windows/datasetIngestor.exe"};
     urlListRetriever = QStringList{"https://gitlab.psi.ch/scicat/tools/raw/master/windows/datasetRetrieverVersion.txt", "https://gitlab.psi.ch/scicat/tools/raw/master/windows/datasetRetriever.exe"};
+    datasetIngestor = "datasetIngestor.exe";
+    datasetRetriever = "datasetRetriever.exe";
     #endif
 
 }
@@ -148,20 +152,20 @@ void Login::updateCLITools(){
             downloadDatasetIngestor();
             downloadDatasetRetriever();
         } else {
-            if (!fileIsUpToDate("datasetIngestorVersion.txt") || !QFile(QDir("./bin").filePath("datasetIngestor.exe")).exists()){
+            if (!fileIsUpToDate("datasetIngestorVersion.txt") || !QFile(QDir("./bin").filePath(datasetIngestor)).exists()){
                 MessageHandlerGUI::sendMessage(uiLogin->labelErrorMessage, "Downloading dependencies...", 5000);
                 downloadDatasetIngestor();
             }
-            if (!fileIsUpToDate("datasetRetrieverVersion.txt") || !QFile(QDir("./bin").filePath("datasetRetriever.exe")).exists()){
+            if (!fileIsUpToDate("datasetRetrieverVersion.txt") || !QFile(QDir("./bin").filePath(datasetRetriever)).exists()){
                 MessageHandlerGUI::sendMessage(uiLogin->labelErrorMessage, "Downloading dependencies...", 5000);
                 downloadDatasetRetriever();
             }
         }
-        settingsContainer.setValue("datasetIngestorBinary", "./bin/datasetIngestor");
-        settingsContainer.setValue("datasetRetrieverBinary", "./bin/datasetRetriever");
+        settingsContainer.setValue("datasetIngestorBinary", "./bin/" + datasetIngestor);
+        settingsContainer.setValue("datasetRetrieverBinary", "./bin/" + datasetRetriever);
     } else {
-        settingsContainer.setValue("datasetIngestorBinary", "datasetIngestor");
-        settingsContainer.setValue("datasetRetrieverBinary", "datasetRetriever");
+        settingsContainer.setValue("datasetIngestorBinary", datasetIngestor);
+        settingsContainer.setValue("datasetRetrieverBinary", datasetRetriever);
     }
 
 }
