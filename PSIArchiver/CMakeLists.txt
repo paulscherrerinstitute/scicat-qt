@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set ( RESOURCES  psiArchiverResources.qrc)
 
-#add_definitions(-DQT_NO_DEBUG_OUTPUT)
+add_definitions(-DQT_NO_DEBUG_OUTPUT)
 add_definitions(-DSKIP_KERBEROS_AUTH)
 #add_definitions(-DNO_DATACATALOGUE_TOOLS)
 
@@ -24,6 +24,7 @@ QT5_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
 if(WIN32)
     add_definitions(-DWINDOWS_SPECIFIC_TOOLS)
     add_executable(SciCat
+      WIN32
       pch.h
       main.cpp
       dialog.cpp

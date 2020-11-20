@@ -53,9 +53,6 @@ void Login::getLoginData(){
     QString uname = uiLogin->lineEditUsername->text();
     QString pword = uiLogin->lineEditPassword->text();
 
-    qDebug() << QSslSocket::supportsSsl() << QSslSocket::sslLibraryBuildVersionString() << QSslSocket::sslLibraryVersionString();
-
-
     auto status = baseUi->scicat->authenticateUser(uname, pword);
 
     if (status==SciCat::authenticationStateAccount::Invalid){
