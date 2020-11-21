@@ -53,7 +53,6 @@ void Login::getLoginData(){
     QString uname = uiLogin->lineEditUsername->text();
     QString pword = uiLogin->lineEditPassword->text();
 
-
     auto status = baseUi->scicat->authenticateUser(uname, pword);
 
     if (status==SciCat::authenticationStateAccount::Invalid){
