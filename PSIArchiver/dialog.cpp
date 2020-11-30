@@ -14,6 +14,7 @@ Dialog::Dialog(QWidget *parent)
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     ui->setupUi(this);
+    this->setWindowFlag(Qt::WindowContextHelpButtonHint,false);
 
     // TODO hidden objects where need to be fixed/implemented
     ui->pushButtonDetach->hide();

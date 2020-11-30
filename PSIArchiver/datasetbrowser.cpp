@@ -7,6 +7,8 @@ DatasetBrowser::DatasetBrowser(const std::vector<QStringList>& datasetContainer,
     ui(new Ui::DatasetBrowser)
 {
     ui->setupUi(this);
+    this->setWindowFlag(Qt::WindowContextHelpButtonHint,false);
+
     datasets_m->setContainer(datasetContainer);
     ui->tableViewDatasetBrowser->setModel(datasets_m);
     ui->tableViewDatasetBrowser->setColumnWidth(0, 200);

@@ -6,6 +6,7 @@ LogBrowser::LogBrowser(QWidget *parent) :
     ui(new Ui::LogBrowser)
 {
     ui->setupUi(this);
+    this->setWindowFlag(Qt::WindowContextHelpButtonHint,false);
 
     connect(ui->pushButtonClose, SIGNAL(clicked()), this, SLOT(close()));
     connect(ui->pushButtonSaveLog, SIGNAL(clicked()), this, SLOT(saveLog()));

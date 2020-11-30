@@ -7,6 +7,8 @@ Settings::Settings(QWidget *parent) :
     ui(new Ui::Settings)
 {
     ui->setupUi(this);
+    this->setWindowFlag(Qt::WindowContextHelpButtonHint,false);
+
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(acceptChanges()));
     connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(close()));
     connect(ui->checkBoxEnableAdvanced, SIGNAL(stateChanged(int)), this, SLOT(toggleAdvancedSettings(int)));

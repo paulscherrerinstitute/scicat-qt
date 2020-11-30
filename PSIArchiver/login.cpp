@@ -14,6 +14,7 @@ Login::Login(QWidget *parent) :
     uiLogin(new Ui::Login)
 {
     uiLogin->setupUi(this);
+    this->setWindowFlag(Qt::WindowContextHelpButtonHint,false);
 
     uiLogin->labelErrorMessage->setVisible(false);
 

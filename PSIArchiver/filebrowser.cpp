@@ -5,6 +5,7 @@ fileBrowser::fileBrowser(QWidget *parent) :
     uiFileBrowser(new Ui::fileBrowser)
 {
     uiFileBrowser->setupUi(this);
+    this->setWindowFlag(Qt::WindowContextHelpButtonHint,false);
     baseUi = dynamic_cast<Dialog*>(parent);
     QSettings settingsContainer("PSI", "SciCat");
     QDir cwd;
