@@ -50,10 +50,13 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Login with your personal PSI account</string>
+          <string>Login with your personal PSI account and a new token from discovery.psi.ch</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -112,7 +115,7 @@
               <set>Qt::AlignCenter</set>
              </property>
              <property name="placeholderText">
-              <string>Password</string>
+              <string>Token</string>
              </property>
             </widget>
            </item>

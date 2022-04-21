@@ -32,6 +32,7 @@ private:
     friend class SciCat::DataCatalogue;
     authenticationStateAccount authenticateUser(const QString& username, const QString& pword, const int& server);
     authenticationState sendAuthenticationRequest(const QString& username, const QString& pword, const QString& server);
+    authenticationState check_token(const QString& username, const QString& token);
     void sendUserInfoRequest();
     void extractToken(const QString& reply);
 

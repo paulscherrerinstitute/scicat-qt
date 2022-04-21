@@ -9,6 +9,8 @@ DatasetBrowser::DatasetBrowser(const std::vector<QStringList>& datasetContainer,
     ui->setupUi(this);
     this->setWindowFlag(Qt::WindowContextHelpButtonHint,false);
 
+    datasets_m = new DatasetModel();
+
     datasets_m->setContainer(datasetContainer);
     ui->tableViewDatasetBrowser->setModel(datasets_m);
     ui->tableViewDatasetBrowser->setColumnWidth(0, 200);
@@ -18,7 +20,6 @@ DatasetBrowser::DatasetBrowser(const std::vector<QStringList>& datasetContainer,
 
     connect(ui->pushButton, SIGNAL (clicked()), this, SLOT (selectButton()));
 
-    datasets_m = new DatasetModel();
 
     // connect to parent
     baseUi = dynamic_cast<Dialog*>(parent);

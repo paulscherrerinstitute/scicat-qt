@@ -27,20 +27,41 @@ SciCat::authenticationStateAccount User::authenticateUser(const QString& usernam
 #ifdef WINDOWS_SPECIFIC_TOOLS
     m_pword = pword;
 #endif
-    // try normal user account first
-    auto state = sendAuthenticationRequest(username, pword, DataCatalogue::serverListAuth()[server]);
-    if (state==authenticationState::ConnectionError){
-        return authenticationStateAccount::ConnectionError;
-    }
+    auto state = this->check_token(username, pword);
     if (state==authenticationState::Valid){
         updateUserInfo();
         return authenticationStateAccount::ValidUser;
-    } else if (sendAuthenticationRequest(username, pword, DataCatalogue::serverList()[server]+ "/Users/login")==authenticationState::Valid) {
-        m_isBeamlineAccount = true;
-        updateUserInfo();
-        return authenticationStateAccount::ValidBLAccount;
     } else {
-        return authenticationStateAccount::Invalid;
+        // try normal user account first
+        state = sendAuthenticationRequest(username, pword, DataCatalogue::serverListAuth()[server]);
+        if (state==authenticationState::ConnectionError){
+            return authenticationStateAccount::ConnectionError;
+        }
+        if (state==authenticationState::Valid){
+            updateUserInfo();
+            return authenticationStateAccount::ValidUser;
+        } else if (sendAuthenticationRequest(username, pword, DataCatalogue::serverList()[server]+ "/Users/login")==authenticationState::Valid) {
+            m_isBeamlineAccount = true;
+            updateUserInfo();
+            return authenticationStateAccount::ValidBLAccount;
+        } else {
+            return authenticationStateAccount::Invalid;
+        }
+    }
+
+
+}
+
+SciCat::authenticationState User::check_token(const QString& username, const QString& token){
+    this->m_token = token;
+    this->sendUserInfoRequest();
+    qDebugLine("check_token: ") << this->m_userInfo;
+    auto current_user = this->m_userInfo.object().value("currentUser").toString();
+    qDebugLine("check_token: ") << current_user;
+    if (username == current_user){
+        return authenticationState::Valid;
+    } else {
+        return authenticationState::Invalid;
     }
 
 }
