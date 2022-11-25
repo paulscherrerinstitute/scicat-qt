@@ -1331,7 +1331,7 @@ void Dialog::requestRetrieve(){
             if ((!ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool()) || (settingsContainer.value("requestAlreadyRetrievedData").toBool())){
                 QJsonObject tmpDatasetObject;
                 tmpDatasetObject["pid"] = ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0).toString();
-                tmpDatasetObject["file"] = QJsonArray();
+                tmpDatasetObject["files"] = QJsonArray();
                 datasetList.push_back(tmpDatasetObject);
             } else {
                 MessageHandlerGUI::sendWarning(ui->warningLabel, "Some datasets have already been retrieved and will be skipped.");
