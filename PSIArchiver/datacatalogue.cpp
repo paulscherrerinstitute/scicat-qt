@@ -68,6 +68,7 @@ int DataCatalogue::requestRetrieve(const QJsonArray& datasetList){
         QJsonObject jobParams;
         jobParams["username"] = scicatUser->getUsername();
         jobParams["destinationPath"] = "/archive/retrieve";
+        jobParams["option"] = "PSI";
         request["jobParams"] = jobParams;
     }
     request["datasetList"] = datasetList;
