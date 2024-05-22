@@ -1,5 +1,6 @@
 #include "datasetingestor.h"
 #include "messagehandlergui.h"
+#include <memory>
 
 using namespace SciCat;
 

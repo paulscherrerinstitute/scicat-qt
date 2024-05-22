@@ -1,4 +1,5 @@
 #include "networkmanager.h"
+#include <memory>
 
 NetworkManager::NetworkManager() //: manager(new QNetworkAccessManager(parent))
 {
@@ -82,4 +83,3 @@ QString NetworkManager::pull(){
     doc = this->getReplyString().toUtf8();
     return doc;
 }
-

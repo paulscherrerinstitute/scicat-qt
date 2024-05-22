@@ -2,6 +2,7 @@
 #define NETWORKMANAGER_H
 
 #include "dialog.h"
+#include <memory>
 
 class NetworkManager:public QNetworkAccessManager
 {

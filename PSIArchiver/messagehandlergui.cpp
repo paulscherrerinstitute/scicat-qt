@@ -1,5 +1,6 @@
 #include "messagehandlergui.h"
 #include <QDebug>
+#include <memory>
 
 MessageHandlerGUI::MessageHandlerGUI(QLabel* lbl, QString msg):m_lbl(lbl), m_msg(msg){
 
@@ -49,5 +50,3 @@ std::shared_ptr<MessageHandlerGUI> MessageHandlerGUI::sendMessage(QLabel* lbl, Q
     }
     return msgHandler;
 }
-
-

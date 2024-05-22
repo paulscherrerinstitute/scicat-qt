@@ -31,7 +31,7 @@ void DatasetBrowser::selectButton(){
         QStringList tmp;
         baseUi->ui->tableWidget->insertRow(0);
         for (int colIndx=0; colIndx<datasets_m->columnCount(); colIndx++) {
-            QTableWidgetItem *tmpItem = new QTableWidgetItem(datasets_m->data(indexList[ii].siblingAtColumn(colIndx),0).toString());
+            QTableWidgetItem *tmpItem = new QTableWidgetItem(datasets_m->data(indexList[ii].sibling(indexList[ii].row(),colIndx),0).toString());
             baseUi->ui->tableWidget->setItem(0,colIndx,tmpItem);
         }
         baseUi->ui->clearAllButtonDatasets->setEnabled(true);

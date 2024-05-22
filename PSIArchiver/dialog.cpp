@@ -1,6 +1,7 @@
 #include "dialog.h"
 
 #include <QDateTime>
+#include <memory>
 #include "messagehandlergui.h"
 
 
@@ -1642,4 +1643,3 @@ int getFileNum(std::vector<QString> container){
     }
     return count;
 }
-

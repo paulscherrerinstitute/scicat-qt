@@ -8,6 +8,7 @@ class Ingestor;
 class Dialog;
 class LogBrowser;
 
+#include <memory>
 #include "pch.h"
 #include "datasetmodel.h"
 #include "logbrowser.h"
@@ -338,6 +339,3 @@ int getFileNum(std::vector<QString> container);
 
 
 #endif // DIALOG_H
-
-
-

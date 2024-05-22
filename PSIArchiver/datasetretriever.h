@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QProcess>
+#include <memory>
 #include "dialog.h"
 #include "processhandler.h"
 
