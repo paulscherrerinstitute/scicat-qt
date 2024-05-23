@@ -135,3 +135,5 @@ else()
 endif()
 
 target_link_libraries(SciCat PRIVATE Qt5::Widgets Qt5::Network)
+
+install(TARGETS SciCat RUNTIME DESTINATION bin)
