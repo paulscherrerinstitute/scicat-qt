@@ -75,7 +75,7 @@ void Login::getLoginData(){
     baseUi->ui->labelServer->setText("Server: " + baseUi->scicat->getServerName());
 
     // check version and update CLI tools
-    updateCLITools();
+    //updateCLITools(); //TODO enable once datasetIngestor and datasetRetriever links are fixed
 
 #ifndef WINDOWS_SPECIFIC_TOOLS
     // get Kerberos token
