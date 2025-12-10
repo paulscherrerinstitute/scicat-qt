@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 
 project(SciCat LANGUAGES CXX)
 
@@ -8,17 +8,15 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set ( RESOURCES  psiArchiverResources.qrc)
+set(RESOURCES psiArchiverResources.qrc)
 
 add_definitions(-DQT_NO_DEBUG_OUTPUT)
 add_definitions(-DSKIP_KERBEROS_AUTH)
 #add_definitions(-DNO_DATACATALOGUE_TOOLS)
 
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
-find_package(Qt5Network REQUIRED)
-QT5_ADD_RESOURCES(RES_SOURCES ${RESOURCES})
+find_package(Qt6 COMPONENTS Widgets Network REQUIRED)
 
 
 if(WIN32)
@@ -73,7 +71,7 @@ if(WIN32)
       processhandler.h
       messagehandlergui.cpp
       messagehandlergui.h
-      ${RES_SOURCES}
+      ${RESOURCES}
     )
 else()
   add_executable(SciCat
@@ -125,7 +123,7 @@ else()
     processhandler.h
     messagehandlergui.cpp
     messagehandlergui.h
-    ${RES_SOURCES}
+    ${RESOURCES}
   )
 endif()
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16.5")
@@ -134,6 +132,6 @@ else()
     message("Please consider upgrading to CMake version > 3.16 for faster compilation.")
 endif()
 
-target_link_libraries(SciCat PRIVATE Qt5::Widgets Qt5::Network)
+target_link_libraries(SciCat PRIVATE Qt6::Widgets Qt6::Network)
 
 install(TARGETS SciCat RUNTIME DESTINATION bin)

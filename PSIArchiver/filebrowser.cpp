@@ -9,7 +9,7 @@ fileBrowser::fileBrowser(QWidget *parent) :
     baseUi = dynamic_cast<Dialog*>(parent);
     QSettings settingsContainer("PSI", "SciCat");
     QDir cwd;
-    QDir pgroupPath = QDir("/das/work/"+baseUi->scicat->experiment()->getPgroup().midRef(0,3)+"/"+baseUi->scicat->experiment()->getPgroup());
+    QDir pgroupPath = QDir("/das/work/"+baseUi->scicat->experiment()->getPgroup().mid(0,3)+"/"+baseUi->scicat->experiment()->getPgroup());
     if (pgroupPath.exists() && settingsContainer.value("usePgroupAsDefaultPath").toBool()){
          cwd.setPath(pgroupPath.path());
     } else {

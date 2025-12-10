@@ -131,9 +131,8 @@ void Settings::checkMetadataFile(){
         qDebug() << "is empty";
         ui->lineEditMetadataFile->setText(baseUi->defaultSettings.filenameMetadata);
     } else {
-        QRegExp rx("*.json");
-        rx.setPatternSyntax(QRegExp::Wildcard);
-        if (!rx.exactMatch(ui->lineEditMetadataFile->text())){
+        const auto text = ui->lineEditMetadataFile->text();
+        if (!text.endsWith(".json", Qt::CaseInsensitive)){
             ui->lineEditMetadataFile->setText(ui->lineEditMetadataFile->text() + ".json");
         }
     }
@@ -144,9 +143,8 @@ void Settings::checkFilelistingFile(){
     if (ui->lineEditFilelistingFile->text().length()==0){
         ui->lineEditFilelistingFile->setText(baseUi->defaultSettings.filenameFilelisting);
     } else {
-        QRegExp rx("*.txt");
-        rx.setPatternSyntax(QRegExp::Wildcard);
-        if (!rx.exactMatch(ui->lineEditFilelistingFile->text())){
+        const auto text = ui->lineEditFilelistingFile->text();
+        if (!text.endsWith(".txt", Qt::CaseInsensitive)){
             ui->lineEditFilelistingFile->setText(ui->lineEditFilelistingFile->text() + ".txt");
         }
     }

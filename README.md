@@ -14,18 +14,24 @@ SciCat
 The GUI relies on the [scicat-cli](https://github.com/paulscherrerinstitute/scicat-cli)
 tools. These will be installed automatically if they are not found in the path.
 
+### Qt Creator
+
+Open the top-level `CMakeLists.txt` in Qt Creator and select a Qt 6 kit; CMake will generate the project for you.
+
 ## Building
 
 Prerequisites:
-- cmake >= 3.5
-- gcc (Tested with gcc 8.3)
-- Qt5 >= 5.9
+- cmake >= 3.16
+- C++17 compiler (tested with gcc 10 and newer)
+- Qt6 >= 6.2 (tested with Qt 6.10)
 
 Additional prerequisites are required for packaging.
 
 ### Linux
 
 #### Requirements
+
+This is not valid not, has to be updated.
 
 The GUI is currently supported on RHEL 7 and newer. It is released as a self-contained
 AppImage, so it should run on other systems as well.

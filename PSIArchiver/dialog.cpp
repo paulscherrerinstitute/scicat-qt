@@ -1,6 +1,7 @@
 #include "dialog.h"
 
 #include <QDateTime>
+#include <QMetaEnum>
 #include <memory>
 #include "messagehandlergui.h"
 
@@ -601,8 +602,16 @@ void Dialog::setButtonsEnabled(bool enabled){
 }
 
 
+namespace {
+QString processErrorToString(QProcess::ProcessError error){
+    const QMetaEnum metaEnum = QMetaEnum::fromType<QProcess::ProcessError>();
+    const char* key = metaEnum.valueToKey(error);
+    return key ? QString::fromLatin1(key) : QString::number(static_cast<int>(error));
+}
+}
+
 void Dialog::ingestionFailed(QProcess::ProcessError error){
-    ingestionLog->ui->textEditIngestionLog->append("Error: " + (QString) error);
+    ingestionLog->ui->textEditIngestionLog->append("Error: " + processErrorToString(error));
     ingestionLog->ui->textEditIngestionLog->append(scicat->ingestion()->getIngestJob()->getJob()->errorString());
     qDebug() << "Error: " << error;
     ingestionFinished(1);

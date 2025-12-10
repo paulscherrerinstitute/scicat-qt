@@ -1,6 +1,5 @@
 #include "login.h"
 
-#include <QDesktopWidget>
 #include <QScreen>
 #include <QStyle>
 #include <QFileInfo>
@@ -208,7 +207,7 @@ void Login::openGate(){
 
 bool Login::fileExistsOnPath(const QString& filename){
     QString envPath = QString(getenv("PATH"));
-    for (auto p : envPath.split(":")){
+    for (const auto& p : envPath.split(":")){
         QString fPath = QDir(p).filePath(filename);
         if (QFile(fPath).exists()){
             return true;
