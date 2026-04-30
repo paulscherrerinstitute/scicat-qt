@@ -27,6 +27,25 @@ Prerequisites:
 
 Additional prerequisites are required for packaging.
 
+### GitHub Actions release builds
+
+The release workflow is defined in `.github/workflows/release.yml`.
+
+It runs on pull requests, pushes to `main`/`master`, manual dispatches, and `v*`
+tags. macOS jobs build both Intel (`x86_64`) and Apple Silicon (`arm64`) app
+bundles, deploy Qt runtime dependencies with `macdeployqt`, and upload zipped
+workflow artifacts. The bundles are ad-hoc signed for CI verification; they are
+not notarized.
+
+To publish a GitHub release with the macOS artifacts:
+
+```
+git tag vX.Y.Z
+git push origin vX.Y.Z
+```
+
+The tagged workflow creates or updates the matching GitHub release.
+
 ### Linux
 
 #### Requirements
