@@ -98,10 +98,93 @@ jobs:
           path: SciCat-macos-${{ matrix.arch }}.zip
           if-no-files-found: error
 
+  build-rhel9-rpm:
+    name: Enterprise Linux 9 RPM
+    runs-on: ubuntu-24.04
+    container:
+      image: almalinux:9
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache-rhel9
+
+    steps:
+      - name: Install build dependencies
+        run: |
+          dnf -y install dnf-plugins-core epel-release
+          dnf config-manager --set-enabled crb
+          dnf -y --setopt=install_weak_deps=False install \
+            ccache \
+            cmake \
+            gcc-c++ \
+            git \
+            ninja-build \
+            qt6-qtbase-devel \
+            rpm-build
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Resolve cache inputs
+        id: cache-inputs
+        run: |
+          echo "compiler=$(g++ --version | sha256sum | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "qt=$(rpm -q qt6-qtbase-devel | sha256sum | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: Restore compiler cache
+        uses: actions/cache@v4
+        with:
+          path: .ccache-rhel9
+          key: >-
+            ccache-rhel9-${{ runner.os }}-${{ runner.arch }}-${{ steps.cache-inputs.outputs.compiler }}-${{ steps.cache-inputs.outputs.qt }}-${{ hashFiles('.github/workflows/release.yml', 'CMakeLists.txt', 'PSIArchiver/CMakeLists.txt', 'PSIArchiver/**/*.cpp', 'PSIArchiver/**/*.h', 'PSIArchiver/**/*.ui', 'PSIArchiver/**/*.qrc') }}
+          restore-keys: |
+            ccache-rhel9-${{ runner.os }}-${{ runner.arch }}-${{ steps.cache-inputs.outputs.compiler }}-${{ steps.cache-inputs.outputs.qt }}-
+            ccache-rhel9-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Resolve build version
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" == v* ]]; then
+            version="${GITHUB_REF_NAME#v}"
+          else
+            version="0.0.${GITHUB_RUN_NUMBER}"
+          fi
+          echo "SCICAT_VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Configure
+        run: |
+          ccache --set-config=max_size=500M
+          ccache --zero-stats
+          cmake -S . -B build/rhel9 -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DSCICAT_VERSION="$SCICAT_VERSION"
+
+      - name: Build
+        run: cmake --build build/rhel9 --config Release --parallel
+
+      - name: Print compiler cache statistics
+        run: ccache --show-stats
+
+      - name: Build RPM
+        run: |
+          cmake --build build/rhel9 --target package
+          mkdir -p dist/rhel9
+          find build/rhel9 -maxdepth 1 -type f -name '*.rpm' -exec mv {} dist/rhel9/ \;
+          test -n "$(find dist/rhel9 -maxdepth 1 -type f -name '*.rpm' -print -quit)"
+          rpm -qpi dist/rhel9/*.rpm
+          rpm -qpl dist/rhel9/*.rpm
+
+      - name: Upload RHEL9 RPM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SciCat-rhel9-rpm
+          path: dist/rhel9/*.rpm
+          if-no-files-found: error
+
   github-release:
     name: GitHub release
     needs:
       - build-macos
+      - build-rhel9-rpm
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
     permissions:

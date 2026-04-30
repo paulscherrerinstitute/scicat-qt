@@ -37,7 +37,13 @@ bundles, deploy Qt runtime dependencies with `macdeployqt`, and upload zipped
 workflow artifacts. The bundles are ad-hoc signed for CI verification; they are
 not notarized.
 
-To publish a GitHub release with the macOS artifacts:
+The RPM job builds inside an AlmaLinux 9 container on GitHub's Linux runner. This
+keeps the build in an Enterprise Linux 9 userspace without requiring a subscribed
+Red Hat runner. If the package must be produced on Red Hat Enterprise Linux
+itself, replace the container with a registered RHEL 9 environment or a
+self-hosted RHEL 9 runner.
+
+To publish a GitHub release with the macOS and RPM artifacts:
 
 ```
 git tag vX.Y.Z
