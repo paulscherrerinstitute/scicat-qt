@@ -18,8 +18,6 @@ add_definitions(-DSKIP_KERBEROS_AUTH)
 
 find_package(Qt6 COMPONENTS Widgets Network Concurrent REQUIRED)
 
-set(SCICAT_VERSION "0.0.0" CACHE STRING "SciCat application version")
-
 set(SCICAT_SOURCES
   pch.h
   main.cpp
