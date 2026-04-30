@@ -2,20 +2,102 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish a release from main/master"
+        required: false
+        type: boolean
+        default: false
   pull_request:
   push:
     branches:
       - main
       - master
-    tags:
-      - "v*"
 
 permissions:
   contents: read
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
+  resolve-version:
+    name: Resolve version
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      publish: ${{ steps.resolve.outputs.publish }}
+      rpm_release_rhel9: ${{ steps.resolve.outputs.rpm_release_rhel9 }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate manual release branch
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "main" ] && [ "${GITHUB_REF_NAME}" != "master" ]; then
+            echo "::error::Manual releases must be run from main or master."
+            exit 1
+          fi
+
+      - name: Evaluate semantic release
+        id: semantic
+        if: github.event_name != 'pull_request'
+        uses: codfish/semantic-release-action@v4
+        with:
+          dry-run: true
+          additional-packages: conventional-changelog-conventionalcommits@7
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Resolve build version
+        id: resolve
+        env:
+          SEMANTIC_RELEASE_VERSION: ${{ steps.semantic.outputs.release-version }}
+          SEMANTIC_RELEASE_PUBLISHED: ${{ steps.semantic.outputs.new-release-published }}
+          MANUAL_PUBLISH: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
+        run: |
+          latest_tag="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --merged HEAD --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)"
+          version="${latest_tag#v}"
+          if [ -z "$version" ]; then
+            version="0.0.0"
+          fi
+
+          publish=false
+          if [ -n "$SEMANTIC_RELEASE_VERSION" ]; then
+            version="$SEMANTIC_RELEASE_VERSION"
+          fi
+
+          if [ "$SEMANTIC_RELEASE_PUBLISHED" = "true" ]; then
+            if [ "$GITHUB_EVENT_NAME" = "push" ] && { [ "$GITHUB_REF_NAME" = "main" ] || [ "$GITHUB_REF_NAME" = "master" ]; }; then
+              publish=true
+            elif [ "$MANUAL_PUBLISH" = "true" ]; then
+              publish=true
+            fi
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          if [ "$publish" = "true" ]; then
+            echo "rpm_release_rhel9=1.el9" >> "$GITHUB_OUTPUT"
+          else
+            echo "rpm_release_rhel9=0.ci.${GITHUB_RUN_NUMBER}.el9" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Print resolved version
+        run: |
+          echo "version=${{ steps.resolve.outputs.version }}"
+          echo "publish=${{ steps.resolve.outputs.publish }}"
+          echo "rpm_release_rhel9=${{ steps.resolve.outputs.rpm_release_rhel9 }}"
+
   build-macos:
     name: macOS ${{ matrix.arch }}
+    needs:
+      - resolve-version
     runs-on: ${{ matrix.runner }}
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
@@ -55,15 +137,6 @@ jobs:
             ccache-${{ runner.os }}-${{ matrix.arch }}-${{ steps.cache-inputs.outputs.compiler }}-${{ steps.cache-inputs.outputs.qt }}-
             ccache-${{ runner.os }}-${{ matrix.arch }}-
 
-      - name: Resolve build version
-        run: |
-          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" == v* ]]; then
-            version="${GITHUB_REF_NAME#v}"
-          else
-            version="0.0.${GITHUB_RUN_NUMBER}"
-          fi
-          echo "SCICAT_VERSION=$version" >> "$GITHUB_ENV"
-
       - name: Configure
         run: |
           ccache --set-config=max_size=500M
@@ -72,7 +145,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="$(brew --prefix qt)" \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DSCICAT_VERSION="$SCICAT_VERSION"
+            -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
 
       - name: Build
         run: cmake --build build/release --config Release --parallel
@@ -100,6 +173,8 @@ jobs:
 
   build-rhel9-rpm:
     name: Enterprise Linux 9 RPM
+    needs:
+      - resolve-version
     runs-on: ubuntu-24.04
     container:
       image: almalinux:9
@@ -139,15 +214,6 @@ jobs:
             ccache-rhel9-${{ runner.os }}-${{ runner.arch }}-${{ steps.cache-inputs.outputs.compiler }}-${{ steps.cache-inputs.outputs.qt }}-
             ccache-rhel9-${{ runner.os }}-${{ runner.arch }}-
 
-      - name: Resolve build version
-        run: |
-          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" == v* ]]; then
-            version="${GITHUB_REF_NAME#v}"
-          else
-            version="0.0.${GITHUB_RUN_NUMBER}"
-          fi
-          echo "SCICAT_VERSION=$version" >> "$GITHUB_ENV"
-
       - name: Configure
         run: |
           ccache --set-config=max_size=500M
@@ -156,7 +222,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=/usr \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DSCICAT_VERSION="$SCICAT_VERSION"
+            -DSCICAT_PACKAGE_RELEASE="${{ needs.resolve-version.outputs.rpm_release_rhel9 }}" \
+            -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
 
       - name: Build
         run: cmake --build build/rhel9 --config Release --parallel
@@ -181,31 +248,31 @@ jobs:
           if-no-files-found: error
 
   github-release:
-    name: GitHub release
+    name: Semantic release
     needs:
+      - resolve-version
       - build-macos
       - build-rhel9-rpm
-    if: startsWith(github.ref, 'refs/tags/')
+    if: needs.resolve-version.outputs.publish == 'true'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
 
     steps:
-      - name: Download macOS artifacts
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download release artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
 
-      - name: Publish release assets
+      - name: Publish semantic release
+        uses: codfish/semantic-release-action@v4
+        with:
+          additional-packages: conventional-changelog-conventionalcommits@7
         env:
-          GH_TOKEN: ${{ github.token }}
-          TAG_NAME: ${{ github.ref_name }}
-        run: |
-          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
-            gh release upload "$TAG_NAME" dist/* --clobber
-          else
-            gh release create "$TAG_NAME" dist/* \
-              --title "$TAG_NAME" \
-              --notes "Automated SciCat macOS release."
-          fi
+          GITHUB_TOKEN: ${{ github.token }}

@@ -31,90 +31,59 @@ Additional prerequisites are required for packaging.
 
 The release workflow is defined in `.github/workflows/release.yml`.
 
-It runs on pull requests, pushes to `main`/`master`, manual dispatches, and `v*`
-tags. macOS jobs build both Intel (`x86_64`) and Apple Silicon (`arm64`) app
-bundles, deploy Qt runtime dependencies with `macdeployqt`, and upload zipped
-workflow artifacts. The bundles are ad-hoc signed for CI verification; they are
-not notarized.
+It runs on pull requests, pushes to `main`/`master`, and manual dispatches.
+macOS jobs build both Intel (`x86_64`) and Apple Silicon (`arm64`) app bundles,
+deploy Qt runtime dependencies with `macdeployqt`, and upload zipped workflow
+artifacts. The bundles are ad-hoc signed for CI verification; they are not
+notarized.
 
-The RPM job builds inside an AlmaLinux 9 container on GitHub's Linux runner. This
-keeps the build in an Enterprise Linux 9 userspace without requiring a subscribed
-Red Hat runner. If the package must be produced on Red Hat Enterprise Linux
-itself, replace the container with a registered RHEL 9 environment or a
-self-hosted RHEL 9 runner.
+The Linux RPM job builds inside an Enterprise Linux 9 compatible container on
+GitHub's Linux runner. The RHEL 9 compatible RPM uses AlmaLinux 9 and distro Qt6
+packages from EPEL. If packages must be produced on Red Hat Enterprise Linux
+itself, replace the container with a registered RHEL environment or a self-hosted
+RHEL runner.
 
-To publish a GitHub release with the macOS and RPM artifacts:
+Release versions are resolved by semantic-release from [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
+since the latest `vMAJOR.MINOR.PATCH` tag:
 
-```
-git tag vX.Y.Z
-git push origin vX.Y.Z
-```
+- `fix:` and `perf:` increment the patch version.
+- `feat:` increments the minor version.
+- `!` in the commit header or a `BREAKING CHANGE:` footer increments the major
+  version.
+- Other commit types do not publish a new release by themselves.
 
-The tagged workflow creates or updates the matching GitHub release.
+When a push to `main` or `master` contains a release-worthy commit, the workflow
+builds all artifacts, then semantic-release creates the next
+`vMAJOR.MINOR.PATCH` tag and the matching GitHub release. Pull request runs
+never publish releases, never create tags, and keep the application version at
+the latest released tag; their RPM release field is marked as
+`0.ci.<run-number>.el9`.
+
+Manual workflow runs are dry runs by default. To publish on demand, run the
+workflow from `main` or `master` with `publish` enabled. The release version is
+still resolved from Conventional Commits.
 
 ### Linux
 
-#### Requirements
+Only RHEL 9 compatible RPM packages are supported.
 
-This is not valid not, has to be updated.
-
-The GUI is currently supported on RHEL 7 and newer. It is released as a self-contained
-AppImage, so it should run on other systems as well.
-
-The following system libraries were sufficient on RHEL7:
+Install the RPM with `dnf` so runtime dependencies are resolved automatically:
 
 ```
-sudo yum install qt5-qtbase-devel qt5-qtbase \
-    libxcb libxcb-devel xcb-util xcb-util-devel \
-    mesa-libGL-devel libxkbcommon-devel \
-    qt5-qtsvg qt5-qtimageformats \
-    cmake3 devtoolset-8 \
-    gtk2-devel qt5-qtstyleplugins qt5-qttranslations qt5-qttools-devel
-
-scl enable devtoolset-8 bash
+sudo dnf install ./scicat-*.rpm
 ```
 
-#### Build script
-A script is provided for compiling on linux:
+If Qt6 dependencies are not available yet, enable EPEL first:
 
 ```
-bin/build.linux.sh
+sudo subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
+sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 ```
 
-This should produce a file like `SciCat-*-x86_64.AppImage` in the current directory.
-
-#### Manual build
-
-You can also build and package the executable manually.
-
-Compilation uses an out-of-source `cmake` compilation. For release the
-executable is packaged into an AppImage using
-[linuxdeployqt](https://github.com/probonopd/linuxdeployqt).
-
-First, build the executable. We change the install prefix here from the default
-`/usr/local` to `/usr`, which is expected for AppImages.
+Run the installed application with:
 
 ```
-cmake ./ -DCMAKE_INSTALL_PREFIX=/usr -B./release
-
-cd ./release
-make -j$(nproc)
-make DESTDIR=AppDir -j$(nproc) install
-```
-
-This compiles a dynamically-linked `release/SciCat` executable prepares `release/AppDir` for linuxdeployqt.
-
-Now we package the AppImage. RHEL7 requires linuxdeployqt <= 7, which we first download:
-
-```
-curl -O -L https://github.com/probonopd/linuxdeployqt/releases/download/7/linuxdeployqt-7-x86_64.AppImage
-chmod a+x linuxdeployqt-*-x86_64.AppImage
-```
-
-Now package SciCat:
-
-```
-./linuxdeployqt-7-x86_64.AppImage usr/share/applications/scicat.desktop -appimage -extra-plugins=iconengines,imageformats
+SciCat
 ```
 
 ### Windows
