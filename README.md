@@ -37,11 +37,13 @@ deploy Qt runtime dependencies with `macdeployqt`, and upload zipped workflow
 artifacts. The bundles are ad-hoc signed for CI verification; they are not
 notarized.
 
-The Linux RPM job builds inside an Enterprise Linux 9 compatible container on
+The Linux RPM jobs build inside Enterprise Linux compatible containers on
 GitHub's Linux runner. The RHEL 9 compatible RPM uses AlmaLinux 9 and distro Qt6
-packages from EPEL. If packages must be produced on Red Hat Enterprise Linux
-itself, replace the container with a registered RHEL environment or a self-hosted
-RHEL runner.
+packages from EPEL. The RHEL 8 compatible RPM uses AlmaLinux 8 and bundles the
+Qt6 runtime into the package because Qt6 is not available from standard EPEL 8;
+the CI build uses the `laridae/qt6` COPR repository as the EL8 Qt6 source. If
+packages must be produced on Red Hat Enterprise Linux itself, replace the
+containers with registered RHEL environments or self-hosted RHEL runners.
 
 Release versions are resolved by semantic-release from [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 since the latest `vMAJOR.MINOR.PATCH` tag:
@@ -57,7 +59,7 @@ builds all artifacts, then semantic-release creates the next
 `vMAJOR.MINOR.PATCH` tag and the matching GitHub release. Pull request runs
 never publish releases, never create tags, and keep the application version at
 the latest released tag; their RPM release field is marked as
-`0.ci.<run-number>.el9`.
+`0.ci.<run-number>.el8` or `0.ci.<run-number>.el9`.
 
 Manual workflow runs are dry runs by default. To publish on demand, run the
 workflow from `main` or `master` with `publish` enabled. The release version is
@@ -65,7 +67,7 @@ still resolved from Conventional Commits.
 
 ### Linux
 
-Only RHEL 9 compatible RPM packages are supported.
+RHEL 8 and RHEL 9 compatible RPM packages are supported.
 
 Install the RPM with `dnf` so runtime dependencies are resolved automatically:
 
@@ -76,8 +78,8 @@ sudo dnf install ./scicat-*.rpm
 If Qt6 dependencies are not available yet, enable EPEL first:
 
 ```
-sudo subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
-sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+sudo subscription-manager repos --enable codeready-builder-for-rhel-$(rpm -E %rhel)-$(arch)-rpms
+sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E %rhel).noarch.rpm
 ```
 
 Run the installed application with:

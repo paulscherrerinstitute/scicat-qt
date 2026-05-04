@@ -28,6 +28,7 @@ jobs:
     outputs:
       version: ${{ steps.resolve.outputs.version }}
       publish: ${{ steps.resolve.outputs.publish }}
+      rpm_release_rhel8: ${{ steps.resolve.outputs.rpm_release_rhel8 }}
       rpm_release_rhel9: ${{ steps.resolve.outputs.rpm_release_rhel9 }}
 
     steps:
@@ -83,8 +84,10 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "publish=$publish" >> "$GITHUB_OUTPUT"
           if [ "$publish" = "true" ]; then
+            echo "rpm_release_rhel8=1.el8" >> "$GITHUB_OUTPUT"
             echo "rpm_release_rhel9=1.el9" >> "$GITHUB_OUTPUT"
           else
+            echo "rpm_release_rhel8=0.ci.${GITHUB_RUN_NUMBER}.el8" >> "$GITHUB_OUTPUT"
             echo "rpm_release_rhel9=0.ci.${GITHUB_RUN_NUMBER}.el9" >> "$GITHUB_OUTPUT"
           fi
 
@@ -92,6 +95,7 @@ jobs:
         run: |
           echo "version=${{ steps.resolve.outputs.version }}"
           echo "publish=${{ steps.resolve.outputs.publish }}"
+          echo "rpm_release_rhel8=${{ steps.resolve.outputs.rpm_release_rhel8 }}"
           echo "rpm_release_rhel9=${{ steps.resolve.outputs.rpm_release_rhel9 }}"
 
   build-macos:
@@ -247,11 +251,117 @@ jobs:
           path: dist/rhel9/*.rpm
           if-no-files-found: error
 
+  build-rhel8-rpm:
+    name: Enterprise Linux 8 RPM
+    needs:
+      - resolve-version
+    runs-on: ubuntu-24.04
+    container:
+      image: almalinux:8
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache-rhel8
+
+    steps:
+      - name: Install build dependencies
+        run: |
+          dnf -y install dnf-plugins-core epel-release
+          dnf config-manager --set-enabled powertools || dnf config-manager --set-enabled PowerTools
+          dnf copr enable -y laridae/qt6
+          dnf -y --setopt=install_weak_deps=False install \
+            ccache \
+            cmake \
+            gcc-c++ \
+            git \
+            ninja-build \
+            qt6-qtbase-devel \
+            rpm-build
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Resolve Qt bundle paths
+        id: qt-paths
+        run: |
+          qt_core_library="$(ldconfig -p | awk '/libQt6Core\.so\.6 \(libc6,x86-64\)/ {print $NF; exit}')"
+          if [ -z "$qt_core_library" ]; then
+            qt_core_library="$(rpm -ql qt6-qtbase | grep -E '/libQt6Core\.so\.6$' | head -n 1 || true)"
+          fi
+          if [ -z "$qt_core_library" ]; then
+            echo "::error::Unable to locate libQt6Core.so.6"
+            exit 1
+          fi
+          qt_library_dir="$(dirname "$qt_core_library")"
+
+          qt_plugin_dir="$(qtpaths6 --plugin-dir 2>/dev/null || /usr/lib64/qt6/bin/qtpaths --plugin-dir 2>/dev/null || true)"
+          if [ -z "$qt_plugin_dir" ]; then
+            qt_plugin_dir="/usr/lib64/qt6/plugins"
+          fi
+          if [ ! -d "$qt_plugin_dir" ]; then
+            echo "::error::Unable to locate Qt plugin directory: $qt_plugin_dir"
+            exit 1
+          fi
+
+          echo "library_dir=$qt_library_dir" >> "$GITHUB_OUTPUT"
+          echo "plugin_dir=$qt_plugin_dir" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve cache inputs
+        id: cache-inputs
+        run: |
+          echo "compiler=$(g++ --version | sha256sum | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "qt=$(rpm -q qt6-qtbase-devel | sha256sum | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: Restore compiler cache
+        uses: actions/cache@v4
+        with:
+          path: .ccache-rhel8
+          key: >-
+            ccache-rhel8-${{ runner.os }}-${{ runner.arch }}-${{ steps.cache-inputs.outputs.compiler }}-${{ steps.cache-inputs.outputs.qt }}-${{ hashFiles('.github/workflows/release.yml', 'CMakeLists.txt', 'PSIArchiver/CMakeLists.txt', 'cmake/**', 'PSIArchiver/**/*.cpp', 'PSIArchiver/**/*.h', 'PSIArchiver/**/*.ui', 'PSIArchiver/**/*.qrc') }}
+          restore-keys: |
+            ccache-rhel8-${{ runner.os }}-${{ runner.arch }}-${{ steps.cache-inputs.outputs.compiler }}-${{ steps.cache-inputs.outputs.qt }}-
+            ccache-rhel8-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Configure
+        run: |
+          ccache --set-config=max_size=500M
+          ccache --zero-stats
+          cmake -S . -B build/rhel8 -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/opt/scicat \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DSCICAT_BUNDLE_QT_RUNTIME=ON \
+            -DSCICAT_BUNDLED_QT_LIBRARY_DIR="${{ steps.qt-paths.outputs.library_dir }}" \
+            -DSCICAT_BUNDLED_QT_PLUGIN_DIR="${{ steps.qt-paths.outputs.plugin_dir }}" \
+            -DSCICAT_PACKAGE_RELEASE="${{ needs.resolve-version.outputs.rpm_release_rhel8 }}" \
+            -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
+
+      - name: Build
+        run: cmake --build build/rhel8 --config Release --parallel
+
+      - name: Print compiler cache statistics
+        run: ccache --show-stats
+
+      - name: Build RPM
+        run: |
+          cmake --build build/rhel8 --target package
+          mkdir -p dist/rhel8
+          find build/rhel8 -maxdepth 1 -type f -name '*.rpm' -exec mv {} dist/rhel8/ \;
+          test -n "$(find dist/rhel8 -maxdepth 1 -type f -name '*.rpm' -print -quit)"
+          rpm -qpi dist/rhel8/*.rpm
+          rpm -qpl dist/rhel8/*.rpm
+
+      - name: Upload RHEL8 RPM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SciCat-rhel8-rpm
+          path: dist/rhel8/*.rpm
+          if-no-files-found: error
+
   github-release:
     name: Semantic release
     needs:
       - resolve-version
       - build-macos
+      - build-rhel8-rpm
       - build-rhel9-rpm
     if: needs.resolve-version.outputs.publish == 'true'
     runs-on: ubuntu-24.04
