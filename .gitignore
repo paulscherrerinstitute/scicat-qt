@@ -1,5 +1,8 @@
 __pycache__
 
+# IDE
+*.idea
+
 # cmake temp files. Could be restricted to Software/00-General/SciCatArchiverGUI/PSIArchiver/**
 CMakeLists.txt.user
 CMakeCache.txt
