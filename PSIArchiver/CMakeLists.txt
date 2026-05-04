@@ -125,11 +125,13 @@ if(SCICAT_BUNDLE_QT_RUNTIME AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
     DESTINATION bin
   )
 
-  install(
-    PROGRAMS "${CMAKE_SOURCE_DIR}/cmake/SciCatBundledQt.sh"
-    DESTINATION /usr/bin
-    RENAME SciCat
-  )
+  if(SCICAT_INSTALL_SYSTEM_INTEGRATION)
+    install(
+      PROGRAMS "${CMAKE_SOURCE_DIR}/cmake/SciCatBundledQt.sh"
+      DESTINATION /usr/bin
+      RENAME SciCat
+    )
+  endif()
 endif()
 
 install(TARGETS SciCat

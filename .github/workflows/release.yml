@@ -176,7 +176,7 @@ jobs:
           if-no-files-found: error
 
   build-rhel9-rpm:
-    name: Enterprise Linux 9 RPM
+    name: Enterprise Linux 9 packages
     needs:
       - resolve-version
     runs-on: ubuntu-24.04
@@ -202,6 +202,31 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Resolve Qt bundle paths
+        id: qt-paths
+        run: |
+          qt_core_library="$(ldconfig -p | awk '/libQt6Core\.so\.6 \(libc6,x86-64\)/ {print $NF; exit}')"
+          if [ -z "$qt_core_library" ]; then
+            qt_core_library="$(rpm -ql qt6-qtbase | grep -E '/libQt6Core\.so\.6$' | head -n 1 || true)"
+          fi
+          if [ -z "$qt_core_library" ]; then
+            echo "::error::Unable to locate libQt6Core.so.6"
+            exit 1
+          fi
+          qt_library_dir="$(dirname "$qt_core_library")"
+
+          qt_plugin_dir="$(qtpaths6 --plugin-dir 2>/dev/null || /usr/lib64/qt6/bin/qtpaths --plugin-dir 2>/dev/null || true)"
+          if [ -z "$qt_plugin_dir" ]; then
+            qt_plugin_dir="/usr/lib64/qt6/plugins"
+          fi
+          if [ ! -d "$qt_plugin_dir" ]; then
+            echo "::error::Unable to locate Qt plugin directory: $qt_plugin_dir"
+            exit 1
+          fi
+
+          echo "library_dir=$qt_library_dir" >> "$GITHUB_OUTPUT"
+          echo "plugin_dir=$qt_plugin_dir" >> "$GITHUB_OUTPUT"
+
       - name: Resolve cache inputs
         id: cache-inputs
         run: |
@@ -213,7 +238,7 @@ jobs:
         with:
           path: .ccache-rhel9
           key: >-
-            ccache-rhel9-${{ runner.os }}-${{ runner.arch }}-${{ steps.cache-inputs.outputs.compiler }}-${{ steps.cache-inputs.outputs.qt }}-${{ hashFiles('.github/workflows/release.yml', 'CMakeLists.txt', 'PSIArchiver/CMakeLists.txt', 'PSIArchiver/**/*.cpp', 'PSIArchiver/**/*.h', 'PSIArchiver/**/*.ui', 'PSIArchiver/**/*.qrc') }}
+            ccache-rhel9-${{ runner.os }}-${{ runner.arch }}-${{ steps.cache-inputs.outputs.compiler }}-${{ steps.cache-inputs.outputs.qt }}-${{ hashFiles('.github/workflows/release.yml', 'CMakeLists.txt', 'PSIArchiver/CMakeLists.txt', 'cmake/**', 'PSIArchiver/**/*.cpp', 'PSIArchiver/**/*.h', 'PSIArchiver/**/*.ui', 'PSIArchiver/**/*.qrc') }}
           restore-keys: |
             ccache-rhel9-${{ runner.os }}-${{ runner.arch }}-${{ steps.cache-inputs.outputs.compiler }}-${{ steps.cache-inputs.outputs.qt }}-
             ccache-rhel9-${{ runner.os }}-${{ runner.arch }}-
@@ -226,6 +251,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=/usr \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DSCICAT_PACKAGE_GENERATORS=RPM \
+            -DSCICAT_PACKAGE_SUFFIX=rhel9-x86_64 \
             -DSCICAT_PACKAGE_RELEASE="${{ needs.resolve-version.outputs.rpm_release_rhel9 }}" \
             -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
 
@@ -251,8 +278,37 @@ jobs:
           path: dist/rhel9/*.rpm
           if-no-files-found: error
 
+      - name: Configure Linux archive
+        run: |
+          cmake -S . -B build/rhel9-archive -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/ \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DSCICAT_BUNDLE_QT_RUNTIME=ON \
+            -DSCICAT_INSTALL_SYSTEM_INTEGRATION=OFF \
+            -DSCICAT_BUNDLED_QT_LIBRARY_DIR="${{ steps.qt-paths.outputs.library_dir }}" \
+            -DSCICAT_BUNDLED_QT_PLUGIN_DIR="${{ steps.qt-paths.outputs.plugin_dir }}" \
+            -DSCICAT_PACKAGE_GENERATORS=TGZ \
+            -DSCICAT_PACKAGE_SUFFIX=rhel9-x86_64 \
+            -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
+
+      - name: Build Linux archive
+        run: |
+          cmake --build build/rhel9-archive --config Release --parallel
+          cmake --build build/rhel9-archive --target package
+          find build/rhel9-archive -maxdepth 1 -type f -name '*.tar.gz' -exec mv {} dist/rhel9/ \;
+          test -n "$(find dist/rhel9 -maxdepth 1 -type f -name '*.tar.gz' -print -quit)"
+          tar -tzf dist/rhel9/*.tar.gz | sed -n '1,40p'
+
+      - name: Upload RHEL9 Linux archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SciCat-rhel9-linux-archive
+          path: dist/rhel9/*.tar.gz
+          if-no-files-found: error
+
   build-rhel8-rpm:
-    name: Enterprise Linux 8 RPM
+    name: Enterprise Linux 8 packages
     needs:
       - resolve-version
     runs-on: ubuntu-24.04
@@ -331,6 +387,8 @@ jobs:
             -DSCICAT_BUNDLE_QT_RUNTIME=ON \
             -DSCICAT_BUNDLED_QT_LIBRARY_DIR="${{ steps.qt-paths.outputs.library_dir }}" \
             -DSCICAT_BUNDLED_QT_PLUGIN_DIR="${{ steps.qt-paths.outputs.plugin_dir }}" \
+            -DSCICAT_PACKAGE_GENERATORS=RPM \
+            -DSCICAT_PACKAGE_SUFFIX=rhel8-x86_64 \
             -DSCICAT_PACKAGE_RELEASE="${{ needs.resolve-version.outputs.rpm_release_rhel8 }}" \
             -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
 
@@ -354,6 +412,35 @@ jobs:
         with:
           name: SciCat-rhel8-rpm
           path: dist/rhel8/*.rpm
+          if-no-files-found: error
+
+      - name: Configure Linux archive
+        run: |
+          cmake -S . -B build/rhel8-archive -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/ \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DSCICAT_BUNDLE_QT_RUNTIME=ON \
+            -DSCICAT_INSTALL_SYSTEM_INTEGRATION=OFF \
+            -DSCICAT_BUNDLED_QT_LIBRARY_DIR="${{ steps.qt-paths.outputs.library_dir }}" \
+            -DSCICAT_BUNDLED_QT_PLUGIN_DIR="${{ steps.qt-paths.outputs.plugin_dir }}" \
+            -DSCICAT_PACKAGE_GENERATORS=TGZ \
+            -DSCICAT_PACKAGE_SUFFIX=rhel8-x86_64 \
+            -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
+
+      - name: Build Linux archive
+        run: |
+          cmake --build build/rhel8-archive --config Release --parallel
+          cmake --build build/rhel8-archive --target package
+          find build/rhel8-archive -maxdepth 1 -type f -name '*.tar.gz' -exec mv {} dist/rhel8/ \;
+          test -n "$(find dist/rhel8 -maxdepth 1 -type f -name '*.tar.gz' -print -quit)"
+          tar -tzf dist/rhel8/*.tar.gz | sed -n '1,40p'
+
+      - name: Upload RHEL8 Linux archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SciCat-rhel8-linux-archive
+          path: dist/rhel8/*.tar.gz
           if-no-files-found: error
 
   github-release:

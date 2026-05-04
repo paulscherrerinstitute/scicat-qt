@@ -37,13 +37,15 @@ deploy Qt runtime dependencies with `macdeployqt`, and upload zipped workflow
 artifacts. The bundles are ad-hoc signed for CI verification; they are not
 notarized.
 
-The Linux RPM jobs build inside Enterprise Linux compatible containers on
-GitHub's Linux runner. The RHEL 9 compatible RPM uses AlmaLinux 9 and distro Qt6
-packages from EPEL. The RHEL 8 compatible RPM uses AlmaLinux 8 and bundles the
-Qt6 runtime into the package because Qt6 is not available from standard EPEL 8;
-the CI build uses the `laridae/qt6` COPR repository as the EL8 Qt6 source. If
-packages must be produced on Red Hat Enterprise Linux itself, replace the
-containers with registered RHEL environments or self-hosted RHEL runners.
+The Linux jobs build inside Enterprise Linux compatible containers on GitHub's
+Linux runner. Each Linux target produces an RPM and a relocatable `.tar.gz`
+archive. The RHEL 9 compatible RPM uses AlmaLinux 9 and distro Qt6 packages
+from EPEL. The relocatable archives bundle the Qt6 runtime so they can be
+unpacked into a module prefix without installing an RPM. The RHEL 8 compatible
+build uses AlmaLinux 8 and the `laridae/qt6` COPR repository as the EL8 Qt6
+source because Qt6 is not available from standard EPEL 8. If packages must be
+produced on Red Hat Enterprise Linux itself, replace the containers with
+registered RHEL environments or self-hosted RHEL runners.
 
 Release versions are resolved by semantic-release from [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 since the latest `vMAJOR.MINOR.PATCH` tag:
@@ -67,7 +69,8 @@ still resolved from Conventional Commits.
 
 ### Linux
 
-RHEL 8 and RHEL 9 compatible RPM packages are supported.
+RHEL 8 and RHEL 9 compatible RPM packages and relocatable Linux archives are
+supported.
 
 Install the RPM with `dnf` so runtime dependencies are resolved automatically:
 
@@ -86,6 +89,14 @@ Run the installed application with:
 
 ```
 SciCat
+```
+
+For module-style deployment, unpack the matching Linux archive into the module
+prefix and expose its `bin` directory:
+
+```
+tar -xzf scicat-*-rhel9-x86_64.tar.gz -C /path/to/module/prefix --strip-components=1
+/path/to/module/prefix/bin/SciCat
 ```
 
 ### Windows
