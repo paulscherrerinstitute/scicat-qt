@@ -18,6 +18,10 @@ add_definitions(-DSKIP_KERBEROS_AUTH)
 
 find_package(Qt6 COMPONENTS Widgets Network Concurrent REQUIRED)
 
+option(SCICAT_BUNDLE_QT_RUNTIME "Install a bundled Qt runtime with SciCat" OFF)
+set(SCICAT_BUNDLED_QT_LIBRARY_DIR "" CACHE PATH "Qt library directory to bundle")
+set(SCICAT_BUNDLED_QT_PLUGIN_DIR "" CACHE PATH "Qt plugin directory to bundle")
+
 set(SCICAT_SOURCES
   pch.h
   main.cpp
@@ -91,6 +95,42 @@ else()
 endif()
 
 target_link_libraries(SciCat PRIVATE Qt6::Widgets Qt6::Network Qt6::Concurrent)
+
+if(SCICAT_BUNDLE_QT_RUNTIME AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  if(NOT IS_DIRECTORY "${SCICAT_BUNDLED_QT_LIBRARY_DIR}")
+    message(FATAL_ERROR "SCICAT_BUNDLED_QT_LIBRARY_DIR must point to an existing Qt library directory")
+  endif()
+  if(NOT IS_DIRECTORY "${SCICAT_BUNDLED_QT_PLUGIN_DIR}")
+    message(FATAL_ERROR "SCICAT_BUNDLED_QT_PLUGIN_DIR must point to an existing Qt plugin directory")
+  endif()
+
+  set_target_properties(SciCat PROPERTIES
+    INSTALL_RPATH "$ORIGIN/../lib"
+  )
+
+  install(
+    DIRECTORY "${SCICAT_BUNDLED_QT_LIBRARY_DIR}/"
+    DESTINATION lib
+    FILES_MATCHING PATTERN "libQt6*.so*"
+  )
+
+  install(
+    DIRECTORY "${SCICAT_BUNDLED_QT_PLUGIN_DIR}/"
+    DESTINATION plugins
+    FILES_MATCHING PATTERN "*.so"
+  )
+
+  install(
+    FILES "${CMAKE_SOURCE_DIR}/cmake/qt.conf"
+    DESTINATION bin
+  )
+
+  install(
+    PROGRAMS "${CMAKE_SOURCE_DIR}/cmake/SciCatBundledQt.sh"
+    DESTINATION /usr/bin
+    RENAME SciCat
+  )
+endif()
 
 install(TARGETS SciCat
   BUNDLE DESTINATION .
