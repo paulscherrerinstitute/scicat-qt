@@ -48,12 +48,25 @@ jobs:
       - name: Evaluate semantic release
         id: semantic
         if: github.event_name != 'pull_request'
-        uses: codfish/semantic-release-action@v4
-        with:
-          dry-run: true
-          additional-packages: conventional-changelog-conventionalcommits@7
         env:
           GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          npx --yes \
+            -p semantic-release@24 \
+            -p conventional-changelog-conventionalcommits@7 \
+            -p @semantic-release/commit-analyzer \
+            -p @semantic-release/release-notes-generator \
+            -p @semantic-release/github \
+            semantic-release --dry-run 2>&1 | tee semantic-release.log
+
+          version="$(grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+\S*' semantic-release.log | tail -n 1 || true)"
+          if [ -n "$version" ]; then
+            echo "release-version=$version" >> "$GITHUB_OUTPUT"
+            echo "new-release-published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "new-release-published=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Resolve build version
         id: resolve
@@ -468,8 +481,13 @@ jobs:
           merge-multiple: true
 
       - name: Publish semantic release
-        uses: codfish/semantic-release-action@v4
-        with:
-          additional-packages: conventional-changelog-conventionalcommits@7
         env:
           GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          npx --yes \
+            -p semantic-release@24 \
+            -p conventional-changelog-conventionalcommits@7 \
+            -p @semantic-release/commit-analyzer \
+            -p @semantic-release/release-notes-generator \
+            -p @semantic-release/github \
+            semantic-release
