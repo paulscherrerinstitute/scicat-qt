@@ -32,6 +32,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CPACK_RPM_FILE_NAME "RPM-DEFAULT")
   set(CPACK_RPM_PACKAGE_RELEASE "${SCICAT_PACKAGE_RELEASE}")
   set(CPACK_RPM_PACKAGE_AUTOREQ ON)
+  set(CPACK_RPM_PACKAGE_REQUIRES "libb2, double-conversion")
   set(CPACK_RPM_SPEC_MORE_DEFINE "%global __requires_exclude ^lib(Qt6.*|icu.*)\\\\.so.*$")
 
   include(CPack)
