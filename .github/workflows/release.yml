@@ -25,6 +25,10 @@ jobs:
   resolve-version:
     name: Resolve version
     runs-on: ubuntu-24.04
+    # semantic-release verifies push access even under --dry-run, so this job
+    # needs write even though it only resolves the version number.
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.resolve.outputs.version }}
       publish: ${{ steps.resolve.outputs.publish }}
@@ -185,6 +189,8 @@ jobs:
           name: SciCat-macos-${{ matrix.arch }}
           path: SciCat-macos-${{ matrix.arch }}.zip
           if-no-files-found: error
+          # Hand-off to github-release only; published assets live on the release.
+          retention-days: ${{ github.event_name == 'pull_request' && 3 || 7 }}
 
   build-rhel9-rpm:
     name: Enterprise Linux 9 packages
@@ -288,6 +294,7 @@ jobs:
           name: SciCat-rhel9-rpm
           path: dist/rhel9/*.rpm
           if-no-files-found: error
+          retention-days: ${{ github.event_name == 'pull_request' && 3 || 7 }}
 
       - name: Configure Linux archive
         run: |
@@ -317,6 +324,7 @@ jobs:
           name: SciCat-rhel9-linux-archive
           path: dist/rhel9/*.tar.gz
           if-no-files-found: error
+          retention-days: ${{ github.event_name == 'pull_request' && 3 || 7 }}
 
   build-rhel8-rpm:
     name: Enterprise Linux 8 packages
@@ -424,6 +432,7 @@ jobs:
           name: SciCat-rhel8-rpm
           path: dist/rhel8/*.rpm
           if-no-files-found: error
+          retention-days: ${{ github.event_name == 'pull_request' && 3 || 7 }}
 
       - name: Configure Linux archive
         run: |
@@ -453,6 +462,7 @@ jobs:
           name: SciCat-rhel8-linux-archive
           path: dist/rhel8/*.tar.gz
           if-no-files-found: error
+          retention-days: ${{ github.event_name == 'pull_request' && 3 || 7 }}
 
   github-release:
     name: Semantic release
