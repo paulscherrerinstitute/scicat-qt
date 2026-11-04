@@ -116,7 +116,7 @@ void DatasetIngestor::start(QTextEdit* outStream){
     }
 
     // compile ingestion command
-    QStringList arguments;
+    QStringList arguments{"datasetIngestor"};
 
     if (base->ui->checkBoxIngest->isChecked()>0){
         arguments << "--ingest";
@@ -124,16 +124,7 @@ void DatasetIngestor::start(QTextEdit* outStream){
     if (base->ui->checkBoxArchive->isChecked()>0){
         arguments << "--autoarchive";
     }
-    switch (base->scicat->serverID){
-    case 0:
-        break;
-    case 1:
-        arguments << "-testenv";
-        break;
-    case 2:
-        arguments << "-devenv";
-        break;
-    }
+    arguments << DataCatalogue::cliEnvironmentArguments(base->scicat->serverID);
 
 #ifdef WINDOWS_SPECIFIC_TOOLS
     arguments << "--noninteractive" << "--allowexistingsource" << "--user" << base->scicat->user()->getUsername() + ":" + base->scicat->user()->getPword() << m_metadataFilename << m_filelistingFilename;
@@ -145,10 +136,10 @@ void DatasetIngestor::start(QTextEdit* outStream){
     qDebug() << "starting ingestion";
 
     if (settingsContainer.value("printIngestion", base->defaultSettings.printIngestion).toBool()){
-        qDebug() << settingsContainer.value("datasetIngestorBinary", base->defaultSettings.datasetIngestorBinary).toString() << " " << arguments;
+        qDebug() << settingsContainer.value("scicatCliBinary", base->defaultSettings.scicatCliBinary).toString() << " " << arguments;
     }
     if (!settingsContainer.value("disableSystemCalls", base->defaultSettings.disableSystemCalls).toBool()){
-        ingestJob->start(settingsContainer.value("datasetIngestorBinary", base->defaultSettings.datasetIngestorBinary).toString(), arguments);
+        ingestJob->start(settingsContainer.value("scicatCliBinary", base->defaultSettings.scicatCliBinary).toString(), arguments);
     } else {
         ingestJob->finished(0);
     }

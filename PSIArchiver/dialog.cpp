@@ -59,8 +59,7 @@ Dialog::Dialog(QWidget *parent)
 
     updateSettingsContainer(settingsContainer, "version", currentVersionNumber.toString());
     updateSettingsContainer(settingsContainer, "investigatorIsPI", defaultSettings.investigatorIsPI);
-    updateSettingsContainer(settingsContainer, "datasetIngestorBinary", defaultSettings.datasetIngestorBinary);
-    updateSettingsContainer(settingsContainer, "datasetRetrieverBinary", defaultSettings.datasetRetrieverBinary);
+    updateSettingsContainer(settingsContainer, "scicatCliBinary", defaultSettings.scicatCliBinary);
     updateSettingsContainer(settingsContainer, "logPath", defaultSettings.logPath);
     updateSettingsContainer(settingsContainer, "filenameFilelisting", defaultSettings.filenameFilelisting);
     updateSettingsContainer(settingsContainer, "filenameMetadata", defaultSettings.filenameMetadata);
@@ -712,7 +711,6 @@ void Dialog::fileCounterFinished(bool force){
 }
 
 void Dialog::updateRetrieverFiles(){
-    QSettings settingsContainer("PSI", "SciCat");
     qDebugLine("Width: ") << (int)ui->tableWidgetRetrieverFiles->columnWidth(0);
     qDebug() << "Updating retriever files";
     // get current datasetID
@@ -731,19 +729,15 @@ void Dialog::updateRetrieverFiles(){
     } else {
         // files
         auto msgHandler = MessageHandlerGUI::sendMessage(ui->warningLabel, "Retrieving dataset info..."); // use scope-based MessageHandler
-        QNetworkRequest requestDatasetInfo;
-        requestDatasetInfo.setRawHeader("Accept", "application/json");
-        QUrl serverURLInfo = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Datasets/" + QString::fromStdString(datasetID).replace("/", "%2F") + "/origdatablocks?access_token=" + scicat->user()->getToken()).toUtf8());
-        requestDatasetInfo.setUrl(serverURLInfo);
+        QString encodedDatasetID = QUrl::toPercentEncoding(QString::fromStdString(datasetID));
+        QNetworkRequest requestDatasetInfo = scicat->apiRequest("datasets/" + encodedDatasetID + "/origdatablocks");
         auto replyInfo = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestDatasetInfo);
         requestDatasetInfoJson = QJsonDocument::fromJson(replyInfo.toUtf8());
         retrieveDataMap[datasetID] = requestDatasetInfoJson;
 
         // scientific metadata
-        QNetworkRequest requestSM;
-        requestSM.setRawHeader("Accept", "application/json");
-        QUrl serverURLSM = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Datasets/" + QString::fromStdString(datasetID).replace("/", "%2F") + "?filter=%7B%22fields%22%3A%22scientificMetadata%22%7D&access_token=" + scicat->user()->getToken()).toUtf8());
-        requestSM.setUrl(serverURLSM);
+        QJsonObject filterSM{{"fields", QJsonArray{"scientificMetadata"}}};
+        QNetworkRequest requestSM = scicat->apiRequest("datasets/" + encodedDatasetID, filterSM);
         auto replySM = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestSM);
         requestSMJson = QJsonDocument::fromJson(replySM.toUtf8());
         auto jsonObj = requestSMJson.object();
@@ -1028,11 +1022,9 @@ QStringList Dialog::openFileBrowser(){
 }
 
 void Dialog::openDatasetBrowser(){
-    QSettings settingsContainer("PSI", "SciCat");
-    QNetworkRequest request;
-    request.setRawHeader("Accept", "application/json");
-    QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "/Datasets?filter=%7B%22where%22%3A%7B%22ownerGroup%22%3A%20%22" + scicat->experiment()->getOwnerGroup().toUtf8() + "%22%7D%2C%20%22fields%22%3A%20%7B%22datasetName%22%3Atrue%2C%20%22pid%22%3Atrue%7D%7D&access_token=" + scicat->user()->getToken()).toUtf8());
-    request.setUrl(serverURL);
+    QJsonObject filter{{"where", QJsonObject{{"ownerGroup", scicat->experiment()->getOwnerGroup()}}},
+                       {"fields", QJsonArray{"datasetName", "pid"}}};
+    QNetworkRequest request = scicat->apiRequest("datasets", filter);
     QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, request);
     QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
 
@@ -1237,19 +1229,15 @@ void Dialog::updateMetadataEntry(QString name, QString targetValue, int flag){
 }
 
 void Dialog::updateRetrieveList(){
-    QSettings settingsContainer("PSI", "SciCat");
-
     // request a list of all datasets from the current pgroup
-    QNetworkRequest requestCurrentDatasets;
-    requestCurrentDatasets.setRawHeader("Accept", "application/json");
-    QUrl serverURL = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Datasets?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + scicat->experiment()->getOwnerGroup().toUtf8() + "%22%7D%2C%22fields%22%3A%7B%22datasetlifecycle%22%3Atrue%2C%20%22pid%22%3Atrue%2C%20%22datasetName%22%3Atrue%7D%7D&access_token=" + scicat->user()->getToken()).toUtf8());
-    requestCurrentDatasets.setUrl(serverURL);
+    QJsonObject filterDatasets{{"where", QJsonObject{{"ownerGroup", scicat->experiment()->getOwnerGroup()}}},
+                               {"fields", QJsonArray{"datasetlifecycle", "pid", "datasetName"}}};
+    QNetworkRequest requestCurrentDatasets = scicat->apiRequest("datasets", filterDatasets);
     auto currentDatasetsJob = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestCurrentDatasets);
 
-    QNetworkRequest requestSuccessfulJobs;
-    requestSuccessfulJobs.setRawHeader("Accept", "application/json");
-    QUrl serverURLJobs = QUrl::fromEncoded((defaultSettings.serverList[settingsContainer.value("serverID", defaultSettings.serverID).toInt()].toUtf8() + "Jobs?filter=%7B%22where%22%3A%20%7B%22and%22%3A%5B%7B%22type%22%3A%22retrieve%22%7D%2C%20%7B%22emailJobInitiator%22%3A%20%22" + scicat->user()->getUserMail().replace("@", "%40") + "%22%7D%5D%7D%2C%22fields%22%3A%7B%22datasetList%22%3Atrue%2C%20%22jobStatusMessage%22%3Atrue%7D%7D&access_token=" + scicat->user()->getToken()).toUtf8());
-    requestSuccessfulJobs.setUrl(serverURLJobs);
+    // the v3 jobs endpoint maps the v3 field names but does not accept a fields filter
+    QJsonObject filterJobs{{"where", QJsonObject{{"type", "retrieve"}, {"emailJobInitiator", scicat->user()->getUserMail()}}}};
+    QNetworkRequest requestSuccessfulJobs = scicat->apiRequest("jobs", filterJobs);
     auto replyJobs = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestSuccessfulJobs);
 
     // wait for jobs to finish

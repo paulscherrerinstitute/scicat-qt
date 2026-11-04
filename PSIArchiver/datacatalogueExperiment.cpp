@@ -42,14 +42,12 @@ PgroupRequestState Experiment::getPgroupInfo(){
 
     QSettings settingsContainer("PSI", "SciCat");
 
-    QNetworkRequest request;
-    request.setRawHeader("Accept", "application/json");
-    QUrl serverURL = QUrl::fromEncoded(DataCatalogue::serverList()[scicatBase->serverID].toUtf8() + "/Proposals?filter=%7B%22where%22%3A%20%7B%22ownerGroup%22%3A%22" + m_pgroup.toUtf8() + "%22%7D%7D&access_token=" + scicatBase->user()->getToken().toUtf8());
-    request.setUrl(serverURL);
+    QJsonObject filter{{"where", QJsonObject{{"ownerGroup", m_pgroup}}}};
+    QNetworkRequest request = scicatBase->apiRequest("proposals", filter, "filters");
     QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, request);
+    QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
 
-    if (reply.length()>5){
-        QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
+    if (doc.isArray() && !doc.array().isEmpty()){
         QJsonObject ob = doc.array()[0].toObject();
 
         setPIFirstname(ob.value("pi_firstname").toString());
