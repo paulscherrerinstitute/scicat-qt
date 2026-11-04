@@ -12,8 +12,9 @@ SciCat
 ```
 
 The GUI relies on the [scicat-cli](https://github.com/paulscherrerinstitute/scicat-cli)
-(v3.1.0 or newer). The `scicat-cli` executable is looked up next to the GUI
-executable first and then in the `PATH`.
+(v3.1.0 or newer). Release packages bundle it: `libexec/scicat/scicat-cli` on
+Linux and `SciCat.app/Contents/MacOS/scicat-cli` on macOS. The GUI looks for the
+bundled executable first and then in the `PATH`.
 
 ### Qt Creator
 
@@ -27,6 +28,10 @@ Prerequisites:
 - Qt6 >= 6.2 (tested with Qt 6.10)
 
 Additional prerequisites are required for packaging.
+
+Configure with `-DSCICAT_BUNDLE_CLI=ON` to download the scicat-cli release
+asset (`SCICAT_CLI_VERSION`, default `3.1.0`, verified by SHA256) and install it
+together with SciCat. The release workflow enables this for all packages.
 
 ### GitHub Actions release builds
 

@@ -96,6 +96,8 @@ endif()
 
 target_link_libraries(SciCat PRIVATE Qt6::Widgets Qt6::Network Qt6::Concurrent)
 
+include("${CMAKE_SOURCE_DIR}/cmake/SciCatCli.cmake")
+
 if(SCICAT_BUNDLE_QT_RUNTIME AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
   if(NOT IS_DIRECTORY "${SCICAT_BUNDLED_QT_LIBRARY_DIR}")
     message(FATAL_ERROR "SCICAT_BUNDLED_QT_LIBRARY_DIR must point to an existing Qt library directory")
