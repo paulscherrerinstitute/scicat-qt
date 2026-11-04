@@ -15,8 +15,9 @@ public:
     ~DataCatalogue();
     authenticationStateAccount authenticateUser(const QString &username, const QString &pword);
     static QStringList serverList();
-    static QStringList serverListAuth();
     static QStringList serverListRetrieve();
+    static QStringList cliEnvironmentArguments(const int& serverID);
+    QNetworkRequest apiRequest(const QString& endpoint, const QJsonObject& filter = QJsonObject(), const QString& filterKey = "filter") const;
     DataCatalogueCore::User* user();
     DataCatalogueCore::Experiment* experiment();
     DatasetIngestor *ingestion();

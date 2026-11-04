@@ -23,15 +23,33 @@ authenticationStateAccount DataCatalogue::authenticateUser(const QString& userna
 }
 
 QStringList DataCatalogue::serverList(){
-    return QStringList{"https://dacat.psi.ch/api/v3/", "https://dacat-qa.psi.ch/api/v3/", "https://dacat-development.psi.ch/api/v3/"};
-}
-
-QStringList DataCatalogue::serverListAuth(){
-    return QStringList{"https://dacat.psi.ch/auth/msad", "https://dacat-qa.psi.ch/auth/msad", "https://dacat-development.psi.ch/auth/msad"};
+    return QStringList{"https://dacat.psi.ch/api/v3/", "https://dacat-qa.psi.ch/api/v3/", "https://scicat.development.psi.ch/api/v3/"};
 }
 
 QStringList DataCatalogue::serverListRetrieve(){
     return QStringList{"pb-retrieve.psi.ch", "pbt-retrieve.psi.ch", "arematest2in.psi.ch"};
+}
+
+// environment flags of the scicat-cli matching the entries of serverList()
+QStringList DataCatalogue::cliEnvironmentArguments(const int& serverID){
+    switch (static_cast<SciCat::serverType>(serverID)){
+    case SciCat::serverType::QA: return QStringList{"--testenv"};
+    case SciCat::serverType::Development: return QStringList{"--devenv"};
+    default: return QStringList();
+    }
+}
+
+QNetworkRequest DataCatalogue::apiRequest(const QString& endpoint, const QJsonObject& filter, const QString& filterKey) const{
+    QByteArray url = DataCatalogue::serverList()[serverID].toUtf8() + endpoint.toUtf8();
+    if (!filter.isEmpty()){
+        url += "?" + filterKey.toUtf8() + "=" + QUrl::toPercentEncoding(QJsonDocument(filter).toJson(QJsonDocument::Compact));
+    }
+    QNetworkRequest request(QUrl::fromEncoded(url));
+    request.setRawHeader("Accept", "application/json");
+    if (!scicatUser->getToken().isEmpty()){
+        request.setRawHeader("Authorization", "Bearer " + scicatUser->getToken().toUtf8());
+    }
+    return request;
 }
 
 DataCatalogueCore::User* DataCatalogue::user()
@@ -74,10 +92,8 @@ int DataCatalogue::requestRetrieve(const QJsonArray& datasetList){
     request["datasetList"] = datasetList;
 
     if (datasetList.size()>0){
-        QNetworkRequest networkRequest;
+        QNetworkRequest networkRequest = apiRequest("jobs");
         networkRequest.setRawHeader("Content-Type", "application/json");
-        QUrl serverURL(DataCatalogue::serverList()[serverID].toUtf8() + "Jobs?access_token=" + scicatUser->m_token);
-        networkRequest.setUrl(serverURL);
         QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::PostOperation, networkRequest, QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toUtf8());
     }
     return 0;

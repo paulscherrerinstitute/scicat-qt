@@ -12,7 +12,8 @@ SciCat
 ```
 
 The GUI relies on the [scicat-cli](https://github.com/paulscherrerinstitute/scicat-cli)
-tools. These will be installed automatically if they are not found in the path.
+(v3.1.0 or newer). The `scicat-cli` executable is looked up next to the GUI
+executable first and then in the `PATH`.
 
 ### Qt Creator
 

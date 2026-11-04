@@ -44,26 +44,16 @@ QSettings settingsContainer("PSI", "SciCat");
     qDebug() << arguments;
     retrieverJob->start(rsyncPath, arguments);
 #else
-    // use the datasetRetriever to communicate with the retrieve server
-    QStringList arguments;
-
-    switch (settingsContainer.value("serverID", base->defaultSettings.serverID).toInt()){
-    case 0:
-        break;
-    case 1:
-        arguments << "-testenv";
-        break;
-    case 2:
-        arguments << "-devenv";
-        break;
-    }
+    // use the scicat-cli datasetRetriever command to communicate with the retrieve server
+    QStringList arguments{"datasetRetriever"};
+    arguments << DataCatalogue::cliEnvironmentArguments(base->scicat->serverID);
 
 #ifdef WINDOWS_SPECIFIC_TOOLS
-    arguments << "-dataset" << pid << "-user" << base->scicat->user()->getUsername() + ":" + base->scicat->user()->getPword() << "-retrieve" << outdir;
+    arguments << "--dataset" << pid << "--user" << base->scicat->user()->getUsername() + ":" + base->scicat->user()->getPword() << "--retrieve" << outdir;
 #else
-    arguments << "-dataset" << pid << "-token" << base->scicat->user()->getToken() << "-retrieve" << outdir;
+    arguments << "--dataset" << pid << "--token" << base->scicat->user()->getToken() << "--retrieve" << outdir;
 #endif
-    retrieverJob->start(settingsContainer.value("datasetRetrieverBinary", base->defaultSettings.datasetRetrieverBinary).toString(), arguments);
+    retrieverJob->start(settingsContainer.value("scicatCliBinary", base->defaultSettings.scicatCliBinary).toString(), arguments);
 
 #endif
 }

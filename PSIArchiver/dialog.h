@@ -47,14 +47,11 @@ struct styleSheets_t {
 };
 
 struct defaultSettings_t {
-    QString datasetIngestorBinary = "datasetIngestor";
-    QString datasetRetrieverBinary = "datasetRetrieverBinary";
+    QString scicatCliBinary = "scicat-cli";
     QString logPath = QDir::homePath() + "/.scicat/log";
     QString filenameFilelisting = "filelisting.txt";
     QString filenameMetadata = "metadata.json";
     bool deleteLog = false;
-    QStringList serverList = {"https://dacat.psi.ch/api/v3/", "https://dacat-qa.psi.ch/api/v3/", "https://dacat-development.psi.ch/api/v3/"};
-    QStringList serverListAuth = {"https://dacat.psi.ch/auth/msad", "https://dacat-qa.psi.ch/auth/msad", "https://dacat-development.psi.ch/auth/msad"};
     QStringList serverListNames = {"Production", "QA", "Development"};
     QStringList creationLocationList = {"/PSI/SLS/ADRESS-RIXS",
                                         "/PSI/SLS/ADRESS-SX-ARPES",

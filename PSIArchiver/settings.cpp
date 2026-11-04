@@ -80,7 +80,7 @@ void Settings::logFileBrowser(){
 }
 
 void Settings::updateServerURL(int val){
-    ui->lineEditServer->setText(baseUi->defaultSettings.serverList[val]);
+    ui->lineEditServer->setText(SciCat::DataCatalogue::serverList()[val]);
 }
 
 void Settings::acceptChanges(){
