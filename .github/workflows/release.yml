@@ -164,6 +164,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="$(brew --prefix qt)" \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DSCICAT_BUNDLE_CLI=ON \
             -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
 
       - name: Build
@@ -178,6 +179,7 @@ jobs:
           artifact_name="SciCat-macos-${{ matrix.arch }}"
 
           test -d "$app_path"
+          test -x "$app_path/Contents/MacOS/scicat-cli"
           macdeployqt "$app_path" -verbose=2
           codesign --force --deep --sign - "$app_path"
           codesign --verify --deep --strict --verbose=2 "$app_path"
@@ -271,6 +273,7 @@ jobs:
             -DSCICAT_PACKAGE_GENERATORS=RPM \
             -DSCICAT_PACKAGE_SUFFIX=rhel9-x86_64 \
             -DSCICAT_PACKAGE_RELEASE="${{ needs.resolve-version.outputs.rpm_release_rhel9 }}" \
+            -DSCICAT_BUNDLE_CLI=ON \
             -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
 
       - name: Build
@@ -287,6 +290,7 @@ jobs:
           test -n "$(find dist/rhel9 -maxdepth 1 -type f -name '*.rpm' -print -quit)"
           rpm -qpi dist/rhel9/*.rpm
           rpm -qpl dist/rhel9/*.rpm
+          rpm -qpl dist/rhel9/*.rpm | grep -q '/libexec/scicat/scicat-cli$'
 
       - name: Upload RHEL9 RPM artifact
         uses: actions/upload-artifact@v4
@@ -308,6 +312,7 @@ jobs:
             -DSCICAT_BUNDLED_QT_PLUGIN_DIR="${{ steps.qt-paths.outputs.plugin_dir }}" \
             -DSCICAT_PACKAGE_GENERATORS=TGZ \
             -DSCICAT_PACKAGE_SUFFIX=rhel9-x86_64 \
+            -DSCICAT_BUNDLE_CLI=ON \
             -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
 
       - name: Build Linux archive
@@ -317,6 +322,7 @@ jobs:
           find build/rhel9-archive -maxdepth 1 -type f -name '*.tar.gz' -exec mv {} dist/rhel9/ \;
           test -n "$(find dist/rhel9 -maxdepth 1 -type f -name '*.tar.gz' -print -quit)"
           tar -tzf dist/rhel9/*.tar.gz | sed -n '1,40p'
+          tar -tzf dist/rhel9/*.tar.gz | grep -q '/libexec/scicat/scicat-cli$'
 
       - name: Upload RHEL9 Linux archive artifact
         uses: actions/upload-artifact@v4
@@ -409,6 +415,7 @@ jobs:
             -DSCICAT_PACKAGE_GENERATORS=RPM \
             -DSCICAT_PACKAGE_SUFFIX=rhel8-x86_64 \
             -DSCICAT_PACKAGE_RELEASE="${{ needs.resolve-version.outputs.rpm_release_rhel8 }}" \
+            -DSCICAT_BUNDLE_CLI=ON \
             -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
 
       - name: Build
@@ -425,6 +432,7 @@ jobs:
           test -n "$(find dist/rhel8 -maxdepth 1 -type f -name '*.rpm' -print -quit)"
           rpm -qpi dist/rhel8/*.rpm
           rpm -qpl dist/rhel8/*.rpm
+          rpm -qpl dist/rhel8/*.rpm | grep -q '/libexec/scicat/scicat-cli$'
 
       - name: Upload RHEL8 RPM artifact
         uses: actions/upload-artifact@v4
@@ -446,6 +454,7 @@ jobs:
             -DSCICAT_BUNDLED_QT_PLUGIN_DIR="${{ steps.qt-paths.outputs.plugin_dir }}" \
             -DSCICAT_PACKAGE_GENERATORS=TGZ \
             -DSCICAT_PACKAGE_SUFFIX=rhel8-x86_64 \
+            -DSCICAT_BUNDLE_CLI=ON \
             -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
 
       - name: Build Linux archive
@@ -455,6 +464,7 @@ jobs:
           find build/rhel8-archive -maxdepth 1 -type f -name '*.tar.gz' -exec mv {} dist/rhel8/ \;
           test -n "$(find dist/rhel8 -maxdepth 1 -type f -name '*.tar.gz' -print -quit)"
           tar -tzf dist/rhel8/*.tar.gz | sed -n '1,40p'
+          tar -tzf dist/rhel8/*.tar.gz | grep -q '/libexec/scicat/scicat-cli$'
 
       - name: Upload RHEL8 Linux archive artifact
         uses: actions/upload-artifact@v4

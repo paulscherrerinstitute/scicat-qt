@@ -121,8 +121,9 @@ void Login::errorMessage(QString msg){
 void Login::updateCLITools(){
     QSettings settingsContainer("PSI", "SciCat");
 
-    // prefer a scicat-cli shipped next to the GUI, then the one on $PATH
-    QString scicatCli = QStandardPaths::findExecutable("scicat-cli", QStringList(QCoreApplication::applicationDirPath()));
+    // prefer the scicat-cli bundled with the GUI, then the one on $PATH
+    const QDir appDir(QCoreApplication::applicationDirPath());
+    QString scicatCli = QStandardPaths::findExecutable("scicat-cli", QStringList{appDir.path(), appDir.filePath("../libexec/scicat")});
     if (scicatCli.isEmpty()){
         scicatCli = QStandardPaths::findExecutable("scicat-cli");
     }
