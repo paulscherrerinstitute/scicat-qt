@@ -27,6 +27,7 @@ public:
     authenticationStateAccount authenticateUser(const QString &username, const QString &pword);
     static QStringList serverList();
     static QStringList serverListRetrieve();
+    static QStringList serverListFrontend();
     static QStringList cliEnvironmentArguments(const int& serverID);
     static QString apiUrl(const int& serverID, ApiVersion version, const QString& endpoint);
     QNetworkRequest apiRequest(const QString& endpoint, ApiVersion version, const QJsonObject& filter = QJsonObject(), const QString& filterKey = "filter") const;
@@ -35,6 +36,7 @@ public:
     DataCatalogueCore::Experiment* experiment();
     DatasetIngestor *ingestion();
     QString getServerName() const;
+    QString getFrontendURL() const;
     int getServerID() const;
     void setServerID(const int& id);
     Dialog * baseUI;
