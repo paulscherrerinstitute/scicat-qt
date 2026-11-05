@@ -124,7 +124,7 @@ void DatasetIngestor::start(QTextEdit* outStream){
     if (base->ui->checkBoxArchive->isChecked()>0){
         arguments << "--autoarchive";
     }
-    arguments << DataCatalogue::cliEnvironmentArguments(base->scicat->serverID);
+    arguments << DataCatalogue::cliEnvironmentArguments(base->scicat->getServerID());
 
 #ifdef WINDOWS_SPECIFIC_TOOLS
     arguments << "--noninteractive" << "--allowexistingsource" << "--user" << base->scicat->user()->getUsername() + ":" + base->scicat->user()->getPword() << m_metadataFilename << m_filelistingFilename;

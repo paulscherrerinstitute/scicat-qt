@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QStandardPaths>
 #include <stdlib.h>
+#include "settings.h"
 
 Login::Login(QWidget *parent) :
     QDialog(parent),
@@ -15,13 +16,37 @@ Login::Login(QWidget *parent) :
 
     uiLogin->labelErrorMessage->setVisible(false);
 
+    uiLogin->labelHint->setTextFormat(Qt::RichText);
+    uiLogin->labelHint->setOpenExternalLinks(true);
+
     // connect to login UI
     connect(uiLogin->pushButtonLogin, SIGNAL (clicked()), this, SLOT (getLoginData()));
+    connect(uiLogin->pushButtonSettings, SIGNAL (clicked()), this, SLOT (openSettings()));
 }
 
 
 void Login::connectToGui(Dialog *ui){
     baseUi = ui;
+    updateServerLabel();
+}
+
+void Login::openSettings(){
+    Settings sett(baseUi, Settings::Context::BeforeLogin, this);
+    if (sett.exec()!=QDialog::Accepted){
+        return;
+    }
+
+    // nobody is authenticated yet, so a server change can be applied right away
+    QSettings settingsContainer("PSI", "SciCat");
+    baseUi->scicat->setServerID(settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt());
+    updateServerLabel();
+}
+
+void Login::updateServerLabel(){
+    uiLogin->labelServer->setText("Server: " + baseUi->scicat->getServerName());
+    const QUrl url(baseUi->scicat->getTokenURL());
+    uiLogin->labelHint->setText(QString("Login with your personal PSI account and a new token from:<br><a href=\"%1\">%2</a>")
+                                    .arg(url.toString().toHtmlEscaped(), (url.host() + url.path()).toHtmlEscaped()));
 }
 
 void Login::replyFinished(QNetworkReply *reply){
@@ -39,7 +64,7 @@ void Login::getLoginData(){
     auto status = baseUi->scicat->authenticateUser(uname, pword);
 
     if (status==SciCat::authenticationStateAccount::Invalid){
-        errorMessage("Please check your username and token. To request a new token, please login with your normal user account at discovery.psi.ch.");
+        errorMessage("Please check your username and token. To request a new token, please login with your normal user account at " + baseUi->scicat->getTokenURL() + ".");
         uiLogin->lineEditPassword->clear();
         return;
     } else if (status==SciCat::authenticationStateAccount::ConnectionError){

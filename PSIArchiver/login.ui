@@ -48,9 +48,9 @@
         </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="labelHint">
          <property name="text">
-          <string>Login with your personal PSI account and a new token from discovery.psi.ch</string>
+          <string>Login with your personal PSI account and a new token from the SciCat web interface</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -188,6 +188,19 @@
            <property name="text">
             <string>Login</string>
            </property>
+           <property name="default">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButtonSettings">
+           <property name="text">
+            <string>Settings</string>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
           </widget>
          </item>
          <item>
@@ -204,6 +217,16 @@
           </spacer>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelServer">
+         <property name="text">
+          <string>Server:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer">

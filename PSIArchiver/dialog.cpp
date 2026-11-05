@@ -1295,7 +1295,7 @@ void Dialog::updateRetrieveList(){
 }
 
 void Dialog::openSettings(){
-    Settings sett(this);
+    Settings sett(this, Settings::Context::AfterLogin, this);
     sett.exec();
 }
 

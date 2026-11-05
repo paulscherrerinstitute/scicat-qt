@@ -3,8 +3,9 @@
 
 using namespace SciCat;
 
-DataCatalogue::DataCatalogue(Dialog *parent, const int& scicatServerID): serverID(scicatServerID), baseUI(parent), serverType(static_cast<SciCat::serverType>(serverID))
+DataCatalogue::DataCatalogue(Dialog *parent, const int& scicatServerID): baseUI(parent)
 {
+    setServerID(scicatServerID);
     scicatUser = new DataCatalogueCore::User(this);
     scicatExperiment = new DataCatalogueCore::Experiment(this);
     scicatIngestion = new DatasetIngestor(parent);
@@ -24,6 +25,10 @@ authenticationStateAccount DataCatalogue::authenticateUser(const QString& userna
 
 QStringList DataCatalogue::serverList(){
     return QStringList{"https://dacat.psi.ch/api/v3/", "https://dacat-qa.psi.ch/api/v3/", "https://scicat.development.psi.ch/api/v3/"};
+}
+
+QStringList DataCatalogue::serverListFrontend(){
+    return QStringList{"https://discovery.psi.ch", "https://discovery-qa.psi.ch", "https://discovery.development.psi.ch"};
 }
 
 QStringList DataCatalogue::serverListRetrieve(){
@@ -74,6 +79,33 @@ QString DataCatalogue::getServerName() const
     case SciCat::serverType::Development: return "Development";
     default: return "";
     }
+}
+
+QString DataCatalogue::getFrontendURL() const
+{
+    return serverListFrontend()[serverID];
+}
+
+QString DataCatalogue::getTokenURL() const
+{
+    return getFrontendURL() + "/user";
+}
+
+int DataCatalogue::getServerID() const
+{
+    return serverID;
+}
+
+void DataCatalogue::setServerID(const int& id)
+{
+    // the ID comes from the persistent settings, which may be stale or hand-edited
+    if (id < 0 || id >= serverList().size()){
+        qWarning() << "Invalid server ID" << id << "- falling back to Production";
+        serverID = static_cast<int>(SciCat::serverType::Production);
+    } else {
+        serverID = id;
+    }
+    serverType = static_cast<SciCat::serverType>(serverID);
 }
 
 int DataCatalogue::requestRetrieve(const QJsonArray& datasetList){
