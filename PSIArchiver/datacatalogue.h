@@ -37,6 +37,7 @@ public:
     DatasetIngestor *ingestion();
     QString getServerName() const;
     QString getFrontendURL() const;
+    QString getTokenURL() const;
     int getServerID() const;
     void setServerID(const int& id);
     Dialog * baseUI;
