@@ -216,6 +216,7 @@ jobs:
             git \
             ninja-build \
             qt6-qtbase-devel \
+            qt6-qtsvg-devel \
             rpm-build
 
       - name: Check out repository
@@ -355,6 +356,7 @@ jobs:
             git \
             ninja-build \
             qt6-qtbase-devel \
+            qt6-qtsvg-devel \
             rpm-build
 
       - name: Check out repository
