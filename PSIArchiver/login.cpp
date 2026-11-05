@@ -45,7 +45,7 @@ void Login::openSettings(){
 void Login::updateServerLabel(){
     uiLogin->labelServer->setText("Server: " + baseUi->scicat->getServerName());
     const QUrl url(baseUi->scicat->getTokenURL());
-    uiLogin->labelHint->setText(QString("Login with your personal PSI account and a new token from <a href=\"%1\">%2</a>")
+    uiLogin->labelHint->setText(QString("Login with your personal PSI account and a new token from:<br><a href=\"%1\">%2</a>")
                                     .arg(url.toString().toHtmlEscaped(), (url.host() + url.path()).toHtmlEscaped()));
 }
 
