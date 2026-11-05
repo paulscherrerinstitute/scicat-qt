@@ -86,6 +86,11 @@ QString DataCatalogue::getFrontendURL() const
     return serverListFrontend()[serverID];
 }
 
+QString DataCatalogue::getTokenURL() const
+{
+    return getFrontendURL() + "/user";
+}
+
 int DataCatalogue::getServerID() const
 {
     return serverID;

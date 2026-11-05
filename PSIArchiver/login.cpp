@@ -44,9 +44,9 @@ void Login::openSettings(){
 
 void Login::updateServerLabel(){
     uiLogin->labelServer->setText("Server: " + baseUi->scicat->getServerName());
-    const QString url = baseUi->scicat->getFrontendURL();
+    const QUrl url(baseUi->scicat->getTokenURL());
     uiLogin->labelHint->setText(QString("Login with your personal PSI account and a new token from <a href=\"%1\">%2</a>")
-                                    .arg(url.toHtmlEscaped(), QUrl(url).host().toHtmlEscaped()));
+                                    .arg(url.toString().toHtmlEscaped(), (url.host() + url.path()).toHtmlEscaped()));
 }
 
 void Login::replyFinished(QNetworkReply *reply){
@@ -64,7 +64,7 @@ void Login::getLoginData(){
     auto status = baseUi->scicat->authenticateUser(uname, pword);
 
     if (status==SciCat::authenticationStateAccount::Invalid){
-        errorMessage("Please check your username and token. To request a new token, please login with your normal user account at " + baseUi->scicat->getFrontendURL() + ".");
+        errorMessage("Please check your username and token. To request a new token, please login with your normal user account at " + baseUi->scicat->getTokenURL() + ".");
         uiLogin->lineEditPassword->clear();
         return;
     } else if (status==SciCat::authenticationStateAccount::ConnectionError){
