@@ -40,13 +40,13 @@ QSettings settingsContainer("PSI", "SciCat");
     m_outdir = QDir(outdir).filePath(pidSplit[1]);
 
     QStringList arguments;
-    arguments << "-av" << "-e" << sshPath + " -o GSSAPIAuthentication=yes -o StrictHostKeyChecking=no" << base->scicat->user()->getUsername() +"@" + SciCat::DataCatalogue::serverListRetrieve()[base->scicat->serverID] + ":retrieve/" + pidSplit[1] << outdir;
+    arguments << "-av" << "-e" << sshPath + " -o GSSAPIAuthentication=yes -o StrictHostKeyChecking=no" << base->scicat->user()->getUsername() +"@" + SciCat::DataCatalogue::serverListRetrieve()[base->scicat->getServerID()] + ":retrieve/" + pidSplit[1] << outdir;
     qDebug() << arguments;
     retrieverJob->start(rsyncPath, arguments);
 #else
     // use the scicat-cli datasetRetriever command to communicate with the retrieve server
     QStringList arguments{"datasetRetriever"};
-    arguments << DataCatalogue::cliEnvironmentArguments(base->scicat->serverID);
+    arguments << DataCatalogue::cliEnvironmentArguments(base->scicat->getServerID());
 
 #ifdef WINDOWS_SPECIFIC_TOOLS
     arguments << "--dataset" << pid << "--user" << base->scicat->user()->getUsername() + ":" + base->scicat->user()->getPword() << "--retrieve" << outdir;

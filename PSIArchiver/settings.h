@@ -9,7 +9,8 @@ class Settings : public QDialog
     Q_OBJECT
 
 public:
-    explicit Settings(QWidget *parent = nullptr);
+    enum class Context { BeforeLogin, AfterLogin };
+    Settings(Dialog *base, Context context, QWidget *parent = nullptr);
     ~Settings();
     void updateSettings();
 
@@ -25,6 +26,7 @@ public slots:
 private:
     Ui::Settings *ui;
     Dialog *baseUi;
+    Context context;
 };
 
 #endif // SETTINGS_H
