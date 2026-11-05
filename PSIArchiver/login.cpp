@@ -16,6 +16,9 @@ Login::Login(QWidget *parent) :
 
     uiLogin->labelErrorMessage->setVisible(false);
 
+    uiLogin->labelHint->setTextFormat(Qt::RichText);
+    uiLogin->labelHint->setOpenExternalLinks(true);
+
     // connect to login UI
     connect(uiLogin->pushButtonLogin, SIGNAL (clicked()), this, SLOT (getLoginData()));
     connect(uiLogin->pushButtonSettings, SIGNAL (clicked()), this, SLOT (openSettings()));
@@ -41,7 +44,9 @@ void Login::openSettings(){
 
 void Login::updateServerLabel(){
     uiLogin->labelServer->setText("Server: " + baseUi->scicat->getServerName());
-    uiLogin->labelHint->setText("Login with your personal PSI account and a new token from " + baseUi->scicat->getFrontendURL());
+    const QString url = baseUi->scicat->getFrontendURL();
+    uiLogin->labelHint->setText(QString("Login with your personal PSI account and a new token from <a href=\"%1\">%2</a>")
+                                    .arg(url.toHtmlEscaped(), QUrl(url).host().toHtmlEscaped()));
 }
 
 void Login::replyFinished(QNetworkReply *reply){
