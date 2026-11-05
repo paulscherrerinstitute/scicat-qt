@@ -50,7 +50,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Login with your personal PSI account and a new token from discovery.psi.ch</string>
+          <string>Login with your personal PSI account and a new token from the SciCat web interface</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
