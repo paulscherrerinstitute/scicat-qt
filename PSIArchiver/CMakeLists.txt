@@ -16,7 +16,7 @@ add_definitions(-DQT_NO_DEBUG_OUTPUT)
 add_definitions(-DSKIP_KERBEROS_AUTH)
 #add_definitions(-DNO_DATACATALOGUE_TOOLS)
 
-find_package(Qt6 COMPONENTS Widgets Network Concurrent REQUIRED)
+find_package(Qt6 COMPONENTS Widgets Network Concurrent Svg REQUIRED)
 
 option(SCICAT_BUNDLE_QT_RUNTIME "Install a bundled Qt runtime with SciCat" OFF)
 set(SCICAT_BUNDLED_QT_LIBRARY_DIR "" CACHE PATH "Qt library directory to bundle")
@@ -94,7 +94,7 @@ else()
     message("Please consider upgrading to CMake version > 3.16 for faster compilation.")
 endif()
 
-target_link_libraries(SciCat PRIVATE Qt6::Widgets Qt6::Network Qt6::Concurrent)
+target_link_libraries(SciCat PRIVATE Qt6::Widgets Qt6::Network Qt6::Concurrent Qt6::Svg)
 
 include("${CMAKE_SOURCE_DIR}/cmake/SciCatCli.cmake")
 
