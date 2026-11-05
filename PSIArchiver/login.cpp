@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QStandardPaths>
 #include <stdlib.h>
+#include "settings.h"
 
 Login::Login(QWidget *parent) :
     QDialog(parent),
@@ -17,11 +18,29 @@ Login::Login(QWidget *parent) :
 
     // connect to login UI
     connect(uiLogin->pushButtonLogin, SIGNAL (clicked()), this, SLOT (getLoginData()));
+    connect(uiLogin->pushButtonSettings, SIGNAL (clicked()), this, SLOT (openSettings()));
 }
 
 
 void Login::connectToGui(Dialog *ui){
     baseUi = ui;
+    updateServerLabel();
+}
+
+void Login::openSettings(){
+    Settings sett(baseUi, Settings::Context::BeforeLogin, this);
+    if (sett.exec()!=QDialog::Accepted){
+        return;
+    }
+
+    // nobody is authenticated yet, so a server change can be applied right away
+    QSettings settingsContainer("PSI", "SciCat");
+    baseUi->scicat->setServerID(settingsContainer.value("serverID", baseUi->defaultSettings.serverID).toInt());
+    updateServerLabel();
+}
+
+void Login::updateServerLabel(){
+    uiLogin->labelServer->setText("Server: " + baseUi->scicat->getServerName());
 }
 
 void Login::replyFinished(QNetworkReply *reply){

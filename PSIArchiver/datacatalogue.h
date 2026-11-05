@@ -35,7 +35,8 @@ public:
     DataCatalogueCore::Experiment* experiment();
     DatasetIngestor *ingestion();
     QString getServerName() const;
-    int serverID;
+    int getServerID() const;
+    void setServerID(const int& id);
     Dialog * baseUI;
     bool requestRetrieve(const QJsonArray& datasetList, QString& errorMessage);
     void startDatasetRetriever();
@@ -44,7 +45,8 @@ private:
     DataCatalogueCore::User* scicatUser;
     DataCatalogueCore::Experiment* scicatExperiment;
     DatasetIngestor* scicatIngestion;
-    SciCat::serverType serverType;
+    int serverID = 0;
+    SciCat::serverType serverType = SciCat::serverType::Production;
 
 };
 
