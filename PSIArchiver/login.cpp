@@ -58,7 +58,7 @@ void Login::getLoginData(){
     auto status = baseUi->scicat->authenticateUser(uname, pword);
 
     if (status==SciCat::authenticationStateAccount::Invalid){
-        errorMessage("Please check your username and token. To request a new token, please login with your normal user account at discovery.psi.ch.");
+        errorMessage("Please check your username and token. To request a new token, please login with your normal user account on the SciCat web interface.");
         uiLogin->lineEditPassword->clear();
         return;
     } else if (status==SciCat::authenticationStateAccount::ConnectionError){
