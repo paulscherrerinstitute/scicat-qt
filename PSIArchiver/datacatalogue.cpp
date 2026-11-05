@@ -27,6 +27,10 @@ QStringList DataCatalogue::serverList(){
     return QStringList{"https://dacat.psi.ch/api/v3/", "https://dacat-qa.psi.ch/api/v3/", "https://scicat.development.psi.ch/api/v3/"};
 }
 
+QStringList DataCatalogue::serverListFrontend(){
+    return QStringList{"https://discovery.psi.ch", "https://discovery-qa.psi.ch", "https://discovery.development.psi.ch"};
+}
+
 QStringList DataCatalogue::serverListRetrieve(){
     return QStringList{"pb-retrieve.psi.ch", "pbt-retrieve.psi.ch", "arematest2in.psi.ch"};
 }
@@ -75,6 +79,11 @@ QString DataCatalogue::getServerName() const
     case SciCat::serverType::Development: return "Development";
     default: return "";
     }
+}
+
+QString DataCatalogue::getFrontendURL() const
+{
+    return serverListFrontend()[serverID];
 }
 
 int DataCatalogue::getServerID() const
