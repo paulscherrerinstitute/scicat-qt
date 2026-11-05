@@ -2,9 +2,11 @@
 
 extern QVersionNumber currentVersionNumber;
 
-Settings::Settings(QWidget *parent) :
+Settings::Settings(Dialog *base, Context context, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::Settings)
+    ui(new Ui::Settings),
+    baseUi(base),
+    context(context)
 {
     ui->setupUi(this);
     this->setWindowFlag(Qt::WindowContextHelpButtonHint,false);
@@ -19,9 +21,6 @@ Settings::Settings(QWidget *parent) :
     connect(ui->lineEditMetadataFile, SIGNAL(editingFinished()), this, SLOT(checkMetadataFile()));
     toggleAdvancedSettings(0);
     ui->tabWidget->setCurrentIndex(0);
-
-    // get parent class instance
-    baseUi = dynamic_cast<Dialog*>(parent);
 
     ui->lineEditServer->setReadOnly(true);
 
@@ -68,8 +67,6 @@ void Settings::reset(){
     ui->checkBoxSystemCalls->setChecked(baseUi->defaultSettings.disableSystemCalls);
     ui->comboBoxServer->setCurrentIndex(baseUi->defaultSettings.serverID);
     updateServerURL(baseUi->defaultSettings.serverID);
-
-    updateSettings();
 }
 
 void Settings::logFileBrowser(){
@@ -84,16 +81,16 @@ void Settings::updateServerURL(int val){
 }
 
 void Settings::acceptChanges(){
-    QSettings settingsContainer("PSI", "SciCat");
-
-    // update settings
-    if (settingsContainer.value("serverID").toInt()!=ui->comboBoxServer->currentIndex()){
+    // compare with the server in use, not the stored one
+    const bool serverChanged = baseUi->scicat->getServerID()!=ui->comboBoxServer->currentIndex();
+    updateSettings();
+    // before login the caller applies the new server directly, no restart needed
+    if (serverChanged && context==Context::AfterLogin){
         QMessageBox msgBox;
         msgBox.setText("You must restart the application to apply these changes.");
         msgBox.exec();
     }
-    updateSettings();
-    close();
+    accept();
 }
 
 void Settings::updateSettings(){

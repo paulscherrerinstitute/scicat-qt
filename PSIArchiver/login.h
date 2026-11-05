@@ -15,15 +15,17 @@ public:
     void connectToGui(Dialog *ui);
 private:
     Ui::Login *uiLogin;
-    Dialog *baseUi;
+    Dialog *baseUi = nullptr;
     void authenticateUser(const QString pass);
     QProcess *kerberosAuth;
     void openGate();
     void errorMessage(QString msg);
     void updateCLITools();
+    void updateServerLabel();
 
 private slots:
     void getLoginData();
+    void openSettings();
     void authenticationFailed(QProcess::ProcessError error);
     void authenticationFinished(int val);
     void readKeberosOutput();
