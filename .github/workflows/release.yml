@@ -176,7 +176,7 @@ jobs:
       - name: Package app bundle
         run: |
           app_path="build/release/PSIArchiver/SciCat.app"
-          artifact_name="SciCat-macos-${{ matrix.arch }}"
+          artifact_name="scicat-${{ needs.resolve-version.outputs.version }}-macos-${{ matrix.arch }}"
 
           test -d "$app_path"
           test -x "$app_path/Contents/MacOS/scicat-cli"
@@ -189,7 +189,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SciCat-macos-${{ matrix.arch }}
-          path: SciCat-macos-${{ matrix.arch }}.zip
+          path: scicat-${{ needs.resolve-version.outputs.version }}-macos-${{ matrix.arch }}.zip
           if-no-files-found: error
           # Hand-off to github-release only; published assets live on the release.
           retention-days: ${{ github.event_name == 'pull_request' && 3 || 7 }}
