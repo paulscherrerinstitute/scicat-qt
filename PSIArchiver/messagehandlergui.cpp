@@ -42,7 +42,8 @@ std::shared_ptr<MessageHandlerGUI> MessageHandlerGUI::sendWarning(QLabel* lbl, Q
 
 std::shared_ptr<MessageHandlerGUI> MessageHandlerGUI::sendMessage(QLabel* lbl, QString msg, int time){
     std::shared_ptr<MessageHandlerGUI> msgHandler = std::make_shared<MessageHandlerGUI>(lbl, msg);
-    lbl->setStyleSheet("QLabel{color:rgb(0, 0, 0)}");
+    // no fixed colour, so the native text colour applies in light and dark mode
+    lbl->setStyleSheet("");
     if (time>0){
         msgHandler->show(time);
     } else {
