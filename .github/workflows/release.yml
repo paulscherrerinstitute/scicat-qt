@@ -194,6 +194,64 @@ jobs:
           # Hand-off to github-release only; published assets live on the release.
           retention-days: ${{ github.event_name == 'pull_request' && 3 || 7 }}
 
+  build-windows:
+    name: Windows x86_64
+    needs:
+      - resolve-version
+    runs-on: windows-2022
+    env:
+      QT_VERSION: "6.8.3"
+      QT_ARCH: win64_msvc2022_64
+      QT_ROOT: C:\Qt
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Restore Qt
+        id: qt-cache
+        uses: actions/cache@v4
+        with:
+          path: C:\Qt
+          key: qt-${{ runner.os }}-${{ env.QT_VERSION }}-${{ env.QT_ARCH }}
+
+      - name: Install Qt
+        if: steps.qt-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install "aqtinstall>=3.1,<4"
+          python -m aqt install-qt windows desktop $env:QT_VERSION $env:QT_ARCH --outputdir $env:QT_ROOT
+
+      - name: Configure
+        run: |
+          $qtDir = (Get-ChildItem "$env:QT_ROOT\$env:QT_VERSION" -Directory | Select-Object -First 1).FullName
+          "$qtDir\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          cmake -S . -B build/windows -G "Visual Studio 17 2022" -A x64 `
+            -DCMAKE_PREFIX_PATH="$qtDir" `
+            -DSCICAT_BUNDLE_CLI=ON `
+            -DSCICAT_VERSION="${{ needs.resolve-version.outputs.version }}"
+
+      - name: Build
+        run: cmake --build build/windows --config Release --parallel
+
+      - name: Package
+        run: |
+          $artifactName = "scicat-${{ needs.resolve-version.outputs.version }}-windows-x86_64"
+          cmake --install build/windows --config Release --prefix "dist/$artifactName"
+          windeployqt --release --no-translations "dist/$artifactName/bin/SciCat.exe"
+          foreach ($f in @("SciCat.exe", "scicat-cli.exe", "iconengines/qsvgicon.dll", "imageformats/qsvg.dll")) {
+            if (-not (Test-Path "dist/$artifactName/bin/$f")) { throw "missing $f in the Windows package" }
+          }
+          Compress-Archive -Path "dist/$artifactName" -DestinationPath "$artifactName.zip"
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # not published: the release job only downloads SciCat-* artifacts
+          name: ci-windows-x86_64
+          path: scicat-*-windows-x86_64.zip
+          if-no-files-found: error
+          retention-days: ${{ github.event_name == 'pull_request' && 3 || 7 }}
+
   build-rhel9-rpm:
     name: Enterprise Linux 9 packages
     needs:
@@ -498,6 +556,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
+          pattern: SciCat-*
           merge-multiple: true
 
       - name: Publish semantic release
