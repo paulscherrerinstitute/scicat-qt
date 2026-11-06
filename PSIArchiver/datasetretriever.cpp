@@ -48,11 +48,7 @@ QSettings settingsContainer("PSI", "SciCat");
     QStringList arguments{"datasetRetriever"};
     arguments << DataCatalogue::cliEnvironmentArguments(base->scicat->serverID);
 
-#ifdef WINDOWS_SPECIFIC_TOOLS
-    arguments << "--dataset" << pid << "--user" << base->scicat->user()->getUsername() + ":" + base->scicat->user()->getPword() << "--retrieve" << outdir;
-#else
     arguments << "--dataset" << pid << "--token" << base->scicat->user()->getToken() << "--retrieve" << outdir;
-#endif
     retrieverJob->start(settingsContainer.value("scicatCliBinary", base->defaultSettings.scicatCliBinary).toString(), arguments);
 
 #endif

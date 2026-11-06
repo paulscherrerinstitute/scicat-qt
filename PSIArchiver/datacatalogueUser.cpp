@@ -24,9 +24,6 @@ User::User(DataCatalogue * const parent): scicatBase(parent)
 
 SciCat::authenticationStateAccount User::authenticateUser(const QString& username, const QString& pword, const int& server)
 {
-#ifdef WINDOWS_SPECIFIC_TOOLS
-    m_pword = pword;
-#endif
     auto state = this->check_token(username, pword);
     if (state==authenticationState::Valid){
         updateUserInfo();
@@ -120,11 +117,6 @@ void User::setPgroups()
     for (auto v:m_userInfo.object().find("currentGroups").value().toArray()){
         m_pgroups.push_back(v.toString());
     }
-}
-
-QString User::getPword() const
-{
-    return m_pword;
 }
 
 bool User::getIsBeamlineAccount() const
