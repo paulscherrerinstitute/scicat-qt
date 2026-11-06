@@ -23,7 +23,7 @@ authenticationStateAccount DataCatalogue::authenticateUser(const QString& userna
 }
 
 QStringList DataCatalogue::serverList(){
-    return QStringList{"https://dacat.psi.ch/api/v3/", "https://dacat-qa.psi.ch/api/v3/", "https://scicat.development.psi.ch/api/v3/"};
+    return QStringList{"https://dacat.psi.ch/api/", "https://dacat-qa.psi.ch/api/", "https://scicat.development.psi.ch/api/"};
 }
 
 QStringList DataCatalogue::serverListRetrieve(){
@@ -39,8 +39,13 @@ QStringList DataCatalogue::cliEnvironmentArguments(const int& serverID){
     }
 }
 
-QNetworkRequest DataCatalogue::apiRequest(const QString& endpoint, const QJsonObject& filter, const QString& filterKey) const{
-    QByteArray url = DataCatalogue::serverList()[serverID].toUtf8() + endpoint.toUtf8();
+QString DataCatalogue::apiUrl(const int& serverID, ApiVersion version, const QString& endpoint){
+    const QString prefix = (version==ApiVersion::V4) ? "v4/" : "v3/";
+    return DataCatalogue::serverList()[serverID] + prefix + endpoint;
+}
+
+QNetworkRequest DataCatalogue::apiRequest(const QString& endpoint, ApiVersion version, const QJsonObject& filter, const QString& filterKey) const{
+    QByteArray url = apiUrl(serverID, version, endpoint).toUtf8();
     if (!filter.isEmpty()){
         url += "?" + filterKey.toUtf8() + "=" + QUrl::toPercentEncoding(QJsonDocument(filter).toJson(QJsonDocument::Compact));
     }
@@ -92,7 +97,7 @@ int DataCatalogue::requestRetrieve(const QJsonArray& datasetList){
     request["datasetList"] = datasetList;
 
     if (datasetList.size()>0){
-        QNetworkRequest networkRequest = apiRequest("jobs");
+        QNetworkRequest networkRequest = apiRequest("jobs", ApiVersion::V3);
         networkRequest.setRawHeader("Content-Type", "application/json");
         QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::PostOperation, networkRequest, QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toUtf8());
     }

@@ -14,6 +14,8 @@ enum class authenticationStateAccount {ValidUser, ValidBLAccount, Invalid, Conne
 
 enum class serverType {Production, QA, Development};
 
+enum class ApiVersion {V3, V4};
+
 namespace DataCatalogueCore {
 
 class Experiment;
