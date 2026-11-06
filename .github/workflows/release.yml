@@ -246,8 +246,7 @@ jobs:
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          # not published: the release job only downloads SciCat-* artifacts
-          name: ci-windows-x86_64
+          name: SciCat-windows-x86_64
           path: scicat-*-windows-x86_64.zip
           if-no-files-found: error
           retention-days: ${{ github.event_name == 'pull_request' && 3 || 7 }}
@@ -539,6 +538,7 @@ jobs:
     needs:
       - resolve-version
       - build-macos
+      - build-windows
       - build-rhel8-rpm
       - build-rhel9-rpm
     if: needs.resolve-version.outputs.publish == 'true'
