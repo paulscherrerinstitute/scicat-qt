@@ -1,17 +1,10 @@
 <RCC>
     <qresource prefix="/images">
         <file>ajax-loader.gif</file>
-        <file>scicat-logo-white.png</file>
-        <file>login-not-active.svg</file>
-        <file>login.svg</file>
-        <file>login-active.svg</file>
-        <file>archive-active.svg</file>
-        <file>archive-not-active.svg</file>
-        <file>archive.svg</file>
-        <file>retrieve-active.svg</file>
-        <file>retrieve-not-active.svg</file>
-        <file>retrieve.svg</file>
-        <file>settings.svg</file>
-        <file>settings-not-active.svg</file>
+        <file>SciCat_logo_icon.svg</file>
+        <file>nav-pgroup.svg</file>
+        <file>nav-archive.svg</file>
+        <file>nav-retrieve.svg</file>
+        <file>nav-settings.svg</file>
     </qresource>
 </RCC>
