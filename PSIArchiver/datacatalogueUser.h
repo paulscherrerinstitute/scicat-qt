@@ -25,7 +25,6 @@ public:
 
     bool getIsBeamlineAccount() const;
 
-    QString getPword() const;
 
 private:
     User(DataCatalogue * const parent);
@@ -39,7 +38,6 @@ private:
     void setPgroups();
 
     QString m_username;
-    QString m_pword;
     QString m_token;
     QStringList m_pgroups;
     QJsonDocument m_userInfo;
