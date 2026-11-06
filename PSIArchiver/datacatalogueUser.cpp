@@ -21,9 +21,6 @@ User::User(DataCatalogue * const parent): scicatBase(parent)
 
 SciCat::authenticationStateAccount User::authenticateUser(const QString& token)
 {
-#ifdef WINDOWS_SPECIFIC_TOOLS
-    m_pword = token;
-#endif
     const auto state = check_token(token);
     if (state==authenticationState::Valid){
         updateUserInfo();
@@ -75,11 +72,6 @@ void User::setPgroups()
     for (auto v:m_userInfo.object().find("currentGroups").value().toArray()){
         m_pgroups.push_back(v.toString());
     }
-}
-
-QString User::getPword() const
-{
-    return m_pword;
 }
 
 QString User::getUsername() const
