@@ -33,22 +33,20 @@ void Login::replyFinished(QNetworkReply *reply){
 void Login::getLoginData(){
     QSettings settingsContainer("PSI", "SciCat");
 
-    QString uname = uiLogin->lineEditUsername->text();
-    QString pword = uiLogin->lineEditPassword->text();
+    const QString token = uiLogin->lineEditPassword->text().trimmed();
+    if (token.isEmpty()){
+        errorMessage("Please enter your token.");
+        return;
+    }
 
-    auto status = baseUi->scicat->authenticateUser(uname, pword);
+    auto status = baseUi->scicat->authenticateUser(token);
 
     if (status==SciCat::authenticationStateAccount::Invalid){
-        errorMessage("Please check your username and token. To request a new token, please login with your normal user account at discovery.psi.ch.");
+        errorMessage("Please check your token. To request a new token, please login with your normal user account at discovery.psi.ch.");
         uiLogin->lineEditPassword->clear();
         return;
     } else if (status==SciCat::authenticationStateAccount::ConnectionError){
         errorMessage("Could not connect to SciCat.\nPlease make sure that you are within the PSI intranet and try again.");
-        return;
-    } else if (status==SciCat::authenticationStateAccount::ValidBLAccount){
-        // can be removed once the pgroup selection is fixed:
-        errorMessage("Beamline accounts are currently not supported.");
-        uiLogin->lineEditPassword->clear();
         return;
     }
 

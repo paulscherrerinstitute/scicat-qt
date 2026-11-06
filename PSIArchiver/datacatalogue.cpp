@@ -18,8 +18,8 @@ DataCatalogue::~DataCatalogue()
 
 
 
-authenticationStateAccount DataCatalogue::authenticateUser(const QString& username, const QString& pword){
-    return scicatUser->authenticateUser(username, pword, serverID);
+authenticationStateAccount DataCatalogue::authenticateUser(const QString& token){
+    return scicatUser->authenticateUser(token);
 }
 
 QStringList DataCatalogue::serverList(){
