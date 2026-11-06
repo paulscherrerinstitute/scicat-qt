@@ -13,7 +13,7 @@ class DataCatalogue
 public:
     DataCatalogue(Dialog* parent, const int& serverID);
     ~DataCatalogue();
-    authenticationStateAccount authenticateUser(const QString &username, const QString &pword);
+    authenticationStateAccount authenticateUser(const QString &token);
     static QStringList serverList();
     static QStringList serverListRetrieve();
     static QStringList serverListFrontend();

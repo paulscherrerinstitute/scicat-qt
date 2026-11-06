@@ -23,18 +23,14 @@ public:
     QString getUserMail() const;
     void setUserMail(const QString &userMail);
 
-    bool getIsBeamlineAccount() const;
-
     QString getPword() const;
 
 private:
     User(DataCatalogue * const parent);
     friend class SciCat::DataCatalogue;
-    authenticationStateAccount authenticateUser(const QString& username, const QString& pword, const int& server);
-    authenticationState sendAuthenticationRequest(const QString& username, const QString& pword, const QString& server);
-    authenticationState check_token(const QString& username, const QString& token);
-    void sendUserInfoRequest();
-    void extractToken(const QString& reply);
+    authenticationStateAccount authenticateUser(const QString& token);
+    authenticationState check_token(const QString& token);
+    int sendUserInfoRequest();
 
     void setPgroups();
 
@@ -45,7 +41,6 @@ private:
     QJsonDocument m_userInfo;
     QString m_userMail;
     DataCatalogue * const scicatBase;
-    bool m_isBeamlineAccount = false;
 };
 
 }

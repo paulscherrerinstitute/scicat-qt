@@ -341,10 +341,6 @@ void Dialog::goToArchive(){
 }
 
 void Dialog::goToRetrieve(){
-    if (scicat->user()->getIsBeamlineAccount()){
-        QMessageBox::information(this, tr("Permission error"), tr("Retrieving data with beamline accounts is not supported. Please use your personal PSI account instead.") );
-        return;
-    }
     if (checkPIInfo()){
         if (secID!=2){
             updateNavigationIcons(2);
@@ -1341,6 +1337,13 @@ void Dialog::saveRetrievedData(){
 #ifdef WINDOWS_SPECIFIC_TOOLS
     QMessageBox::information(this, tr("Not supported on Windows"), tr("Retrieving data on Windows is currently not supported.") );
 #else
+    if (!hasKerberosTicket()){
+        QMessageBox::warning(this, tr("Kerberos ticket required"),
+                             tr("Copying data from the retrieve server needs a valid Kerberos ticket.\n\n"
+                                "Run the following in a terminal, then click Save again:\n\n"
+                                "kinit %1").arg(scicat->user()->getUsername()));
+        return;
+    }
     QString dirname = QFileDialog::getExistingDirectory(this, "Save path",QDir::homePath(),QFileDialog::ShowDirsOnly);
     if (dirname.length()>0){
         QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
@@ -1356,6 +1359,29 @@ void Dialog::saveRetrievedData(){
 #endif
 
 }
+
+#ifndef WINDOWS_SPECIFIC_TOOLS
+// if klist cannot answer (missing, hanging or crashing) the copy goes ahead and scicat-cli reports a missing ticket itself
+bool Dialog::hasKerberosTicket() const{
+    QProcess klist;
+    klist.start("klist", QStringList{"-s"});
+    if (!klist.waitForStarted(3000)){
+        qWarning() << "[Kerberos] could not run klist:" << klist.errorString();
+        return true;
+    }
+    if (!klist.waitForFinished(3000)){
+        qWarning() << "[Kerberos] klist did not finish in time:" << klist.errorString();
+        klist.kill();
+        klist.waitForFinished(1000);
+        return true;
+    }
+    if (klist.exitStatus()!=QProcess::NormalExit){
+        qWarning() << "[Kerberos] klist crashed:" << klist.errorString();
+        return true;
+    }
+    return klist.exitCode()==0;
+}
+#endif
 
 void Dialog::startRetriever(const QString &pid, const QString &outdir, const QString &name){
     std::shared_ptr<SciCat::DatasetRetriever> retriever = std::make_shared<SciCat::DatasetRetriever>(this);
