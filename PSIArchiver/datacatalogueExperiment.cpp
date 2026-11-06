@@ -43,7 +43,7 @@ PgroupRequestState Experiment::getPgroupInfo(){
     QSettings settingsContainer("PSI", "SciCat");
 
     QJsonObject filter{{"where", QJsonObject{{"ownerGroup", m_pgroup}}}};
-    QNetworkRequest request = scicatBase->apiRequest("proposals", filter, "filters");
+    QNetworkRequest request = scicatBase->apiRequest("proposals", ApiVersion::V3, filter, "filters");
     QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, request);
     QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
 

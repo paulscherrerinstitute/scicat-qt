@@ -730,14 +730,14 @@ void Dialog::updateRetrieverFiles(){
         // files
         auto msgHandler = MessageHandlerGUI::sendMessage(ui->warningLabel, "Retrieving dataset info..."); // use scope-based MessageHandler
         QString encodedDatasetID = QUrl::toPercentEncoding(QString::fromStdString(datasetID));
-        QNetworkRequest requestDatasetInfo = scicat->apiRequest("datasets/" + encodedDatasetID + "/origdatablocks");
+        QNetworkRequest requestDatasetInfo = scicat->apiRequest("datasets/" + encodedDatasetID + "/origdatablocks", SciCat::ApiVersion::V3);
         auto replyInfo = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestDatasetInfo);
         requestDatasetInfoJson = QJsonDocument::fromJson(replyInfo.toUtf8());
         retrieveDataMap[datasetID] = requestDatasetInfoJson;
 
         // scientific metadata
         QJsonObject filterSM{{"fields", QJsonArray{"scientificMetadata"}}};
-        QNetworkRequest requestSM = scicat->apiRequest("datasets/" + encodedDatasetID, filterSM);
+        QNetworkRequest requestSM = scicat->apiRequest("datasets/" + encodedDatasetID, SciCat::ApiVersion::V3, filterSM);
         auto replySM = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestSM);
         requestSMJson = QJsonDocument::fromJson(replySM.toUtf8());
         auto jsonObj = requestSMJson.object();
@@ -1024,7 +1024,7 @@ QStringList Dialog::openFileBrowser(){
 void Dialog::openDatasetBrowser(){
     QJsonObject filter{{"where", QJsonObject{{"ownerGroup", scicat->experiment()->getOwnerGroup()}}},
                        {"fields", QJsonArray{"datasetName", "pid"}}};
-    QNetworkRequest request = scicat->apiRequest("datasets", filter);
+    QNetworkRequest request = scicat->apiRequest("datasets", SciCat::ApiVersion::V3, filter);
     QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, request);
     QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
 
@@ -1232,12 +1232,12 @@ void Dialog::updateRetrieveList(){
     // request a list of all datasets from the current pgroup
     QJsonObject filterDatasets{{"where", QJsonObject{{"ownerGroup", scicat->experiment()->getOwnerGroup()}}},
                                {"fields", QJsonArray{"datasetlifecycle", "pid", "datasetName"}}};
-    QNetworkRequest requestCurrentDatasets = scicat->apiRequest("datasets", filterDatasets);
+    QNetworkRequest requestCurrentDatasets = scicat->apiRequest("datasets", SciCat::ApiVersion::V3, filterDatasets);
     auto currentDatasetsJob = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestCurrentDatasets);
 
     // the v3 jobs endpoint maps the v3 field names but does not accept a fields filter
     QJsonObject filterJobs{{"where", QJsonObject{{"type", "retrieve"}, {"emailJobInitiator", scicat->user()->getUserMail()}}}};
-    QNetworkRequest requestSuccessfulJobs = scicat->apiRequest("jobs", filterJobs);
+    QNetworkRequest requestSuccessfulJobs = scicat->apiRequest("jobs", SciCat::ApiVersion::V3, filterJobs);
     auto replyJobs = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestSuccessfulJobs);
 
     // wait for jobs to finish
