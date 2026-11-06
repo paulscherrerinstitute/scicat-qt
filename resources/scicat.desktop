@@ -2,7 +2,7 @@
 Type=Application
 Name=SciCat
 Exec=SciCat %F
-Icon=scicat-logo-white
+Icon=scicat
 Comment=SciCat GUI for archiving and retrieving data
 Terminal=true
 Categories=Office;
