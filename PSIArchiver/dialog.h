@@ -276,6 +276,9 @@ private slots:
 
 
 private:
+#ifndef WINDOWS_SPECIFIC_TOOLS
+    bool hasKerberosTicket() const;
+#endif
     std::vector<void (Dialog::*)()> nextSlideButtonFunctions;
     void PINextSlide();
     void filelistingNextSlide();

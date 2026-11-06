@@ -60,56 +60,8 @@ void Login::getLoginData(){
     // locate the scicat-cli executable
     updateCLITools();
 
-#ifndef WINDOWS_SPECIFIC_TOOLS
-    // get Kerberos token
-    if (!baseUi->scicat->user()->getIsBeamlineAccount()){
-        authenticateUser(pword);
-    } else {
-        openGate();
-    }
-#else
     openGate();
-#endif
 
-}
-
-void Login::authenticateUser(QString pass){
-    kerberosAuth = new QProcess(this);
-
-    kerberosAuth->setProcessChannelMode(QProcess::MergedChannels);
-    connect(kerberosAuth, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(authenticationFailed(QProcess::ProcessError)));
-    connect(kerberosAuth, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(authenticationFinished(int)));
-    connect(kerberosAuth, SIGNAL(readyReadStandardOutput()), this, SLOT(readKeberosOutput()));
-
-    QStringList argument(baseUi->scicat->user()->getUsername());
-    kerberosAuth->start("kinit", argument);
-    const QByteArray byteArray = pass.toUtf8();
-    const char *passConv = byteArray.constData();
-    kerberosAuth->write(passConv,pass.length()+1);
-    kerberosAuth->closeWriteChannel();
-
-
-}
-
-void Login::readKeberosOutput(){
-
-    qDebugLine("Login") << "reading output";
-    while(kerberosAuth->canReadLine()){
-        auto tmp = kerberosAuth->readLine();
-        qDebugLine("Login") << tmp;
-    }
-
-}
-
-void Login::authenticationFinished(int val){
-    qDebugLine("Login") << "Authentication finished with exit code " << val;
-#ifndef SKIP_KERBEROS_AUTH
-    if (val!=0){
-        errorMessage("Kerberos authentication failed.");
-        return;
-    }
-#endif
-    openGate();
 }
 
 void Login::errorMessage(QString msg){
@@ -132,16 +84,6 @@ void Login::updateCLITools(){
         return;
     }
     settingsContainer.setValue("scicatCliBinary", scicatCli);
-}
-
-void Login::authenticationFailed(QProcess::ProcessError error){
-    qDebugLine("Login") << "Authentication failed: " << error;
-#ifdef SKIP_KERBEROS_AUTH
-    openGate();
-#else
-    errorMessage("Kerberos authentication failed.");
-#endif
-
 }
 
 void Login::openGate(){

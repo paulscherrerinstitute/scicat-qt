@@ -16,17 +16,12 @@ public:
 private:
     Ui::Login *uiLogin;
     Dialog *baseUi;
-    void authenticateUser(const QString pass);
-    QProcess *kerberosAuth;
     void openGate();
     void errorMessage(QString msg);
     void updateCLITools();
 
 private slots:
     void getLoginData();
-    void authenticationFailed(QProcess::ProcessError error);
-    void authenticationFinished(int val);
-    void readKeberosOutput();
     void replyFinished(QNetworkReply *reply);
 
 
