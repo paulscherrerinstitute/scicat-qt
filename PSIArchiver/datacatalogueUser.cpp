@@ -9,12 +9,9 @@ using namespace SciCat::DataCatalogueCore;
 
 void User::updateUserInfo()
 {
-    sendUserInfoRequest();
     setUserMail(m_userInfo.object().value("email").toString());
     setUsername(m_userInfo.object().value("username").toString());
-    if (!m_isBeamlineAccount){
-        setPgroups();
-    }
+    setPgroups();
 }
 
 User::User(DataCatalogue * const parent): scicatBase(parent)
@@ -22,81 +19,38 @@ User::User(DataCatalogue * const parent): scicatBase(parent)
 
 }
 
-SciCat::authenticationStateAccount User::authenticateUser(const QString& username, const QString& pword, const int& server)
+SciCat::authenticationStateAccount User::authenticateUser(const QString& token)
 {
 #ifdef WINDOWS_SPECIFIC_TOOLS
-    m_pword = pword;
+    m_pword = token;
 #endif
-    auto state = this->check_token(username, pword);
+    const auto state = check_token(token);
     if (state==authenticationState::Valid){
         updateUserInfo();
         return authenticationStateAccount::ValidUser;
-    } else {
-        // try normal user account first
-        state = sendAuthenticationRequest(username, pword, DataCatalogue::serverList()[server] + "auth/ldap");
-        if (state==authenticationState::ConnectionError){
-            return authenticationStateAccount::ConnectionError;
-        }
-        if (state==authenticationState::Valid){
-            updateUserInfo();
-            return authenticationStateAccount::ValidUser;
-        } else if (sendAuthenticationRequest(username, pword, DataCatalogue::serverList()[server] + "auth/login")==authenticationState::Valid) {
-            m_isBeamlineAccount = true;
-            updateUserInfo();
-            return authenticationStateAccount::ValidBLAccount;
-        } else {
-            return authenticationStateAccount::Invalid;
-        }
     }
-
-
+    if (state==authenticationState::ConnectionError){
+        return authenticationStateAccount::ConnectionError;
+    }
+    return authenticationStateAccount::Invalid;
 }
 
-SciCat::authenticationState User::check_token(const QString& username, const QString& token){
-    this->m_token = token;
-    this->sendUserInfoRequest();
-    qDebugLine("check_token: ") << this->m_userInfo;
-    auto current_user = this->m_userInfo.object().value("username").toString();
-    qDebugLine("check_token: ") << current_user;
-    if (username == current_user){
-        return authenticationState::Valid;
-    } else {
+SciCat::authenticationState User::check_token(const QString& token){
+    if (token.isEmpty()){
         return authenticationState::Invalid;
     }
-
-}
-
-
-SciCat::authenticationState User::sendAuthenticationRequest(const QString& username, const QString& pword, const QString& server){
-    QNetworkRequest request;
-    QJsonObject credentials;
-    credentials["username"] = username;
-    credentials["password"] = pword;
-    request.setRawHeader("Content-Type", "application/json");
-    QUrl serverURL(server);
-    request.setUrl(serverURL);
-    auto nwm = NetworkManager::startNetworkManager(NetworkManager::PostOperation, request, QJsonDocument(credentials).toJson(QJsonDocument::Compact));
-    QString reply = nwm->pull();
-    int httpStatus = nwm->getReply()->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    qDebugLine("sendAuthenticationRequest") << httpStatus;
-    if (httpStatus==0){
-        // no HTTP response at all
+    m_token = token;
+    const int httpStatus = sendUserInfoRequest();
+    qDebugLine("check_token") << httpStatus << m_userInfo;
+    if (httpStatus==0 || (httpStatus>=200 && httpStatus<300 && !m_userInfo.isObject())){
+        m_token.clear();
         return authenticationState::ConnectionError;
-    } else if (httpStatus<200 || httpStatus>=300){
-        return authenticationState::Invalid;
-    } else {
-        extractToken(reply);
-        if (m_token.length()==0){
-            return authenticationState::ConnectionError;
-        } else {
-            return authenticationState::Valid;
-        }
-
     }
-}
-
-void User::extractToken(const QString& reply){
-    m_token = QJsonDocument::fromJson(reply.toUtf8()).object().value("access_token").toString();
+    if (httpStatus<200 || httpStatus>=300 || m_userInfo.object().value("username").toString().isEmpty()){
+        m_token.clear();
+        return authenticationState::Invalid;
+    }
+    return authenticationState::Valid;
 }
 
 QString User::getUserMail() const
@@ -117,6 +71,7 @@ QStringList User::getPgroups() const
 void User::setPgroups()
 {
     qDebugLine("UpdatePgroups:") << m_userInfo;
+    m_pgroups.clear();
     for (auto v:m_userInfo.object().find("currentGroups").value().toArray()){
         m_pgroups.push_back(v.toString());
     }
@@ -125,11 +80,6 @@ void User::setPgroups()
 QString User::getPword() const
 {
     return m_pword;
-}
-
-bool User::getIsBeamlineAccount() const
-{
-    return m_isBeamlineAccount;
 }
 
 QString User::getUsername() const
@@ -152,12 +102,12 @@ void User::setToken(const QString &value)
     m_token = value;
 }
 
-void User::sendUserInfoRequest(){
+int User::sendUserInfoRequest(){
     QNetworkRequest requestUser = scicatBase->apiRequest("auth/whoami");
     auto nwm = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestUser);
     auto reply = nwm->pull();
 
     qDebugLine("sendUserInfoRequest") << reply;
     m_userInfo = QJsonDocument::fromJson(reply.toUtf8());
-
+    return nwm->getReply()->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 }

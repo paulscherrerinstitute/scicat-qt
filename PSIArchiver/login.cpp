@@ -45,7 +45,7 @@ void Login::openSettings(){
 void Login::updateServerLabel(){
     uiLogin->labelServer->setText("Server: " + baseUi->scicat->getServerName());
     const QUrl url(baseUi->scicat->getTokenURL());
-    uiLogin->labelHint->setText(QString("Login with your personal PSI account and a new token from:<br><a href=\"%1\">%2</a>")
+    uiLogin->labelHint->setText(QString("Login with a new token from:<br><a href=\"%1\">%2</a>")
                                     .arg(url.toString().toHtmlEscaped(), (url.host() + url.path()).toHtmlEscaped()));
 }
 
@@ -58,22 +58,20 @@ void Login::replyFinished(QNetworkReply *reply){
 void Login::getLoginData(){
     QSettings settingsContainer("PSI", "SciCat");
 
-    QString uname = uiLogin->lineEditUsername->text();
-    QString pword = uiLogin->lineEditPassword->text();
+    const QString token = uiLogin->lineEditPassword->text().trimmed();
+    if (token.isEmpty()){
+        errorMessage("Please enter your token.");
+        return;
+    }
 
-    auto status = baseUi->scicat->authenticateUser(uname, pword);
+    auto status = baseUi->scicat->authenticateUser(token);
 
     if (status==SciCat::authenticationStateAccount::Invalid){
-        errorMessage("Please check your username and token. To request a new token, please login with your normal user account at " + baseUi->scicat->getTokenURL() + ".");
+        errorMessage("Please check your token. To request a new token, please login with your normal user account at " + baseUi->scicat->getTokenURL() + ".");
         uiLogin->lineEditPassword->clear();
         return;
     } else if (status==SciCat::authenticationStateAccount::ConnectionError){
         errorMessage("Could not connect to SciCat.\nPlease make sure that you are within the PSI intranet and try again.");
-        return;
-    } else if (status==SciCat::authenticationStateAccount::ValidBLAccount){
-        // can be removed once the pgroup selection is fixed:
-        errorMessage("Beamline accounts are currently not supported.");
-        uiLogin->lineEditPassword->clear();
         return;
     }
 
