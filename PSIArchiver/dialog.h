@@ -171,13 +171,19 @@ struct metadataContainer_t {
 
 };
 
+enum NavIcon : int { NavIconHover = 0, NavIconActive = 1, NavIconInactive = 2 };
+
+inline constexpr QSize NavIconSize{50, 50};
+
+std::vector<QIcon> navigationIcons(const QString& glyphPath);
+
 class ButtonHoverWatcher : public QObject
 {
     Q_OBJECT
 public:
     explicit ButtonHoverWatcher(QObject * parent = Q_NULLPTR);
     virtual bool eventFilter(QObject * watched, QEvent * event) Q_DECL_OVERRIDE;
-    void setIcons(std::vector<std::string> icons);
+    void setIcons(const std::vector<QIcon>& icons);
     void setButtonIsActive(bool val);
 private:
     std::vector<QIcon> iconsVector;
@@ -216,6 +222,7 @@ public:
     ButtonHoverWatcher *pgroupWatcher;
     ButtonHoverWatcher *archiveWatcher;
     ButtonHoverWatcher *retrieveWatcher;
+    ButtonHoverWatcher *settingsWatcher;
 
 
 
@@ -298,9 +305,10 @@ private:
     QCompleter *pgroupCompleter=nullptr;
     std::string savePath = "~/scicat/log/";
     void updateItemFlag(QTreeWidgetItem *item, int flag);
-    std::vector<std::string> loginIcons;
-    std::vector<std::string> archiveIcons;
-    std::vector<std::string> retrieveIcons;
+    std::vector<QIcon> loginIcons;
+    std::vector<QIcon> archiveIcons;
+    std::vector<QIcon> retrieveIcons;
+    std::vector<QIcon> settingsIcons;
     inputDatasets_t inputDatasetsContainer;
     int numPagesArchive = 3;
     int numPagesRetrieve = 1;
