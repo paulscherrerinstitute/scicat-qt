@@ -1,6 +1,8 @@
 #include "dialog.h"
 
 #include <QDateTime>
+#include <QPainter>
+#include <tuple>
 #include <QMetaEnum>
 #include <memory>
 #include "messagehandlergui.h"
@@ -23,10 +25,7 @@ Dialog::Dialog(QWidget *parent)
     ui->pushButtonKill->hide();
     // end
 
-    QPixmap pixmap(":/images/scicat-logo-white.png");
-    pixmap = pixmap.scaledToWidth(50);
-    ui->labelLogo->setPixmap(pixmap);
-    ui->labelLogo->setMask(pixmap.mask());
+    ui->labelLogo->setPixmap(QIcon(":/images/SciCat_logo_icon.svg").pixmap(QSize(50, 50), devicePixelRatioF()));
 
 
     // update number of slides/pages
@@ -47,6 +46,24 @@ Dialog::Dialog(QWidget *parent)
     pgroupWatcher = new ButtonHoverWatcher(this);
     archiveWatcher = new ButtonHoverWatcher(this);
     retrieveWatcher = new ButtonHoverWatcher(this);
+    settingsWatcher = new ButtonHoverWatcher(this);
+
+    loginIcons = navigationIcons(":/images/nav-pgroup.svg");
+    archiveIcons = navigationIcons(":/images/nav-archive.svg");
+    retrieveIcons = navigationIcons(":/images/nav-retrieve.svg");
+    settingsIcons = navigationIcons(":/images/nav-settings.svg");
+    const std::vector<std::tuple<QPushButton*, ButtonHoverWatcher*, const std::vector<QIcon>*, NavIcon>> navButtons{
+        {ui->pushButtonGoToPgroup, pgroupWatcher, &loginIcons, NavIconActive},
+        {ui->pushButtonGoToArchive, archiveWatcher, &archiveIcons, NavIconInactive},
+        {ui->pushButtonGoToRetrieve, retrieveWatcher, &retrieveIcons, NavIconInactive},
+        {ui->pushButtonSettings, settingsWatcher, &settingsIcons, NavIconInactive}};
+    for (const auto& [button, watcher, icons, initial] : navButtons){
+        watcher->setIcons(*icons);
+        button->setIcon((*icons)[initial]);
+        button->setIconSize(NavIconSize);
+        button->installEventFilter(watcher);
+    }
+    pgroupWatcher->setButtonIsActive(true);
 
     QSettings settingsContainer("PSI", "SciCat");
 
@@ -186,28 +203,6 @@ Dialog::Dialog(QWidget *parent)
     if (!movie->isValid())
         return;
 
-    ui->pushButtonGoToPgroup->setIcon(QIcon(":/images/login.svg"));
-    ui->pushButtonGoToPgroup->setIconSize(QSize(50,50));
-
-    loginIcons.push_back(":/images/login.svg");
-    loginIcons.push_back(":/images/login-active.svg");
-    loginIcons.push_back(":/images/login-not-active.svg");
-
-    archiveIcons.push_back(":/images/archive.svg");
-    archiveIcons.push_back(":/images/archive-active.svg");
-    archiveIcons.push_back(":/images/archive-not-active.svg");
-
-    retrieveIcons.push_back(":/images/retrieve.svg");
-    retrieveIcons.push_back(":/images/retrieve-active.svg");
-    retrieveIcons.push_back(":/images/retrieve-not-active.svg");
-
-    pgroupWatcher->setIcons(loginIcons);
-    archiveWatcher->setIcons(archiveIcons);
-    retrieveWatcher->setIcons(retrieveIcons);
-
-    ui->pushButtonGoToPgroup->installEventFilter(pgroupWatcher);
-    ui->pushButtonGoToArchive->installEventFilter(archiveWatcher);
-    ui->pushButtonGoToRetrieve->installEventFilter(retrieveWatcher);
 
 
     // dataset retriever
@@ -282,24 +277,24 @@ void Dialog::toggleNavigationBar(int section){
 void Dialog::updateNavigationIcons(int targetID){
     if (secID!=targetID){
 
-        switch (secID) {
+        switch (secID==-1 ? 0 : secID) {
         case 0:{
-            ui->pushButtonGoToPgroup->setIcon(QIcon(":/images/login-not-active.svg"));
-            ui->pushButtonGoToPgroup->setIconSize(QSize(50,50));
+            ui->pushButtonGoToPgroup->setIcon(loginIcons[NavIconInactive]);
+            ui->pushButtonGoToPgroup->setIconSize(NavIconSize);
             pgroupWatcher->setButtonIsActive(false);
             break;
         }
 
         case 1: {
-            ui->pushButtonGoToArchive->setIcon(QIcon(":/images/archive-not-active.svg"));
-            ui->pushButtonGoToArchive->setIconSize(QSize(50,50));
+            ui->pushButtonGoToArchive->setIcon(archiveIcons[NavIconInactive]);
+            ui->pushButtonGoToArchive->setIconSize(NavIconSize);
             archiveWatcher->setButtonIsActive(false);
             break;
         }
 
         case 2:{
-            ui->pushButtonGoToRetrieve->setIcon(QIcon(":/images/retrieve-not-active.svg"));
-            ui->pushButtonGoToRetrieve->setIconSize(QSize(50,50));
+            ui->pushButtonGoToRetrieve->setIcon(retrieveIcons[NavIconInactive]);
+            ui->pushButtonGoToRetrieve->setIconSize(NavIconSize);
             retrieveWatcher->setButtonIsActive(false);
             break;
         }
@@ -307,20 +302,20 @@ void Dialog::updateNavigationIcons(int targetID){
         }
         switch (targetID) {
         case 0:{
-            ui->pushButtonGoToPgroup->setIcon(QIcon(":/images/login-active.svg"));
-            ui->pushButtonGoToPgroup->setIconSize(QSize(50,50));
+            ui->pushButtonGoToPgroup->setIcon(loginIcons[NavIconActive]);
+            ui->pushButtonGoToPgroup->setIconSize(NavIconSize);
             pgroupWatcher->setButtonIsActive(true);
             break;
         }
         case 1: {
-            ui->pushButtonGoToArchive->setIcon(QIcon(":/images/archive-active.svg"));
-            ui->pushButtonGoToArchive->setIconSize(QSize(50,50));
+            ui->pushButtonGoToArchive->setIcon(archiveIcons[NavIconActive]);
+            ui->pushButtonGoToArchive->setIconSize(NavIconSize);
             archiveWatcher->setButtonIsActive(true);
             break;
         }
         case 2: {
-            ui->pushButtonGoToRetrieve->setIcon(QIcon(":/images/retrieve-active.svg"));
-            ui->pushButtonGoToRetrieve->setIconSize(QSize(50,50));
+            ui->pushButtonGoToRetrieve->setIcon(retrieveIcons[NavIconActive]);
+            ui->pushButtonGoToRetrieve->setIconSize(NavIconSize);
             retrieveWatcher->setButtonIsActive(true);
             break;
         }
@@ -1572,15 +1567,15 @@ bool ButtonHoverWatcher::eventFilter(QObject * watched, QEvent * event)
     if (!buttonIsActive){
         if (event->type() == QEvent::Enter) {
             // The push button is hovered by mouse
-            button->setIcon(iconsVector[0]);
-            button->setIconSize(QSize(50,50));
+            button->setIcon(iconsVector[NavIconHover]);
+            button->setIconSize(NavIconSize);
             return true;
         }
 
         if (event->type() == QEvent::Leave){
             // The push button is not hovered by mouse
-            button->setIcon(iconsVector[2]);
-            button->setIconSize(QSize(50,50));
+            button->setIcon(iconsVector[NavIconInactive]);
+            button->setIconSize(NavIconSize);
             return true;
         }
 
@@ -1590,12 +1585,61 @@ bool ButtonHoverWatcher::eventFilter(QObject * watched, QEvent * event)
     return false;
 }
 
-void ButtonHoverWatcher::setIcons(std::vector<std::string> icons){
-    iconsVector.clear();
-    for (uint ii=0; ii<icons.size(); ii++){
-        iconsVector.push_back(QIcon(icons[ii].c_str()));
+void ButtonHoverWatcher::setIcons(const std::vector<QIcon>& icons){
+    iconsVector = icons;
+}
+
+namespace {
+constexpr QRgb NavTileColour = qRgb(0x00, 0x2D, 0x3B);
+constexpr QRgb NavGlyphColour = qRgb(0xFF, 0xFF, 0xFF);
+constexpr QRgb NavGlyphMutedColour = qRgb(0x66, 0x81, 0x89);
+constexpr QRgb NavGlyphDisabledColour = qRgba(0x66, 0x81, 0x89, 0x60);
+constexpr QRgb NavActiveBarColour = qRgb(0x27, 0xAA, 0xE1);
+constexpr QRectF NavActiveBar{0, 9, 2.5, 32};
+
+QPixmap navigationTile(const QIcon& glyph, const QColor& colour, bool active, qreal dpr){
+    QPixmap tile(NavIconSize * dpr);
+    tile.setDevicePixelRatio(dpr);
+    tile.fill(QColor(NavTileColour));
+
+    QPainter painter(&tile);
+    painter.setRenderHint(QPainter::Antialiasing);
+    if (active){
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(QColor(NavActiveBarColour));
+        painter.drawRoundedRect(NavActiveBar, NavActiveBar.width() / 2, NavActiveBar.width() / 2);
     }
 
+    QPixmap glyphPixmap = glyph.pixmap(NavIconSize, dpr);
+    if (!glyphPixmap.isNull()){
+        {
+            QPainter tint(&glyphPixmap);
+            tint.setCompositionMode(QPainter::CompositionMode_SourceIn);
+            tint.fillRect(QRect(QPoint(0, 0), NavIconSize), colour);
+        }
+        painter.drawPixmap(0, 0, glyphPixmap);
+    }
+    return tile;
+}
+}
+
+std::vector<QIcon> navigationIcons(const QString& glyphPath){
+    const QIcon glyph(glyphPath);
+    if (glyph.pixmap(NavIconSize).isNull()){
+        qWarning() << "Could not render the sidebar icon" << glyphPath << "- is the Qt SVG icon engine plugin deployed?";
+    }
+
+    std::vector<QIcon> icons(3);
+    for (const qreal dpr : {1.0, 2.0}){
+        icons[NavIconHover].addPixmap(navigationTile(glyph, QColor(NavGlyphColour), false, dpr));
+        icons[NavIconActive].addPixmap(navigationTile(glyph, QColor(NavGlyphColour), true, dpr));
+        icons[NavIconInactive].addPixmap(navigationTile(glyph, QColor(NavGlyphMutedColour), false, dpr));
+        const QPixmap disabled = navigationTile(glyph, QColor::fromRgba(NavGlyphDisabledColour), false, dpr);
+        for (QIcon& icon : icons){
+            icon.addPixmap(disabled, QIcon::Disabled);
+        }
+    }
+    return icons;
 }
 
 void ButtonHoverWatcher::setButtonIsActive(bool val){
