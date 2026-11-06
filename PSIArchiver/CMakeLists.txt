@@ -76,10 +76,13 @@ set(SCICAT_SOURCES
 
 if(WIN32)
   add_definitions(-DWINDOWS_SPECIFIC_TOOLS)
-  add_executable(SciCat WIN32 ${SCICAT_SOURCES})
+  add_executable(SciCat WIN32 ${SCICAT_SOURCES} SciCat.rc)
 elseif(APPLE)
-  add_executable(SciCat MACOSX_BUNDLE ${SCICAT_SOURCES})
+  set(SCICAT_MACOS_ICON "${CMAKE_CURRENT_SOURCE_DIR}/SciCat.icns")
+  set_source_files_properties("${SCICAT_MACOS_ICON}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  add_executable(SciCat MACOSX_BUNDLE ${SCICAT_SOURCES} "${SCICAT_MACOS_ICON}")
   set_target_properties(SciCat PROPERTIES
+    MACOSX_BUNDLE_ICON_FILE "SciCat.icns"
     MACOSX_BUNDLE_BUNDLE_NAME "SciCat"
     MACOSX_BUNDLE_GUI_IDENTIFIER "ch.psi.scicat"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${SCICAT_VERSION}"
