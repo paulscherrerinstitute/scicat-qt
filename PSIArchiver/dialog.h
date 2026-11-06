@@ -41,11 +41,6 @@ struct fileCounter_t {
     QList<fileCounter_t> subDir;
 };
 
-struct styleSheets_t {
-    QString buttonNavigation;
-    QString buttonNotActive;
-};
-
 struct defaultSettings_t {
     QString scicatCliBinary = "scicat-cli";
     QString logPath = QDir::homePath() + "/.scicat/log";
@@ -292,7 +287,6 @@ private:
     void addEntryMetadataTreeView(QString name, QString description, QTreeWidgetItem *parent, bool setFocus=false, int flag=2);
     void addEntryMetadataTreeView(QString name, QString description, QString parent, bool setFocus=false, int flag=2);
     void addEntryMetadataTreeView(QString name, QString description);
-    styleSheets_t styleSheetsContainer;
     std::vector<QPushButton *> navigationButtons;
     void updateMetadataEntry(QString name, QString targetValue, int flag=2);
     void setButtonsEnabled(bool enabled);

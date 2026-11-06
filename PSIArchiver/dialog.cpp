@@ -122,6 +122,8 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonOpenLog, SIGNAL(clicked()), this, SLOT(openIngestionLog()));
     connect(ui->comboBoxCreationLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(creationLocationChanged(int)));
     connect(ui->pushButtonRefreshJobs, SIGNAL(clicked()), this, SLOT(updateJobTable()));
+    // the platform's own reload icon, so the button matches the native style
+    ui->pushButtonRefreshJobs->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
     connect(ui->tableWidgetRetriever, SIGNAL(itemSelectionChanged()), this, SLOT(updateRetrieverFiles()));
     connect(ui->pushButtonToggleFilesMetadata, SIGNAL(clicked()), this, SLOT(toggleFilesMetadata()));
     connect(scicat->ingestion(), SIGNAL(finished(int)), this, SLOT(ingestionFinished(int)));
@@ -245,12 +247,6 @@ Dialog::Dialog(QWidget *parent)
 
     ingestionLog = new LogBrowser(this);
 
-    styleSheetsContainer.buttonNavigation = "QPushButton{background-color:rgb(0, 45, 59); border-radius:0px}; "
-                                          "QPushButton:hover{background-color:rgb(0, 70, 91); border-radius:0px}; "
-                                          "QPushButton:!enabled{background-color:rgb(0, 45, 59); border-radius:0px; color:rgb(198, 198, 198)}";
-    QFile fileLight(":/css/lightMode.css");
-    fileLight.open(QFile::ReadOnly);
-    this->setStyleSheet(fileLight.readAll());
 
     // hide file list and metadata
     ui->treeWidgetScientificMetadataRetrieve->setVisible(false);
