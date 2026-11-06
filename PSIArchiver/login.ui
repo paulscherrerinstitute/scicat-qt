@@ -50,7 +50,7 @@
        <item>
         <widget class="QLabel" name="labelHint">
          <property name="text">
-          <string>Login with your personal PSI account and a new token from the SciCat web interface</string>
+          <string>Login with a new token from the SciCat web interface</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -96,16 +96,6 @@
          </item>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout">
-           <item>
-            <widget class="QLineEdit" name="lineEditUsername">
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="placeholderText">
-              <string>Username</string>
-             </property>
-            </widget>
-           </item>
            <item>
             <widget class="QLineEdit" name="lineEditPassword">
              <property name="echoMode">

@@ -149,7 +149,6 @@ inline QDebug operator<<(QDebug out, const std::string& str)
 inline QDebug operator<<(QDebug out, const SciCat::authenticationStateAccount& auth){
     switch (auth){
         case SciCat::authenticationStateAccount::ValidUser: out << "<authenticationStateAccount: ValidUser>"; return out;
-        case SciCat::authenticationStateAccount::ValidBLAccount: out << "<authenticationStateAccount: ValidBLAccount>"; return out;
         case SciCat::authenticationStateAccount::Invalid: out << "<authenticationStateAccount: Invalid>"; return out;
         case SciCat::authenticationStateAccount::ConnectionError: out << "<authenticationStateAccount: ConnectionError>"; return out;
 
