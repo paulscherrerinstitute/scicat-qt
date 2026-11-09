@@ -732,10 +732,19 @@ void Dialog::updateRetrieverFiles(){
         // files
         auto msgHandler = MessageHandlerGUI::sendMessage(ui->warningLabel, "Retrieving dataset info..."); // use scope-based MessageHandler
         QString encodedDatasetID = QUrl::toPercentEncoding(QString::fromStdString(datasetID));
-        QNetworkRequest requestDatasetInfo = scicat->apiRequest("datasets/" + encodedDatasetID + "/origdatablocks", SciCat::ApiVersion::V3);
+        const QJsonObject filterFiles = {{"where", QJsonObject{{"pid", QString::fromStdString(datasetID)}}},
+                                         {"include", QJsonArray{"origdatablocks"}}};
+        QNetworkRequest requestDatasetInfo = scicat->apiRequest("datasets", SciCat::ApiVersion::V3, filterFiles);
         auto replyInfo = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestDatasetInfo);
-        requestDatasetInfoJson = QJsonDocument::fromJson(replyInfo.toUtf8());
-        retrieveDataMap[datasetID] = requestDatasetInfoJson;
+        const QJsonArray datasetsWithFiles = QJsonDocument::fromJson(replyInfo.toUtf8()).array();
+        const QJsonValue fileBlocks = datasetsWithFiles.isEmpty() ? QJsonValue() : datasetsWithFiles.first().toObject().value("origdatablocks");
+        requestDatasetInfoJson = QJsonDocument(fileBlocks.toArray());
+        if (fileBlocks.isArray()){
+            retrieveDataMap[datasetID] = requestDatasetInfoJson;
+        } else {
+            msgHandler.reset();
+            MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not load the files of this dataset from SciCat.");
+        }
 
         // scientific metadata
         QJsonObject filterSM{{"fields", QJsonArray{"scientificMetadata"}}};
