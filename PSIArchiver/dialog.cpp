@@ -1235,26 +1235,62 @@ void Dialog::updateRetrieveList(){
     QNetworkRequest requestCurrentDatasets = scicat->apiRequest("datasets", SciCat::ApiVersion::V3, filterDatasets);
     auto currentDatasetsJob = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestCurrentDatasets);
 
-    // the v3 jobs endpoint maps the v3 field names but does not accept a fields filter
-    QJsonObject filterJobs{{"where", QJsonObject{{"type", "retrieve"}, {"emailJobInitiator", scicat->user()->getUserMail()}}}};
-    QNetworkRequest requestSuccessfulJobs = scicat->apiRequest("jobs", SciCat::ApiVersion::V3, filterJobs);
-    auto replyJobs = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestSuccessfulJobs);
-
-    // wait for jobs to finish
-    QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(currentDatasetsJob->pull().toUtf8());
-    QJsonDocument successfulJobsJson = QJsonDocument::fromJson(replyJobs->pull().toUtf8());
-
-
-    // get all 'finishedSuccessful' jobs
-    // sadly, there seems to be no option to filter the jobs by pgroup, so we have to query all and select the ones from the current account
     std::vector<QString>finishedSuccessfulPIDs;
-    for (auto v:successfulJobsJson.array()){
-        if (v.toObject().find("jobStatusMessage").value().toString().compare("finishedSuccessful")==0){
-            auto datasetListArray = v.toObject().take("datasetList").toArray();
-            for (int ii=0; ii<datasetListArray.size(); ii++) {
-                finishedSuccessfulPIDs.push_back(datasetListArray.at(ii).toObject().find("pid").value().toString());
+    bool jobsLoaded = true;
+    bool jobsCapped = false;
+    const int jobsPageSize = 500;
+    const int maxJobsPages = 100;
+    for (int page=0, skip=0; ; ++page, skip+=jobsPageSize){
+        if (page==maxJobsPages){
+            qWarning() << "[RetrieveList] stopped after" << maxJobsPages << "pages of retrieve jobs";
+            jobsCapped = true;
+            break;
+        }
+        const QJsonObject filterJobs = {{"where", QJsonObject{{"type", "retrieve"},
+                                                              {"ownerUser", scicat->user()->getUsername()},
+                                                              {"statusCode", "finishedSuccessful"}}},
+                                        {"limits", QJsonObject{{"limit", jobsPageSize}, {"skip", skip},
+                                                               {"sort", QJsonObject{{"createdAt", "desc"}}}}}};
+        auto replyJobs = NetworkManager::startNetworkManager(NetworkManager::GetOperation,
+                                                             scicat->apiRequest("jobs", SciCat::ApiVersion::V4, filterJobs));
+        const QString jobsReply = replyJobs->pull();
+        const QJsonDocument jobsJson = QJsonDocument::fromJson(jobsReply.toUtf8());
+        const int jobsStatus = replyJobs->getReply()->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (jobsStatus<200 || jobsStatus>=300 || !jobsJson.isArray()){
+            qWarning().noquote() << "[RetrieveList] retrieve jobs request failed (HTTP" << jobsStatus << "):" << jobsReply;
+            jobsLoaded = false;
+            break;
+        }
+
+        const QJsonArray jobs = jobsJson.array();
+        for (const auto& v : jobs){
+            const QJsonObject job = v.toObject();
+            // the server filters already; re-check in case a filter key is ignored
+            if (job.value("type").toString()!="retrieve"
+                || job.value("ownerUser").toString()!=scicat->user()->getUsername()
+                || job.value("statusCode").toString()!="finishedSuccessful"){
+                continue;
+            }
+            const QJsonArray datasetListArray = job.value("jobParams").toObject().value("datasetList").toArray();
+            for (const auto& dataset : datasetListArray){
+                finishedSuccessfulPIDs.push_back(dataset.toObject().value("pid").toString());
             }
         }
+        if (jobs.size()<jobsPageSize){
+            break;
+        }
+    }
+    if (!jobsLoaded){
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not load the retrieve jobs from SciCat; retrieved datasets may show as not retrieved.");
+    } else if (jobsCapped){
+        MessageHandlerGUI::sendWarning(ui->warningLabel, QString("Only the most recent %1 retrieve jobs were checked; older retrieved datasets may show as not retrieved.").arg(maxJobsPages*jobsPageSize));
+    }
+
+    const QString datasetsReply = currentDatasetsJob->pull();
+    const QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(datasetsReply.toUtf8());
+    if (!currentDatasetsJson.isArray()){
+        qWarning().noquote() << "[RetrieveList] datasets request failed:" << datasetsReply;
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not load the datasets of this pgroup from SciCat.");
     }
 
     retrieveContainer.clear();
