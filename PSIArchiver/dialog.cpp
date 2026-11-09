@@ -2,6 +2,7 @@
 
 #include <QDateTime>
 #include <QSet>
+#include <QScopedValueRollback>
 #include <QMetaEnum>
 #include <memory>
 #include "messagehandlergui.h"
@@ -1023,10 +1024,18 @@ QStringList Dialog::openFileBrowser(){
 }
 
 void Dialog::openDatasetBrowser(){
-    const QJsonObject filter = {{"where", QJsonObject{{"ownerGroup", scicat->experiment()->getOwnerGroup()}}},
-                                {"fields", QJsonArray{"datasetName", "pid"}}};
-    const SciCat::PagedResult datasets = scicat->fetchAllPages("datasets", SciCat::ApiVersion::V3, filter,
-                                                               QJsonObject{{"order", "pid:asc"}});
+    if (datasetBrowserLoading){
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Still loading the datasets of this pgroup from SciCat...");
+        return;
+    }
+    SciCat::PagedResult datasets;
+    {
+        // released before the browser opens
+        const QScopedValueRollback<bool> loading(datasetBrowserLoading, true);
+        const QJsonObject filter = {{"where", QJsonObject{{"ownerGroup", scicat->experiment()->getOwnerGroup()}}},
+                                    {"fields", QJsonArray{"datasetName", "pid"}}};
+        datasets = scicat->fetchAllPages("datasets", SciCat::ApiVersion::V3, filter, QJsonObject{{"order", "pid:asc"}});
+    }
     if (datasets.status==SciCat::PagedResult::Status::Failed){
         MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not load the datasets of this pgroup from SciCat.");
         return;
@@ -1237,6 +1246,12 @@ void Dialog::updateMetadataEntry(QString name, QString targetValue, int flag){
 }
 
 void Dialog::updateRetrieveList(){
+    if (retrieveListLoading){
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Still loading the retrieve list from SciCat...");
+        return;
+    }
+    const QScopedValueRollback<bool> loading(retrieveListLoading, true);
+
     const int maxListItems = SciCat::DataCatalogue::listPageSize*SciCat::DataCatalogue::listMaxPages;
 
     // finished retrieve jobs of this user, newest first; the v3 jobs endpoint of the new backend
