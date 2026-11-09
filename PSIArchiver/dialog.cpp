@@ -1357,27 +1357,49 @@ void Dialog::requestRetrieve(){
     QJsonArray datasetList;
 
     QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
+    if (indexList.isEmpty()){
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Please select the datasets to retrieve.");
+        return;
+    }
+    const bool requestAlreadyRetrieved = settingsContainer.value("requestAlreadyRetrievedData").toBool();
+    bool skippedNotRetrievable = false;
+    bool skippedAlreadyRetrieved = false;
     for (int ii=0; ii<indexList.size(); ++ii) {
-        qDebug() << ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0);
-        if (ui->tableWidgetRetriever->item(indexList[ii].row(),1)->data(0).toBool()) { // check retrievable
-            qDebug() << (!ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool());
-            qDebug() << (settingsContainer.value("requestAlreadyRetrievedData").toBool());
-            if ((!ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool()) || (settingsContainer.value("requestAlreadyRetrievedData").toBool())){
-                QJsonObject tmpDatasetObject;
-                tmpDatasetObject["pid"] = ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0).toString();
-                tmpDatasetObject["files"] = QJsonArray();
-                datasetList.push_back(tmpDatasetObject);
-            } else {
-                MessageHandlerGUI::sendWarning(ui->warningLabel, "Some datasets have already been retrieved and will be skipped.");
-            }
+        const int row = indexList[ii].row();
+        if (!ui->tableWidgetRetriever->item(row,1)->data(0).toBool()){ // not retrievable
+            skippedNotRetrievable = true;
+        } else if (ui->tableWidgetRetriever->item(row,2)->data(0).toBool() && !requestAlreadyRetrieved){ // already retrieved
+            skippedAlreadyRetrieved = true;
         } else {
-            MessageHandlerGUI::sendWarning(ui->warningLabel, "Some datasets are not in a retrievable state.");
+            QJsonObject tmpDatasetObject;
+            tmpDatasetObject["pid"] = ui->tableWidgetRetriever->item(row,3)->data(0).toString();
+            tmpDatasetObject["files"] = QJsonArray();
+            datasetList.push_back(tmpDatasetObject);
         }
     }
 
+    // one message that says what was skipped and whether anything is requested at all
+    QStringList skipReasons;
+    if (skippedNotRetrievable){
+        skipReasons << "not in a retrievable state";
+    }
+    if (skippedAlreadyRetrieved){
+        skipReasons << "already retrieved";
+    }
+    if (datasetList.isEmpty()){
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Nothing was requested: the selected datasets are " + skipReasons.join(" or ") + ".");
+        return;
+    }
+    if (!skipReasons.isEmpty()){
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Some datasets were skipped because they are " + skipReasons.join(" or ") + ".");
+    }
+
     // start retrieving data from archive; at this point, the data will only be copied to the retrieve server
-    if (scicat->requestRetrieve(datasetList)==0){
+    QString errorMessage;
+    if (scicat->requestRetrieve(datasetList, errorMessage)){
         QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat GUI.") );
+    } else {
+        QMessageBox::warning(this, tr("Retrieve failed"), errorMessage);
     }
 
 }
