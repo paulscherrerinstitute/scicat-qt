@@ -57,6 +57,34 @@ QNetworkRequest DataCatalogue::apiRequest(const QString& endpoint, ApiVersion ve
     return request;
 }
 
+PagedResult DataCatalogue::fetchAllPages(const QString& endpoint, ApiVersion version, QJsonObject filter, QJsonObject limits) const{
+    PagedResult result;
+    for (int page=0; page<listMaxPages; ++page){
+        limits["limit"] = listPageSize;
+        limits["skip"] = page*listPageSize;
+        filter["limits"] = limits;
+        auto manager = NetworkManager::startNetworkManager(NetworkManager::GetOperation, apiRequest(endpoint, version, filter));
+        const QString body = manager->pull();
+        const QJsonDocument doc = QJsonDocument::fromJson(body.toUtf8());
+        const int httpStatus = manager->getReply()->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (httpStatus<200 || httpStatus>=300 || !doc.isArray()){
+            qWarning().noquote() << "[DataCatalogue]" << endpoint << "request failed (HTTP" << httpStatus << "):" << body;
+            result.status = PagedResult::Status::Failed;
+            return result;
+        }
+        const QJsonArray items = doc.array();
+        for (const auto& item : items){
+            result.items.append(item);
+        }
+        if (items.size()<listPageSize){
+            return result;
+        }
+    }
+    qWarning() << "[DataCatalogue]" << endpoint << "stopped after" << listMaxPages << "pages";
+    result.status = PagedResult::Status::Capped;
+    return result;
+}
+
 DataCatalogueCore::User* DataCatalogue::user()
 {
     return scicatUser;
