@@ -216,6 +216,10 @@ public:
     defaultSettings_t defaultSettings;
     void updateRetrieveList();
     int secID=-1;
+    // set while the list is loaded (its requests wait in nested event loops), so a repeated click
+    // does not start a second, overlapping load of the same list
+    bool retrieveListLoading = false;
+    bool datasetBrowserLoading = false;
     void updateNavigationIcons(int targetID);
     SciCat::DataCatalogue* scicat = nullptr;
     ButtonHoverWatcher *pgroupWatcher;
