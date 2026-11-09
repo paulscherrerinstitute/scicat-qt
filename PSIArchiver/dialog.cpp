@@ -730,14 +730,14 @@ void Dialog::updateRetrieverFiles(){
         // files
         auto msgHandler = MessageHandlerGUI::sendMessage(ui->warningLabel, "Retrieving dataset info..."); // use scope-based MessageHandler
         QString encodedDatasetID = QUrl::toPercentEncoding(QString::fromStdString(datasetID));
-        QNetworkRequest requestDatasetInfo = scicat->apiRequest("datasets/" + encodedDatasetID + "/origdatablocks");
+        QNetworkRequest requestDatasetInfo = scicat->apiRequest("datasets/" + encodedDatasetID + "/origdatablocks", SciCat::ApiVersion::V3);
         auto replyInfo = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestDatasetInfo);
         requestDatasetInfoJson = QJsonDocument::fromJson(replyInfo.toUtf8());
         retrieveDataMap[datasetID] = requestDatasetInfoJson;
 
         // scientific metadata
         QJsonObject filterSM{{"fields", QJsonArray{"scientificMetadata"}}};
-        QNetworkRequest requestSM = scicat->apiRequest("datasets/" + encodedDatasetID, filterSM);
+        QNetworkRequest requestSM = scicat->apiRequest("datasets/" + encodedDatasetID, SciCat::ApiVersion::V3, filterSM);
         auto replySM = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, requestSM);
         requestSMJson = QJsonDocument::fromJson(replySM.toUtf8());
         auto jsonObj = requestSMJson.object();
@@ -1024,7 +1024,7 @@ QStringList Dialog::openFileBrowser(){
 void Dialog::openDatasetBrowser(){
     QJsonObject filter{{"where", QJsonObject{{"ownerGroup", scicat->experiment()->getOwnerGroup()}}},
                        {"fields", QJsonArray{"datasetName", "pid"}}};
-    QNetworkRequest request = scicat->apiRequest("datasets", filter);
+    QNetworkRequest request = scicat->apiRequest("datasets", SciCat::ApiVersion::V3, filter);
     QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::GetOperation, request);
     QJsonDocument doc = QJsonDocument::fromJson(reply.toUtf8());
 
@@ -1232,29 +1232,65 @@ void Dialog::updateRetrieveList(){
     // request a list of all datasets from the current pgroup
     QJsonObject filterDatasets{{"where", QJsonObject{{"ownerGroup", scicat->experiment()->getOwnerGroup()}}},
                                {"fields", QJsonArray{"datasetlifecycle", "pid", "datasetName"}}};
-    QNetworkRequest requestCurrentDatasets = scicat->apiRequest("datasets", filterDatasets);
+    QNetworkRequest requestCurrentDatasets = scicat->apiRequest("datasets", SciCat::ApiVersion::V3, filterDatasets);
     auto currentDatasetsJob = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestCurrentDatasets);
 
-    // the v3 jobs endpoint maps the v3 field names but does not accept a fields filter
-    QJsonObject filterJobs{{"where", QJsonObject{{"type", "retrieve"}, {"emailJobInitiator", scicat->user()->getUserMail()}}}};
-    QNetworkRequest requestSuccessfulJobs = scicat->apiRequest("jobs", filterJobs);
-    auto replyJobs = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestSuccessfulJobs);
-
-    // wait for jobs to finish
-    QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(currentDatasetsJob->pull().toUtf8());
-    QJsonDocument successfulJobsJson = QJsonDocument::fromJson(replyJobs->pull().toUtf8());
-
-
-    // get all 'finishedSuccessful' jobs
-    // sadly, there seems to be no option to filter the jobs by pgroup, so we have to query all and select the ones from the current account
     std::vector<QString>finishedSuccessfulPIDs;
-    for (auto v:successfulJobsJson.array()){
-        if (v.toObject().find("jobStatusMessage").value().toString().compare("finishedSuccessful")==0){
-            auto datasetListArray = v.toObject().take("datasetList").toArray();
-            for (int ii=0; ii<datasetListArray.size(); ii++) {
-                finishedSuccessfulPIDs.push_back(datasetListArray.at(ii).toObject().find("pid").value().toString());
+    bool jobsLoaded = true;
+    bool jobsCapped = false;
+    const int jobsPageSize = 500;
+    const int maxJobsPages = 100;
+    for (int page=0, skip=0; ; ++page, skip+=jobsPageSize){
+        if (page==maxJobsPages){
+            qWarning() << "[RetrieveList] stopped after" << maxJobsPages << "pages of retrieve jobs";
+            jobsCapped = true;
+            break;
+        }
+        const QJsonObject filterJobs = {{"where", QJsonObject{{"type", "retrieve"},
+                                                              {"ownerUser", scicat->user()->getUsername()},
+                                                              {"statusCode", "finishedSuccessful"}}},
+                                        {"limits", QJsonObject{{"limit", jobsPageSize}, {"skip", skip},
+                                                               {"sort", QJsonObject{{"createdAt", "desc"}}}}}};
+        auto replyJobs = NetworkManager::startNetworkManager(NetworkManager::GetOperation,
+                                                             scicat->apiRequest("jobs", SciCat::ApiVersion::V4, filterJobs));
+        const QString jobsReply = replyJobs->pull();
+        const QJsonDocument jobsJson = QJsonDocument::fromJson(jobsReply.toUtf8());
+        const int jobsStatus = replyJobs->getReply()->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (jobsStatus<200 || jobsStatus>=300 || !jobsJson.isArray()){
+            qWarning().noquote() << "[RetrieveList] retrieve jobs request failed (HTTP" << jobsStatus << "):" << jobsReply;
+            jobsLoaded = false;
+            break;
+        }
+
+        const QJsonArray jobs = jobsJson.array();
+        for (const auto& v : jobs){
+            const QJsonObject job = v.toObject();
+            // the server filters already; re-check in case a filter key is ignored
+            if (job.value("type").toString()!="retrieve"
+                || job.value("ownerUser").toString()!=scicat->user()->getUsername()
+                || job.value("statusCode").toString()!="finishedSuccessful"){
+                continue;
+            }
+            const QJsonArray datasetListArray = job.value("jobParams").toObject().value("datasetList").toArray();
+            for (const auto& dataset : datasetListArray){
+                finishedSuccessfulPIDs.push_back(dataset.toObject().value("pid").toString());
             }
         }
+        if (jobs.size()<jobsPageSize){
+            break;
+        }
+    }
+    if (!jobsLoaded){
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not load the retrieve jobs from SciCat; retrieved datasets may show as not retrieved.");
+    } else if (jobsCapped){
+        MessageHandlerGUI::sendWarning(ui->warningLabel, QString("Only the most recent %1 retrieve jobs were checked; older retrieved datasets may show as not retrieved.").arg(maxJobsPages*jobsPageSize));
+    }
+
+    const QString datasetsReply = currentDatasetsJob->pull();
+    const QJsonDocument currentDatasetsJson = QJsonDocument::fromJson(datasetsReply.toUtf8());
+    if (!currentDatasetsJson.isArray()){
+        qWarning().noquote() << "[RetrieveList] datasets request failed:" << datasetsReply;
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Could not load the datasets of this pgroup from SciCat.");
     }
 
     retrieveContainer.clear();
@@ -1321,27 +1357,49 @@ void Dialog::requestRetrieve(){
     QJsonArray datasetList;
 
     QModelIndexList indexList = ui->tableWidgetRetriever->selectionModel()->selectedRows();
+    if (indexList.isEmpty()){
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Please select the datasets to retrieve.");
+        return;
+    }
+    const bool requestAlreadyRetrieved = settingsContainer.value("requestAlreadyRetrievedData").toBool();
+    bool skippedNotRetrievable = false;
+    bool skippedAlreadyRetrieved = false;
     for (int ii=0; ii<indexList.size(); ++ii) {
-        qDebug() << ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0);
-        if (ui->tableWidgetRetriever->item(indexList[ii].row(),1)->data(0).toBool()) { // check retrievable
-            qDebug() << (!ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool());
-            qDebug() << (settingsContainer.value("requestAlreadyRetrievedData").toBool());
-            if ((!ui->tableWidgetRetriever->item(indexList[ii].row(),2)->data(0).toBool()) || (settingsContainer.value("requestAlreadyRetrievedData").toBool())){
-                QJsonObject tmpDatasetObject;
-                tmpDatasetObject["pid"] = ui->tableWidgetRetriever->item(indexList[ii].row(),3)->data(0).toString();
-                tmpDatasetObject["files"] = QJsonArray();
-                datasetList.push_back(tmpDatasetObject);
-            } else {
-                MessageHandlerGUI::sendWarning(ui->warningLabel, "Some datasets have already been retrieved and will be skipped.");
-            }
+        const int row = indexList[ii].row();
+        if (!ui->tableWidgetRetriever->item(row,1)->data(0).toBool()){ // not retrievable
+            skippedNotRetrievable = true;
+        } else if (ui->tableWidgetRetriever->item(row,2)->data(0).toBool() && !requestAlreadyRetrieved){ // already retrieved
+            skippedAlreadyRetrieved = true;
         } else {
-            MessageHandlerGUI::sendWarning(ui->warningLabel, "Some datasets are not in a retrievable state.");
+            QJsonObject tmpDatasetObject;
+            tmpDatasetObject["pid"] = ui->tableWidgetRetriever->item(row,3)->data(0).toString();
+            tmpDatasetObject["files"] = QJsonArray();
+            datasetList.push_back(tmpDatasetObject);
         }
     }
 
+    // one message that says what was skipped and whether anything is requested at all
+    QStringList skipReasons;
+    if (skippedNotRetrievable){
+        skipReasons << "not in a retrievable state";
+    }
+    if (skippedAlreadyRetrieved){
+        skipReasons << "already retrieved";
+    }
+    if (datasetList.isEmpty()){
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Nothing was requested: the selected datasets are " + skipReasons.join(" or ") + ".");
+        return;
+    }
+    if (!skipReasons.isEmpty()){
+        MessageHandlerGUI::sendWarning(ui->warningLabel, "Some datasets were skipped because they are " + skipReasons.join(" or ") + ".");
+    }
+
     // start retrieving data from archive; at this point, the data will only be copied to the retrieve server
-    if (scicat->requestRetrieve(datasetList)==0){
+    QString errorMessage;
+    if (scicat->requestRetrieve(datasetList, errorMessage)){
         QMessageBox::information(this, tr("Retrieve requested"), tr("The retrieval of your data has been requested. You will be notified via email once the job finished successfully. Successfully retrieved datasets can then be copied using the SciCat GUI.") );
+    } else {
+        QMessageBox::warning(this, tr("Retrieve failed"), errorMessage);
     }
 
 }

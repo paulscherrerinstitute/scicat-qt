@@ -33,14 +33,14 @@ SciCat::authenticationStateAccount User::authenticateUser(const QString& usernam
         return authenticationStateAccount::ValidUser;
     } else {
         // try normal user account first
-        state = sendAuthenticationRequest(username, pword, DataCatalogue::serverList()[server] + "auth/ldap");
+        state = sendAuthenticationRequest(username, pword, DataCatalogue::apiUrl(server, ApiVersion::V3, "auth/ldap"));
         if (state==authenticationState::ConnectionError){
             return authenticationStateAccount::ConnectionError;
         }
         if (state==authenticationState::Valid){
             updateUserInfo();
             return authenticationStateAccount::ValidUser;
-        } else if (sendAuthenticationRequest(username, pword, DataCatalogue::serverList()[server] + "auth/login")==authenticationState::Valid) {
+        } else if (sendAuthenticationRequest(username, pword, DataCatalogue::apiUrl(server, ApiVersion::V3, "auth/login"))==authenticationState::Valid) {
             m_isBeamlineAccount = true;
             updateUserInfo();
             return authenticationStateAccount::ValidBLAccount;
@@ -153,7 +153,7 @@ void User::setToken(const QString &value)
 }
 
 void User::sendUserInfoRequest(){
-    QNetworkRequest requestUser = scicatBase->apiRequest("auth/whoami");
+    QNetworkRequest requestUser = scicatBase->apiRequest("auth/whoami", ApiVersion::V3);
     auto nwm = NetworkManager::startNetworkManager(NetworkManager::GetOperation, requestUser);
     auto reply = nwm->pull();
 

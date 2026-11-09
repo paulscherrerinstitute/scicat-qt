@@ -17,14 +17,15 @@ public:
     static QStringList serverList();
     static QStringList serverListRetrieve();
     static QStringList cliEnvironmentArguments(const int& serverID);
-    QNetworkRequest apiRequest(const QString& endpoint, const QJsonObject& filter = QJsonObject(), const QString& filterKey = "filter") const;
+    static QString apiUrl(const int& serverID, ApiVersion version, const QString& endpoint);
+    QNetworkRequest apiRequest(const QString& endpoint, ApiVersion version, const QJsonObject& filter = QJsonObject(), const QString& filterKey = "filter") const;
     DataCatalogueCore::User* user();
     DataCatalogueCore::Experiment* experiment();
     DatasetIngestor *ingestion();
     QString getServerName() const;
     int serverID;
     Dialog * baseUI;
-    int requestRetrieve(const QJsonArray& datasetList);
+    bool requestRetrieve(const QJsonArray& datasetList, QString& errorMessage);
     void startDatasetRetriever();
 
 private:
