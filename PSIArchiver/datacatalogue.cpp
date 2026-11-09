@@ -81,26 +81,58 @@ QString DataCatalogue::getServerName() const
     }
 }
 
-int DataCatalogue::requestRetrieve(const QJsonArray& datasetList){
-    QSettings settingsContainer("PSI", "SciCat");
+bool DataCatalogue::requestRetrieve(const QJsonArray& datasetList, QString& errorMessage){
+    if (datasetList.isEmpty()){
+        errorMessage = "None of the selected datasets can be retrieved.";
+        return false;
+    }
+
+    QJsonObject jobParams;
+    jobParams["username"] = scicatUser->getUsername();
+    jobParams["destinationPath"] = "/archive/retrieve";
+    jobParams["option"] = "PSI";
+    jobParams["datasetList"] = datasetList;
 
     QJsonObject request;
-    request["emailJobInitiator"] = scicatUser->getUserMail();
     request["type"] = "retrieve";
-    {
-        QJsonObject jobParams;
-        jobParams["username"] = scicatUser->getUsername();
-        jobParams["destinationPath"] = "/archive/retrieve";
-        jobParams["option"] = "PSI";
-        request["jobParams"] = jobParams;
+    request["jobParams"] = jobParams;
+    request["ownerUser"] = scicatUser->getUsername();
+    request["ownerGroup"] = scicatExperiment->getOwnerGroup();
+    if (!scicatUser->getUserMail().isEmpty()){
+        request["contactEmail"] = scicatUser->getUserMail();
     }
-    request["datasetList"] = datasetList;
 
-    if (datasetList.size()>0){
-        QNetworkRequest networkRequest = apiRequest("jobs", ApiVersion::V3);
-        networkRequest.setRawHeader("Content-Type", "application/json");
-        QString reply = NetworkManager::startNetworkManagerAndWait(NetworkManager::PostOperation, networkRequest, QString(QJsonDocument(request).toJson(QJsonDocument::Compact)).toUtf8());
+    QNetworkRequest networkRequest = apiRequest("jobs", ApiVersion::V4);
+    networkRequest.setRawHeader("Content-Type", "application/json");
+    auto manager = NetworkManager::startNetworkManager(NetworkManager::PostOperation, networkRequest, QJsonDocument(request).toJson(QJsonDocument::Compact));
+    const QString replyBody = manager->pull();
+    const QNetworkReply *reply = manager->getReply();
+    const int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
+    if (httpStatus==0){
+        qWarning().noquote() << "[DataCatalogue] retrieve job request failed:" << reply->errorString();
+        errorMessage = QString("Could not connect to SciCat: %1").arg(reply->errorString());
+        return false;
     }
-    return 0;
+    if (reply->error()!=QNetworkReply::NoError || httpStatus<200 || httpStatus>=300){
+        qWarning().noquote() << "[DataCatalogue] retrieve job request failed (HTTP" << httpStatus << "):" << replyBody;
+        // SciCat returns {"message": ...}, for validation errors a list of messages
+        const QJsonObject body = QJsonDocument::fromJson(replyBody.toUtf8()).object();
+        QString serverMessage = body.value("error").toObject().value("message").toString();
+        if (serverMessage.isEmpty()){
+            const QJsonValue message = body.value("message");
+            QStringList messages;
+            for (const auto& m : message.isArray() ? message.toArray() : QJsonArray{message}){
+                messages << m.toString();
+            }
+            serverMessage = messages.join("; ").trimmed();
+        }
+        if (serverMessage.isEmpty()){
+            serverMessage = reply->errorString();
+        }
+        errorMessage = QString("SciCat rejected the retrieve request (HTTP %1): %2").arg(httpStatus).arg(serverMessage);
+        return false;
+    }
+    return true;
 }
 

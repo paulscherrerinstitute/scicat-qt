@@ -25,7 +25,7 @@ public:
     QString getServerName() const;
     int serverID;
     Dialog * baseUI;
-    int requestRetrieve(const QJsonArray& datasetList);
+    bool requestRetrieve(const QJsonArray& datasetList, QString& errorMessage);
     void startDatasetRetriever();
 
 private:
