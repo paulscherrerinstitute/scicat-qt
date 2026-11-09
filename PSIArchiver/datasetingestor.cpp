@@ -57,10 +57,12 @@ void DatasetIngestor::prepareIngestion(){
         metadata["creationLocation"] = base->scicat->experiment()->getCreationLocation();
         metadata["type"] = "raw";
         auto res = base->ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);
-        QJsonArray scMetadata;
-        for (int ii=0; ii<res.size(); ii++){
-            qDebug() << res[ii]->childCount();
-            scMetadata.push_back(treeModel2Json(res[ii]));
+        QJsonObject scMetadata;
+        for (QTreeWidgetItem* item : std::as_const(res)){
+            const QJsonObject itemMetadata = treeModel2Json(item);
+            for (auto it = itemMetadata.constBegin(); it != itemMetadata.constEnd(); ++it){
+                scMetadata.insert(it.key(), it.value());
+            }
         }
         metadata["scientificMetadata"] = scMetadata;
     } else {
