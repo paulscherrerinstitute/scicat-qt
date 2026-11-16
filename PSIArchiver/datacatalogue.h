@@ -28,6 +28,7 @@ public:
     static QStringList serverList();
     static QStringList serverListRetrieve();
     static QStringList serverListFrontend();
+    static int validServerID(const int& id);
     static QStringList cliEnvironmentArguments(const int& serverID);
     static QString apiUrl(const int& serverID, ApiVersion version, const QString& endpoint);
     QNetworkRequest apiRequest(const QString& endpoint, ApiVersion version, const QJsonObject& filter = QJsonObject(), const QString& filterKey = "filter") const;
