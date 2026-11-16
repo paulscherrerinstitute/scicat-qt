@@ -129,15 +129,19 @@ int DataCatalogue::getServerID() const
     return serverID;
 }
 
-void DataCatalogue::setServerID(const int& id)
+// the ID comes from the persistent settings, which may be stale or hand-edited
+int DataCatalogue::validServerID(const int& id)
 {
-    // the ID comes from the persistent settings, which may be stale or hand-edited
     if (id < 0 || id >= serverList().size()){
         qWarning() << "Invalid server ID" << id << "- falling back to Production";
-        serverID = static_cast<int>(SciCat::serverType::Production);
-    } else {
-        serverID = id;
+        return static_cast<int>(SciCat::serverType::Production);
     }
+    return id;
+}
+
+void DataCatalogue::setServerID(const int& id)
+{
+    serverID = validServerID(id);
     serverType = static_cast<SciCat::serverType>(serverID);
 }
 

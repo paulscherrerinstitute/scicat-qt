@@ -42,8 +42,9 @@ Settings::Settings(Dialog *base, Context context, QWidget *parent) :
     ui->checkBoxGuessDatasetname->setChecked(settingsContainer.value("guessDatasetname").toBool());
     ui->checkBoxPrintCalls->setChecked(settingsContainer.value("printIngestion").toBool());
     ui->checkBoxSystemCalls->setChecked(settingsContainer.value("disableSystemCalls").toBool());
-    ui->comboBoxServer->setCurrentIndex(settingsContainer.value("serverID").toInt());
-    updateServerURL(settingsContainer.value("serverID").toInt());
+    const int serverID = SciCat::DataCatalogue::validServerID(settingsContainer.value("serverID").toInt());
+    ui->comboBoxServer->setCurrentIndex(serverID);
+    updateServerURL(serverID);
 
     // not implemented:
     ui->checkBoxDisableEmails->setVisible(false);
