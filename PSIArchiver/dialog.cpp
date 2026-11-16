@@ -1706,10 +1706,12 @@ std::vector<QIcon> navigationIcons(const QString& glyphPath){
         icons[NavIconHover].addPixmap(navigationTile(glyph, QColor(NavGlyphColour), false, dpr));
         icons[NavIconActive].addPixmap(navigationTile(glyph, QColor(NavGlyphColour), true, dpr));
         icons[NavIconInactive].addPixmap(navigationTile(glyph, QColor(NavGlyphMutedColour), false, dpr));
-        const QPixmap disabled = navigationTile(glyph, QColor::fromRgba(NavGlyphDisabledColour), false, dpr);
-        for (QIcon& icon : icons){
-            icon.addPixmap(disabled, QIcon::Disabled);
-        }
+        const QColor disabledColour = QColor::fromRgba(NavGlyphDisabledColour);
+        const QPixmap disabled = navigationTile(glyph, disabledColour, false, dpr);
+        icons[NavIconHover].addPixmap(disabled, QIcon::Disabled);
+        icons[NavIconInactive].addPixmap(disabled, QIcon::Disabled);
+        // keep the bar on the current section while the sidebar is disabled (ingestion running)
+        icons[NavIconActive].addPixmap(navigationTile(glyph, disabledColour, true, dpr), QIcon::Disabled);
     }
     return icons;
 }
