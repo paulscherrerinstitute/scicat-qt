@@ -30,6 +30,7 @@ private:
     authenticationStateAccount authenticateUser(const QString& token);
     authenticationState check_token(const QString& token);
     int sendUserInfoRequest();
+    QString requestIdentityMail() const;
 
     void setPgroups();
 
