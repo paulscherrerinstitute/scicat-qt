@@ -123,6 +123,9 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonRestart, SIGNAL(clicked()), this, SLOT(restart()));
     connect(ui->lineEditDatasetName, SIGNAL(editingFinished()), this, SLOT(datasetNameCheck()));
     connect(ui->lineEditInvestigator, SIGNAL(editingFinished()), this, SLOT(investigatorChanged()));
+    for (QLineEdit* derivedField : {ui->lineEditOwner, ui->lineEditOwnerEmail, ui->lineEditOwnerGroup, ui->lineEditPrincipalInvestigator}){
+        connect(derivedField, &QLineEdit::editingFinished, this, &Dialog::derivedFieldsChanged);
+    }
     connect(ui->textEditDescription, SIGNAL(textChanged()), this, SLOT(descriptionChanged()));
     connect(ui->textEditUsedSoftware, SIGNAL(textChanged()), this, SLOT(usedSoftwareChanged()));
     connect(ui->pushButtonGoToArchive, SIGNAL(clicked()), this, SLOT(goToArchive()));
@@ -186,6 +189,8 @@ Dialog::Dialog(QWidget *parent)
     ui->comboBoxCreationLocation->addItems(defaultSettings.creationLocationList);
     ui->comboBoxCreationLocation->hide();
     ui->labelCreationLocation->hide();
+    ui->lineEditPrincipalInvestigator->hide();
+    ui->labelPrincipalInvestigator->hide();
 
 
     // metadata editor
@@ -371,6 +376,14 @@ void Dialog::investigatorChanged(){
     scicat->experiment()->setInvestigator(ui->lineEditInvestigator->text());
 }
 
+// fields prefilled from the proposal; clearing the email or PI field restores the prefilled value
+void Dialog::derivedFieldsChanged(){
+    scicat->experiment()->setOwner(ui->lineEditOwner->text());
+    scicat->experiment()->setOwnerEmail(ui->lineEditOwnerEmail->text());
+    scicat->experiment()->setOwnerGroup(ui->lineEditOwnerGroup->text());
+    scicat->experiment()->setPrincipalInvestigator(ui->lineEditPrincipalInvestigator->text());
+}
+
 void Dialog::descriptionChanged(){
     scicat->experiment()->setDescription(ui->textEditDescription->toPlainText());
 }
@@ -478,6 +491,21 @@ bool Dialog::checkMetadata(){
             return false;
         }
     }
+    if (ui->lineEditOwner->text().isEmpty()){
+        QMessageBox::information(this, tr("Invalid entry"), tr("Owner cannot be empty.") );
+        ui->metadataGuided->setCurrentIndex(0);
+        return false;
+    }
+    if (!ui->lineEditOwnerEmail->text().isEmpty() && !SciCat::DataCatalogueCore::Experiment::isEmailAddress(ui->lineEditOwnerEmail->text())){
+        QMessageBox::information(this, tr("Invalid entry"), tr("Owner email must be a valid email address.") );
+        ui->metadataGuided->setCurrentIndex(0);
+        return false;
+    }
+    if (!scicat->user()->getPgroups().contains(ui->lineEditOwnerGroup->text())){
+        QMessageBox::information(this, tr("Invalid entry"), tr("Owner group must be one of your pgroups.") );
+        ui->metadataGuided->setCurrentIndex(0);
+        return false;
+    }
 
     scicat->experiment()->setDatasetName(ui->lineEditDatasetName->text());
     return true;
@@ -503,8 +531,12 @@ bool Dialog::filelistingCheckAndUpdate(){
         QMessageBox::information(this, tr("Invalid entry"), tr("Please add at least one file/directory.") );
         return false;
     }
+    if (ui->stackedWidget->currentIndex()==numPagesLogin+1){
+        derivedFieldsChanged();
+    }
     // prepare metadata entries
     ui->lineEditOwnerEmail->setText(scicat->experiment()->getOwnerEmail());
+    ui->lineEditPrincipalInvestigator->setText(scicat->experiment()->getPrincipalInvestigator());
     ui->lineEditOwner->setText(scicat->experiment()->getOwner());
     ui->lineEditOwnerGroup->setText(scicat->experiment()->getOwnerGroup());
 
@@ -1163,6 +1195,8 @@ void Dialog::comboBoxDatatypeChanged(int val){
 
             ui->comboBoxCreationLocation->show();
             ui->labelCreationLocation->show();
+            ui->lineEditPrincipalInvestigator->show();
+            ui->labelPrincipalInvestigator->show();
 
             ui->textEditUsedSoftware->hide();
             ui->labelUsedSoftware->hide();
@@ -1175,6 +1209,8 @@ void Dialog::comboBoxDatatypeChanged(int val){
 
             ui->comboBoxCreationLocation->hide();
             ui->labelCreationLocation->hide();
+            ui->lineEditPrincipalInvestigator->hide();
+            ui->labelPrincipalInvestigator->hide();
 
             ui->textEditUsedSoftware->show();
             ui->labelUsedSoftware->show();

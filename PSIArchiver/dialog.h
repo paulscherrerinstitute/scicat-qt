@@ -254,6 +254,7 @@ private slots:
     void restart();
     void datasetNameCheck();
     void investigatorChanged();
+    void derivedFieldsChanged();
     void descriptionChanged();
     void usedSoftwareChanged();
     void goToArchive();

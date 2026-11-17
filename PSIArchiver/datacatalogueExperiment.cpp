@@ -137,10 +137,18 @@ int Experiment::savePIInfo(){
 
 QString Experiment::getOwnerEmail() const
 {
+    if (!m_ownerEmailOverride.isEmpty()){
+        return m_ownerEmailOverride;
+    }
     if (isEmailAddress(m_PIemail)){
         return m_PIemail;
     }
     return scicatBase->user()->getUserMail();
+}
+
+void Experiment::setOwnerEmail(const QString &ownerEmail)
+{
+    m_ownerEmailOverride = ownerEmail;
 }
 
 QString Experiment::getOwner() const
@@ -325,14 +333,24 @@ QString Experiment::getPIemail() const
 void Experiment::setPIemail(const QString &PIemail)
 {
     m_PIemail = PIemail;
+    m_ownerEmailOverride.clear();
+    m_principalInvestigatorOverride.clear();
 }
 
 QString Experiment::getPrincipalInvestigator() const
 {
+    if (!m_principalInvestigatorOverride.isEmpty()){
+        return m_principalInvestigatorOverride;
+    }
     if (isEmailAddress(m_PIemail)){
         return m_PIemail;
     }
     return QString(m_PIFirstname + " " + m_PILastname).trimmed();
+}
+
+void Experiment::setPrincipalInvestigator(const QString &principalInvestigator)
+{
+    m_principalInvestigatorOverride = principalInvestigator;
 }
 
 QString Experiment::getProposalID() const

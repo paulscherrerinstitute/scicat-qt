@@ -22,6 +22,7 @@ public:
     void setPIemail(const QString &PIemail);
 
     QString getPrincipalInvestigator() const;
+    void setPrincipalInvestigator(const QString &principalInvestigator);
 
     static bool isEmailAddress(const QString& value);
 
@@ -77,6 +78,7 @@ public:
     void setOwner(const QString &owner);
 
     QString getOwnerEmail() const;
+    void setOwnerEmail(const QString &ownerEmail);
 
     QString getDescription() const;
     void setDescription(const QString &description);
@@ -114,6 +116,9 @@ private:
     QString m_sampleDescription;
     QString m_ownerGroup;
     QString m_owner;
+    // user edits on the metadata page; cleared when the PI changes
+    QString m_ownerEmailOverride;
+    QString m_principalInvestigatorOverride;
     QString m_description;
     PgroupRequestState m_PgroupRequestState;
 
