@@ -123,7 +123,7 @@ Dialog::Dialog(QWidget *parent)
     connect(ui->pushButtonRestart, SIGNAL(clicked()), this, SLOT(restart()));
     connect(ui->lineEditDatasetName, SIGNAL(editingFinished()), this, SLOT(datasetNameCheck()));
     connect(ui->lineEditInvestigator, SIGNAL(editingFinished()), this, SLOT(investigatorChanged()));
-    for (QLineEdit* derivedField : {ui->lineEditOwner, ui->lineEditOwnerEmail, ui->lineEditOwnerGroup, ui->lineEditPrincipalInvestigator}){
+    for (QLineEdit* derivedField : {ui->lineEditOwner, ui->lineEditOwnerEmail, ui->lineEditOwnerGroup, ui->lineEditPrincipalInvestigator, ui->lineEditProposalID}){
         connect(derivedField, &QLineEdit::editingFinished, this, &Dialog::derivedFieldsChanged);
     }
     connect(ui->textEditDescription, SIGNAL(textChanged()), this, SLOT(descriptionChanged()));
@@ -382,6 +382,7 @@ void Dialog::derivedFieldsChanged(){
     scicat->experiment()->setOwnerEmail(ui->lineEditOwnerEmail->text());
     scicat->experiment()->setOwnerGroup(ui->lineEditOwnerGroup->text());
     scicat->experiment()->setPrincipalInvestigator(ui->lineEditPrincipalInvestigator->text());
+    scicat->experiment()->setProposalID(ui->lineEditProposalID->text().trimmed());
 }
 
 void Dialog::descriptionChanged(){
@@ -540,8 +541,8 @@ bool Dialog::filelistingCheckAndUpdate(){
     ui->lineEditOwner->setText(scicat->experiment()->getOwner());
     ui->lineEditOwnerGroup->setText(scicat->experiment()->getOwnerGroup());
 
+    ui->lineEditProposalID->setText(scicat->experiment()->getProposalID());
     if (scicat->experiment()->getProposalID().length()>0){
-        ui->lineEditProposalID->setText(scicat->experiment()->getProposalID());
         ui->comboBoxCreationLocation->setCurrentIndex(ui->comboBoxCreationLocation->findText(scicat->experiment()->getCreationLocation()));
     } else {
         if (scicat->experiment()->getCreationLocation().length()==0){

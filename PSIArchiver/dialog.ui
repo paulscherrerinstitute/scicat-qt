@@ -1580,8 +1580,8 @@ QListWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); borde
                    </item>
                    <item row="8" column="4">
                     <widget class="QLineEdit" name="lineEditProposalID">
-                     <property name="enabled">
-                      <bool>false</bool>
+                     <property name="toolTip">
+                      <string>Proposal the dataset belongs to; leave empty if there is none</string>
                      </property>
                     </widget>
                    </item>
