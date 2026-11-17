@@ -53,6 +53,11 @@ void DatasetIngestor::prepareIngestion(){
     }
     metadata["description"] = base->scicat->experiment()->getDescription();
     metadata["datasetName"] = base->scicat->experiment()->getDatasetName();
+    const QString proposalID = base->scicat->experiment()->getProposalID();
+    if (!proposalID.isEmpty()){
+        // scicat-cli posts to the v3 API, which rejects proposalIds and stores proposalId as proposalIds
+        metadata["proposalId"] = proposalID;
+    }
 
 
     if (isRawData){
