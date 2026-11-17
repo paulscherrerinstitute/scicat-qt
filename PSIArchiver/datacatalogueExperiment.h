@@ -21,6 +21,10 @@ public:
     QString getPIemail() const;
     void setPIemail(const QString &PIemail);
 
+    QString getPrincipalInvestigator() const;
+
+    static bool isEmailAddress(const QString& value);
+
     QString getPIFirstname() const;
     void setPIFirstname(const QString &PIFirstname);
 
@@ -73,7 +77,6 @@ public:
     void setOwner(const QString &owner);
 
     QString getOwnerEmail() const;
-    void setOwnerEmail(const QString &ownerEmail);
 
     QString getDescription() const;
     void setDescription(const QString &description);
@@ -111,7 +114,6 @@ private:
     QString m_sampleDescription;
     QString m_ownerGroup;
     QString m_owner;
-    QString m_ownerEmail;
     QString m_description;
     PgroupRequestState m_PgroupRequestState;
 

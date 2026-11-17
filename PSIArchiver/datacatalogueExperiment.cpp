@@ -2,8 +2,15 @@
 #include "networkmanager.h"
 #include <QtNetwork/QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QRegularExpression>
 
 using namespace SciCat::DataCatalogueCore;
+
+bool Experiment::isEmailAddress(const QString& value)
+{
+    static const QRegularExpression emailPattern(QStringLiteral("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"));
+    return emailPattern.match(value).hasMatch();
+}
 
 
 void Experiment::setInvestigator(const QString &inv)
@@ -33,7 +40,7 @@ void Experiment::setDescription(const QString &description)
 
 void Experiment::setInvestigatorToPI(bool investigatorIsPI)
 {
-    investigatorIsPI ? m_investigator = m_PIemail : m_investigator = scicatBase->user()->getUserMail();
+    m_investigator = investigatorIsPI ? getPrincipalInvestigator() : scicatBase->user()->getUserMail();
 }
 
 PgroupRequestState Experiment::getPgroupInfo(){
@@ -130,12 +137,10 @@ int Experiment::savePIInfo(){
 
 QString Experiment::getOwnerEmail() const
 {
-    return m_ownerEmail;
-}
-
-void Experiment::setOwnerEmail(const QString &ownerEmail)
-{
-    m_ownerEmail = ownerEmail;
+    if (isEmailAddress(m_PIemail)){
+        return m_PIemail;
+    }
+    return scicatBase->user()->getUserMail();
 }
 
 QString Experiment::getOwner() const
@@ -320,7 +325,14 @@ QString Experiment::getPIemail() const
 void Experiment::setPIemail(const QString &PIemail)
 {
     m_PIemail = PIemail;
-    m_ownerEmail = PIemail;
+}
+
+QString Experiment::getPrincipalInvestigator() const
+{
+    if (isEmailAddress(m_PIemail)){
+        return m_PIemail;
+    }
+    return QString(m_PIFirstname + " " + m_PILastname).trimmed();
 }
 
 QString Experiment::getProposalID() const

@@ -864,7 +864,9 @@ bool Dialog::checkPIInfo(){
             return false;
         }
 
-        if (scicat->experiment()->getPIemail().length()==0){
+        // a catalogue proposal may carry a masked email; only manual entries must be addresses
+        const bool manualEntry = scicat->experiment()->getPgroupRequestState()!=SciCat::DataCatalogueCore::PgroupRequestState::ValidSciCatEntry;
+        if (scicat->experiment()->getPIemail().isEmpty() || (manualEntry && !SciCat::DataCatalogueCore::Experiment::isEmailAddress(scicat->experiment()->getPIemail()))){
             QMessageBox::information(this, tr("Error"), tr("Please enter a valid email address") );
             return false;
         }
