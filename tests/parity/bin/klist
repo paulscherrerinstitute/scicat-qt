@@ -1,0 +1,4 @@
+#!/bin/sh
+# Stand-in for klist in the scicat-qt scenario tests: a ticket is "present" unless FAKE_NO_TICKET is set.
+[ -n "$FAKE_NO_TICKET" ] && exit 1
+exit 0

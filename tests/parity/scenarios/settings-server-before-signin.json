@@ -1,0 +1,50 @@
+{
+  "about": "Changing the server before signing in applies at once, without a restart.",
+  "steps": [
+    {"do": "changeSettings", "values": {"serverID": 2}},
+    {"do": "snapshot", "name": "session", "as": "before"},
+    {"do": "signIn", "token": "good"},
+    {"do": "snapshot", "name": "session", "as": "after"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "development"
+      }
+    ],
+    "cli": [],
+    "files": {},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "2",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["ok", "ok", "signedIn", "ok"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {
+      "after": {"server": "Development", "signedIn": true, "username": "jdoe"},
+      "before": {"server": "Development", "signedIn": false, "username": ""}
+    }
+  }
+}

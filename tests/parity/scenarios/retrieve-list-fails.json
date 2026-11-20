@@ -1,0 +1,92 @@
+{
+  "about": "SciCat fails to list the datasets (HTTP 500).",
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p44444"},
+    {"do": "enterPI", "firstname": "Ada", "lastname": "Lovelace", "email": "ada@example.org"},
+    {"do": "retrieve.open"},
+    {"do": "snapshot", "name": "retrieve.list"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p44444"}}},
+        "server": "qa"
+      },
+      {
+        "$known": "Q1-retrieve-jobs",
+        "value": {
+          "auth": "Bearer good",
+          "body": null,
+          "method": "GET",
+          "path": "/api/v4/jobs",
+          "query": {
+            "filter": {
+              "limits": {"limit": 500, "skip": 0, "sort": {"createdAt": "desc"}},
+              "where": {"ownerUser": "jdoe", "statusCode": "finishedSuccessful", "type": "retrieve"}
+            }
+          },
+          "server": "qa"
+        }
+      },
+      {
+        "$known": "Q2-dataset-fields",
+        "value": {
+          "auth": "Bearer good",
+          "body": null,
+          "method": "GET",
+          "path": "/api/v3/datasets",
+          "query": {
+            "filter": {
+              "fields": ["datasetlifecycle", "pid", "datasetName"],
+              "limits": {"limit": 500, "order": "pid:asc", "skip": 0},
+              "where": {"ownerGroup": "p44444"}
+            }
+          },
+          "server": "qa"
+        }
+      }
+    ],
+    "cli": [],
+    "files": {"${LOG}/proposals/proposal_p44444.dat": {"lines": ["Ada", "Lovelace", "ada@example.org"]}},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok", "ok"],
+    "messages": {
+      "banners": ["Could not load all datasets of this pgroup from SciCat; the list may be incomplete."],
+      "dialogs": []
+    },
+    "snapshots": {"retrieve.list": []}
+  }
+}

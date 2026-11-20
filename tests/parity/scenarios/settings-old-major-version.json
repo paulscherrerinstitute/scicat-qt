@@ -1,0 +1,43 @@
+{
+  "about": "Settings of another major version are thrown away and replaced by the defaults.",
+  "settings": {"version": "1.2", "serverID": 2, "logPath": "${LOG}", "enableArchive": false, "custom": "kept?"},
+  "steps": [{"do": "signIn", "token": "good"}, {"do": "snapshot", "name": "session"}],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "production"
+      }
+    ],
+    "cli": [],
+    "files": {},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${HOME}/.scicat/log",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "0",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {"session": {"server": "Production", "signedIn": true, "username": "jdoe"}}
+  }
+}

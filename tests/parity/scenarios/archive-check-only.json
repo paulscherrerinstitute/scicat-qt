@@ -1,0 +1,96 @@
+{
+  "about": "Ingest unticked, archive ticked: a check run of scicat-cli.",
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "archive.open"},
+    {"do": "archive.addFiles", "dir": "${DATA}", "names": ["scan_0001"]},
+    {"do": "archive.toMetadata"},
+    {"do": "archive.setMetadata", "type": "raw", "instrument": "/PSI/SLS/TOMCAT"},
+    {"do": "archive.submit", "ingest": false, "archive": true}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      }
+    ],
+    "cli": {
+      "$known": "Q3-autoarchive-without-ingest",
+      "value": [
+        [
+          "datasetIngestor",
+          "--autoarchive",
+          "--testenv",
+          "--noninteractive",
+          "--allowexistingsource",
+          "--token",
+          "good",
+          "${LOG}/ingestion/scan_0001${STAMP}/metadata.json",
+          "${LOG}/ingestion/scan_0001${STAMP}/filelisting.txt"
+        ]
+      ]
+    },
+    "files": {
+      "${LOG}/ingestion/scan_0001${STAMP}/filelisting.txt": {"lines": ["scan_0001"]},
+      "${LOG}/ingestion/scan_0001${STAMP}/ingestion.log": {
+        "contains": [
+          "[fake scicat-cli] datasetIngestor, test environment. Nothing is sent anywhere.",
+          "Note: you run in 'dry' mode to simply check data consistency. Use the --ingest flag to really ingest datasets."
+        ]
+      },
+      "${LOG}/ingestion/scan_0001${STAMP}/metadata.json": {
+        "json": {
+          "creationLocation": "/PSI/SLS/TOMCAT",
+          "datasetName": "scan_0001",
+          "description": "",
+          "owner": "Jane Doe",
+          "ownerEmail": "jane.doe@example.org",
+          "ownerGroup": "p12345",
+          "principalInvestigator": "jane.doe@example.org",
+          "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+          "scientificMetadata": {"sample": {"description": "", "name": "", "principalInvestigator": ""}},
+          "sourceFolder": "${DATA}",
+          "type": "raw"
+        }
+      }
+    },
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok", "ok", "ok", "done"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {}
+  }
+}

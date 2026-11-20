@@ -1,0 +1,107 @@
+{
+  "about": "The retrieve list of a pgroup: its datasets, which are retrievable, which were retrieved before.",
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "retrieve.open"},
+    {"do": "snapshot", "name": "retrieve.list"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      },
+      {
+        "$known": "Q1-retrieve-jobs",
+        "value": {
+          "auth": "Bearer good",
+          "body": null,
+          "method": "GET",
+          "path": "/api/v4/jobs",
+          "query": {
+            "filter": {
+              "limits": {"limit": 500, "skip": 0, "sort": {"createdAt": "desc"}},
+              "where": {"ownerUser": "jdoe", "statusCode": "finishedSuccessful", "type": "retrieve"}
+            }
+          },
+          "server": "qa"
+        }
+      },
+      {
+        "$known": "Q2-dataset-fields",
+        "value": {
+          "auth": "Bearer good",
+          "body": null,
+          "method": "GET",
+          "path": "/api/v3/datasets",
+          "query": {
+            "filter": {
+              "fields": ["datasetlifecycle", "pid", "datasetName"],
+              "limits": {"limit": 500, "order": "pid:asc", "skip": 0},
+              "where": {"ownerGroup": "p12345"}
+            }
+          },
+          "server": "qa"
+        }
+      }
+    ],
+    "cli": [],
+    "files": {},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {
+      "retrieve.list": {
+        "$count": 250,
+        "$includes": [
+          {
+            "name": "saxs_polymer_0182",
+            "pid": "20.500.11935/0028235f-c3e5-5cc1-b134-69155be83729",
+            "retrievable": true,
+            "retrieved": false
+          },
+          {
+            "name": "saxs_polymer_0012",
+            "pid": "20.500.11935/fd19a0b0-b1c0-584f-abb0-4ea50a80d89c",
+            "retrievable": true,
+            "retrieved": true
+          }
+        ],
+        "$countWhere": [[{"retrieved": true}, 120], [{"retrievable": false}, 62]]
+      }
+    }
+  }
+}

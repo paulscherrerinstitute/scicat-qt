@@ -1,0 +1,97 @@
+{
+  "about": "Files from two folders whose names share a prefix (run1, run10): source folder and file listing.",
+  "data": ["run1/a.h5", "run10/b.h5"],
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "archive.open"},
+    {"do": "archive.addFiles", "dir": "${DATA}/run1", "names": ["a.h5"]},
+    {"do": "archive.addFiles", "dir": "${DATA}/run10", "names": ["b.h5"]},
+    {"do": "snapshot", "name": "archive.files"},
+    {"do": "archive.toMetadata"},
+    {"do": "archive.setMetadata", "type": "raw", "instrument": "/PSI/SLS/TOMCAT", "datasetName": "two runs"},
+    {"do": "archive.submit"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      }
+    ],
+    "cli": [
+      [
+        "datasetIngestor",
+        "--ingest",
+        "--autoarchive",
+        "--testenv",
+        "--noninteractive",
+        "--allowexistingsource",
+        "--token",
+        "good",
+        "${LOG}/ingestion/two_runs${STAMP}/metadata.json",
+        "${LOG}/ingestion/two_runs${STAMP}/filelisting.txt"
+      ]
+    ],
+    "files": {
+      "${LOG}/ingestion/two_runs${STAMP}/filelisting.txt": {"lines": {"$known": "B5-source-folder-prefix", "value": ["a.h5", "0/b.h5"]}},
+      "${LOG}/ingestion/two_runs${STAMP}/ingestion.log": {
+        "contains": [
+          "[fake scicat-cli] datasetIngestor, test environment. Nothing is sent anywhere.",
+          "Archive job submitted (fake)."
+        ]
+      },
+      "${LOG}/ingestion/two_runs${STAMP}/metadata.json": {
+        "json": {
+          "creationLocation": "/PSI/SLS/TOMCAT",
+          "datasetName": "two_runs",
+          "description": "",
+          "owner": "Jane Doe",
+          "ownerEmail": "jane.doe@example.org",
+          "ownerGroup": "p12345",
+          "principalInvestigator": "jane.doe@example.org",
+          "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+          "scientificMetadata": {"sample": {"description": "", "name": "", "principalInvestigator": ""}},
+          "sourceFolder": {"$known": "B5-source-folder-prefix", "value": "${DATA}/run1"},
+          "type": "raw"
+        }
+      }
+    },
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "done"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {"archive.files": ["${DATA}/run1/a.h5", "${DATA}/run10/b.h5"]}
+  }
+}

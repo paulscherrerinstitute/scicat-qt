@@ -1,0 +1,72 @@
+{
+  "about": "Setting 'delete log': the files handed to scicat-cli are removed after the ingestion.",
+  "steps": [
+    {"do": "changeSettings", "values": {"deleteLog": true}},
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "archive.open"},
+    {"do": "archive.addFiles", "dir": "${DATA}", "names": ["notes.txt"]},
+    {"do": "archive.toMetadata"},
+    {"do": "archive.setMetadata", "type": "raw", "instrument": "/PSI/SLS/TOMCAT"},
+    {"do": "archive.submit"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      }
+    ],
+    "cli": [
+      [
+        "datasetIngestor",
+        "--ingest",
+        "--autoarchive",
+        "--testenv",
+        "--noninteractive",
+        "--allowexistingsource",
+        "--token",
+        "good",
+        "${LOG}/ingestion/notes${STAMP}/metadata.json",
+        "${LOG}/ingestion/notes${STAMP}/filelisting.txt"
+      ]
+    ],
+    "files": {},
+    "settings": {
+      "deleteLog": "true",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["ok", "signedIn", "ok", "ok", "ok", "ok", "ok", "done"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {}
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "about": "A wrong token is rejected and the sign-in window stays; the right token then signs in.",
+  "steps": [
+    {"do": "signIn", "token": "not-a-token"},
+    {"do": "snapshot", "name": "session", "as": "rejected"},
+    {"do": "signIn", "token": "good"},
+    {"do": "snapshot", "name": "session", "as": "signedIn"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer not-a-token",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      }
+    ],
+    "cli": [],
+    "files": {},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["rejected", "ok", "signedIn", "ok"],
+    "messages": {
+      "banners": [
+        "Please check your token. To request a new token, please login with your normal user account at https://discovery-qa.psi.ch/user."
+      ],
+      "dialogs": []
+    },
+    "snapshots": {
+      "rejected": {"server": "QA", "signedIn": false, "username": ""},
+      "signedIn": {"server": "QA", "signedIn": true, "username": "jdoe"}
+    }
+  }
+}

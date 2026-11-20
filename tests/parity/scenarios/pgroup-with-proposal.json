@@ -1,0 +1,65 @@
+{
+  "about": "A pgroup with a proposal in SciCat fills in the PI and the proposal, read-only.",
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "snapshot", "name": "pgroup"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      }
+    ],
+    "cli": [],
+    "files": {},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {
+      "pgroup": {
+        "pgroup": "p12345",
+        "piEditable": false,
+        "piEmail": "jane.doe@example.org",
+        "piFirstname": "Jane",
+        "piLastname": "Doe",
+        "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+        "proposalShown": true,
+        "title": "Operando tomography of fuel cell membranes (fake backend)"
+      }
+    }
+  }
+}

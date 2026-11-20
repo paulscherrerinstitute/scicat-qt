@@ -1,0 +1,129 @@
+{
+  "about": "Selecting a dataset loads its files and scientific metadata.",
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "retrieve.open"},
+    {"do": "retrieve.select", "datasets": ["ptycho_catalyst_0001"]},
+    {"do": "snapshot", "name": "retrieve.details"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      },
+      {
+        "$known": "Q1-retrieve-jobs",
+        "value": {
+          "auth": "Bearer good",
+          "body": null,
+          "method": "GET",
+          "path": "/api/v4/jobs",
+          "query": {
+            "filter": {
+              "limits": {"limit": 500, "skip": 0, "sort": {"createdAt": "desc"}},
+              "where": {"ownerUser": "jdoe", "statusCode": "finishedSuccessful", "type": "retrieve"}
+            }
+          },
+          "server": "qa"
+        }
+      },
+      {
+        "$known": "Q2-dataset-fields",
+        "value": {
+          "auth": "Bearer good",
+          "body": null,
+          "method": "GET",
+          "path": "/api/v3/datasets",
+          "query": {
+            "filter": {
+              "fields": ["datasetlifecycle", "pid", "datasetName"],
+              "limits": {"limit": 500, "order": "pid:asc", "skip": 0},
+              "where": {"ownerGroup": "p12345"}
+            }
+          },
+          "server": "qa"
+        }
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/datasets",
+        "query": {
+          "filter": {"include": ["origdatablocks"], "where": {"pid": "20.500.11935/0c3fda34-cf6e-5fb2-9f16-7f78fd4c65bb"}}
+        },
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/datasets/20.500.11935/0c3fda34-cf6e-5fb2-9f16-7f78fd4c65bb",
+        "query": {"filter": {"fields": ["scientificMetadata"]}},
+        "server": "qa"
+      }
+    ],
+    "cli": [],
+    "files": {},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok", "ok"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {
+      "retrieve.details": {
+        "files": {
+          "$known": "B1-size-above-2GiB",
+          "value": [
+            {"path": "raw/scan_00000.h5", "size": 0, "time": "2026-01-05T15:00:00.000Z"},
+            {"path": "raw/scan_00001.h5", "size": 0, "time": "2026-01-05T15:00:00.000Z"},
+            {"path": "raw/scan_00002.h5", "size": 0, "time": "2026-01-05T15:00:00.000Z"}
+          ]
+        },
+        "scientificMetadata": {
+          "$known": "B2-numbers-blank",
+          "value": {
+            "scientificMetadata": {
+              "beam": {"energy": {"unit": "keV", "value": ""}, "ring_current": {"unit": "mA", "value": ""}},
+              "detector": "eiger",
+              "exposure_time": {"unit": "s", "value": ""},
+              "sample": {"description": "demo sample", "name": "S0001", "principalInvestigator": "jane.doe@example.org"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

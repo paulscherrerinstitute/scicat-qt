@@ -1,0 +1,112 @@
+{
+  "about": "Settings: other file names (extensions added), ingest and archive off by default, investigator is the PI, no log.",
+  "steps": [
+    {
+      "do": "changeSettings",
+      "values": {
+        "filenameMetadata": "meta",
+        "filenameFilelisting": "files",
+        "enableIngest": false,
+        "enableArchive": false,
+        "investigatorIsPI": true,
+        "saveLog": false
+      }
+    },
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "archive.open"},
+    {"do": "archive.addFiles", "dir": "${DATA}", "names": ["notes.txt"]},
+    {"do": "archive.toMetadata"},
+    {"do": "snapshot", "name": "archive.metadata", "as": "defaults"},
+    {"do": "archive.submit"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      }
+    ],
+    "cli": [
+      [
+        "datasetIngestor",
+        "--testenv",
+        "--noninteractive",
+        "--allowexistingsource",
+        "--token",
+        "good",
+        "${LOG}/ingestion/notes${STAMP}/meta.json",
+        "${LOG}/ingestion/notes${STAMP}/files.txt"
+      ]
+    ],
+    "files": {
+      "${LOG}/ingestion/notes${STAMP}/files.txt": {"lines": ["notes.txt"]},
+      "${LOG}/ingestion/notes${STAMP}/meta.json": {
+        "json": {
+          "datasetName": "notes",
+          "description": "",
+          "inputDatasets": ["N/A"],
+          "investigator": "jane.doe@example.org",
+          "owner": "Jane Doe",
+          "ownerEmail": "jane.doe@example.org",
+          "ownerGroup": "p12345",
+          "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+          "sourceFolder": "${DATA}",
+          "type": "derived",
+          "usedSoftware": ["N/A"]
+        }
+      }
+    },
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "false",
+      "enableIngest": "false",
+      "filenameFilelisting": "files.txt",
+      "filenameMetadata": "meta.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "true",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "false",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["ok", "signedIn", "ok", "ok", "ok", "ok", "ok", "done"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {
+      "defaults": {
+        "datasetName": "notes",
+        "description": "",
+        "inputDatasets": [],
+        "instrument": "/PSI/SLS/TOMCAT",
+        "investigator": "jane.doe@example.org",
+        "owner": "Jane Doe",
+        "ownerEmail": "jane.doe@example.org",
+        "ownerGroup": "p12345",
+        "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+        "scientificMetadata": {"sample": {"description": "", "name": "", "principalInvestigator": ""}},
+        "type": "derived",
+        "usedSoftware": ""
+      }
+    }
+  }
+}

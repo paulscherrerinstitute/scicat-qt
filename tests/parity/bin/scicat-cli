@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""Stand-in for scicat-cli in the scicat-qt scenario tests. It contacts nothing and ingests nothing.
+
+  scicat-cli datasetIngestor [--ingest] [--autoarchive] [--testenv|--devenv] --noninteractive --allowexistingsource --token T metadata.json filelisting.txt
+  scicat-cli datasetRetriever [--testenv|--devenv] --dataset PID --token T --retrieve OUTDIR
+
+datasetIngestor fails (exit 1) when the dataset name contains "fail". datasetRetriever writes one small text file to
+OUTDIR/<pid tail>/.
+
+Environment:
+  FAKE_CLI_CALLS=<file>   append the arguments of every call as one JSON array per line
+  FAKE_CLI_STEP=<s>       pause between the progress lines of datasetRetriever (default 0.5 times the scale)
+  FAKE_CLI_PAUSE_SCALE=<f> factor for every other pause (default 1)
+  FAKE_CLI_HOLD=<file>    datasetRetriever waits while this file exists, so a test can see a running copy
+"""
+import json, os, sys, time, pathlib
+
+SCALE = float(os.environ.get("FAKE_CLI_PAUSE_SCALE", "1"))   # 0 in the tests: no pauses at all
+
+def say(line, pause=0.25):
+    print(line, flush=True); time.sleep(pause * SCALE)
+
+args = sys.argv[1:]
+if os.environ.get("FAKE_CLI_CALLS"):   # one JSON line per call, for comparing how the two GUIs call scicat-cli
+    with open(os.environ["FAKE_CLI_CALLS"], "a") as calls:
+        calls.write(json.dumps(args) + "\n")
+if not args or args[0] in ("--version", "version"):
+    print("scicat-cli 0.0.0-fake (local stand-in, does nothing)"); sys.exit(0)
+cmd, rest = args[0], args[1:]
+flags = {a for a in rest if a.startswith("--")}
+env = "test" if "--testenv" in flags else "dev" if "--devenv" in flags else "production"
+positional, skip = [], False
+for a in rest:
+    if skip: skip = False; continue
+    if a in ("--token", "--user", "--dataset", "--retrieve"): skip = True; continue
+    if not a.startswith("--"): positional.append(a)
+def value(flag):
+    return rest[rest.index(flag) + 1] if flag in rest and rest.index(flag) + 1 < len(rest) else ""
+
+if cmd == "datasetIngestor":
+    say(f"[fake scicat-cli] datasetIngestor, {env} environment. Nothing is sent anywhere.", 0.1)
+    time.sleep(float(os.environ.get("FAKE_CLI_INGEST_PAUSE", "0")))   # room for a walk that opens a dialog while this runs
+    if len(positional) < 2:
+        say("Error: expected a metadata file and a filelisting file"); sys.exit(2)
+    meta = json.loads(pathlib.Path(positional[0]).read_text())
+    files = [l for l in pathlib.Path(positional[1]).read_text().splitlines() if l.strip()]
+    say(f"Your username: jdoe    Dataset: {meta.get('datasetName')}    Type: {meta.get('type')}    Owner group: {meta.get('ownerGroup')}")
+    say(f"Source folder: {meta.get('sourceFolder')}")
+    say(f"Scanning {len(files)} filelisting entr{'y' if len(files) == 1 else 'ies'} ...", 0.6)
+    total = 0
+    for f in files:
+        p = pathlib.Path(meta.get("sourceFolder", "")) / f
+        n = sum(1 for _ in p.rglob("*") if _.is_file()) if p.is_dir() else (1 if p.exists() else 0)
+        total += n
+        say(f"  {f}: {n} file(s)", 0.15)
+    say(f"The dataset contains {total} files.", 0.4)
+    if "fail" in str(meta.get("datasetName", "")).lower():
+        say("Error: the catalogue refused the dataset (simulated failure, because the dataset name contains 'fail')"); sys.exit(1)
+    if "--ingest" not in flags:
+        say("Note: you run in 'dry' mode to simply check data consistency. Use the --ingest flag to really ingest datasets."); sys.exit(0)
+    say("Ingesting dataset ...", 0.8)
+    say("Created dataset with id 20.500.11935/00000000-fake-fake-fake-000000000000")
+    if "--autoarchive" in flags:
+        say("Submitting archive job ...", 0.6); say("Archive job submitted (fake).")
+    sys.exit(0)
+
+if cmd == "datasetRetriever":
+    pid, out = value("--dataset"), value("--retrieve")
+    say(f"[fake scicat-cli] datasetRetriever, {env} environment. Nothing is copied from the retrieve server.", 0.1)
+    say(f"Dataset: {pid}")
+    target = pathlib.Path(out) / pid.split("/")[-1]
+    hold = os.environ.get("FAKE_CLI_HOLD")
+    while hold and os.path.exists(hold):
+        time.sleep(0.05)
+    for step in range(1, 9):
+        print(f"rsync: {step * 12 + 4}% (fake)", flush=True)
+        time.sleep(float(os.environ.get("FAKE_CLI_STEP", 0.5 * SCALE)))
+    target.mkdir(parents=True, exist_ok=True)
+    (target / "FAKE_RETRIEVED.txt").write_text(f"Placeholder written by the fake scicat-cli for {pid}.\n")
+    say(f"Dataset copied to {target}")
+    sys.exit(0)
+
+print(f"[fake scicat-cli] unknown command: {cmd}", flush=True); sys.exit(2)

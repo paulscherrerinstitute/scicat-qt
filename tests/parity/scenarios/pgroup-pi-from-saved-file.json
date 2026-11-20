@@ -1,0 +1,67 @@
+{
+  "about": "No proposal in SciCat, but a PI saved earlier: it is filled in and stays editable.",
+  "files": {"${LOG}/proposals/proposal_p22222.dat": "Ada\nLovelace\nada@example.org\n"},
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p22222"},
+    {"do": "snapshot", "name": "pgroup"},
+    {"do": "archive.open"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p22222"}}},
+        "server": "qa"
+      }
+    ],
+    "cli": [],
+    "files": {"${LOG}/proposals/proposal_p22222.dat": {"lines": ["Ada", "Lovelace", "ada@example.org"]}},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {
+      "pgroup": {
+        "pgroup": "p22222",
+        "piEditable": true,
+        "piEmail": "ada@example.org",
+        "piFirstname": "Ada",
+        "piLastname": "Lovelace",
+        "proposalId": "",
+        "proposalShown": false,
+        "title": ""
+      }
+    }
+  }
+}
