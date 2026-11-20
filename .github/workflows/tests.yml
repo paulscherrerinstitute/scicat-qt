@@ -1,0 +1,96 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests-macos:
+    name: Tests (macOS arm64)
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          brew update
+          brew install cmake ninja qt
+
+      - name: Configure
+        run: |
+          cmake -S . -B build/tests -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt)" \
+            -DSCICAT_BUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build/tests --parallel
+
+      - name: Run tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir build/tests --output-on-failure --parallel 4
+
+      - name: Upload scenario runs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scenario-runs-macos
+          path: build/tests/tests/scenario-runs
+          retention-days: 7
+
+  tests-rhel9:
+    name: Tests (RHEL 9 x86_64)
+    runs-on: ubuntu-24.04
+    container:
+      image: almalinux:9
+    timeout-minutes: 30
+    steps:
+      - name: Install build dependencies
+        run: |
+          dnf -y install dnf-plugins-core epel-release
+          dnf config-manager --set-enabled crb
+          dnf -y --setopt=install_weak_deps=False install \
+            cmake \
+            gcc-c++ \
+            ninja-build \
+            python3 \
+            qt6-qtbase-devel \
+            qt6-qtsvg-devel
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: |
+          cmake -S . -B build/tests -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSCICAT_BUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build/tests --parallel
+
+      - name: Run tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir build/tests --output-on-failure --parallel 4
+
+      - name: Upload scenario runs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scenario-runs-rhel9
+          path: build/tests/tests/scenario-runs
+          retention-days: 7
