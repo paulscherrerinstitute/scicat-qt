@@ -161,7 +161,7 @@ bool DataCatalogue::requestRetrieve(const QJsonArray& datasetList, QString& erro
     request["type"] = "retrieve";
     request["jobParams"] = jobParams;
     request["ownerUser"] = scicatUser->getUsername();
-    request["ownerGroup"] = scicatExperiment->getOwnerGroup();
+    request["ownerGroup"] = scicatExperiment->getPgroup();
     if (!scicatUser->getUserMail().isEmpty()){
         request["contactEmail"] = scicatUser->getUserMail();
     }

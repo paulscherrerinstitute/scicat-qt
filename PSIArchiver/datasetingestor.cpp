@@ -46,14 +46,18 @@ void DatasetIngestor::prepareIngestion(){
     metadata["sourceFolder"] = sourceFolder;
     metadata["owner"] = base->scicat->experiment()->getOwner();
     metadata["ownerGroup"] = base->scicat->experiment()->getOwnerGroup();
-    metadata["ownerEmail"] = base->scicat->experiment()->getOwnerEmail();
+    // without ownerEmail the scicat-cli falls back to the email of the token owner
+    const QString ownerEmail = base->scicat->experiment()->getOwnerEmail();
+    if (!ownerEmail.isEmpty()){
+        metadata["ownerEmail"] = ownerEmail;
+    }
     metadata["description"] = base->scicat->experiment()->getDescription();
     metadata["datasetName"] = base->scicat->experiment()->getDatasetName();
 
 
     if (isRawData){
         qDebug() << "Preparing metadata file for raw data";
-        metadata["principalInvestigator"] = base->scicat->experiment()->getPIemail();
+        metadata["principalInvestigator"] = base->scicat->experiment()->getPrincipalInvestigator();
         metadata["creationLocation"] = base->scicat->experiment()->getCreationLocation();
         metadata["type"] = "raw";
         auto res = base->ui->treeWidget->findItems("scientificMetadata", Qt::MatchFlag::MatchExactly);

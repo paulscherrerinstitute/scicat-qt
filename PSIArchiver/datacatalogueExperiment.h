@@ -2,6 +2,7 @@
 #define EXPERIMENT_H
 
 #include "datacatalogueClasses.h"
+#include <QJsonObject>
 
 namespace SciCat {
 namespace DataCatalogueCore {
@@ -21,6 +22,11 @@ public:
     QString getPIemail() const;
     void setPIemail(const QString &PIemail);
 
+    QString getPrincipalInvestigator() const;
+    void setPrincipalInvestigator(const QString &principalInvestigator);
+
+    static bool isEmailAddress(const QString& value);
+
     QString getPIFirstname() const;
     void setPIFirstname(const QString &PIFirstname);
 
@@ -38,6 +44,8 @@ public:
 
     QString getPgroup() const;
     void setPgroup(const QString &pgroup);
+    // where-clause for the datasets and jobs of the chosen pgroup; an edited owner group does not change it
+    QJsonObject pgroupWhere() const;
 
     bool getDataIsRaw() const;
     void setDataIsRaw(bool dataIsRaw);
@@ -111,7 +119,9 @@ private:
     QString m_sampleDescription;
     QString m_ownerGroup;
     QString m_owner;
-    QString m_ownerEmail;
+    // user edits on the metadata page; cleared when the PI changes
+    QString m_ownerEmailOverride;
+    QString m_principalInvestigatorOverride;
     QString m_description;
     PgroupRequestState m_PgroupRequestState;
 

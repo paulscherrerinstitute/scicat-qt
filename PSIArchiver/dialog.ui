@@ -1497,9 +1497,6 @@ QListWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); borde
                    </item>
                    <item row="7" column="1">
                     <widget class="QLineEdit" name="lineEditOwner">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
                     </widget>
                    </item>
                    <item row="1" column="2">
@@ -1626,9 +1623,6 @@ QListWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); borde
                    </item>
                    <item row="7" column="4">
                     <widget class="QLineEdit" name="lineEditOwnerEmail">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -1695,9 +1689,6 @@ QListWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); borde
                    </item>
                    <item row="8" column="1">
                     <widget class="QLineEdit" name="lineEditOwnerGroup">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
                     </widget>
                    </item>
                    <item row="2" column="0">
@@ -1712,6 +1703,23 @@ QListWidget{border-radius:1px;border-width:1px; border-color:rgb(0, 0, 0); borde
                    </item>
                    <item row="0" column="4">
                     <widget class="QComboBox" name="comboBoxCreationLocation"/>
+                   </item>
+                   <item row="9" column="0">
+                    <widget class="QLabel" name="labelPrincipalInvestigator">
+                     <property name="text">
+                      <string>Principal investigator</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="9" column="1">
+                    <widget class="QLineEdit" name="lineEditPrincipalInvestigator">
+                     <property name="toolTip">
+                      <string>PI email from the proposal, or the PI name when the catalogue hides the email</string>
+                     </property>
+                    </widget>
                    </item>
                   </layout>
                  </item>
