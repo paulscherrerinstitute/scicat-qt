@@ -1062,7 +1062,7 @@ void Dialog::openDatasetBrowser(){
     {
         // released before the browser opens
         const QScopedValueRollback<bool> loading(datasetBrowserLoading, true);
-        const QJsonObject filter = {{"where", QJsonObject{{"ownerGroup", scicat->experiment()->getOwnerGroup()}}},
+        const QJsonObject filter = {{"where", scicat->experiment()->pgroupWhere()},
                                     {"fields", QJsonArray{"datasetName", "pid"}}};
         datasets = scicat->fetchAllPages("datasets", SciCat::ApiVersion::V3, filter, QJsonObject{{"order", "pid:asc"}});
     }
@@ -1319,7 +1319,7 @@ void Dialog::updateRetrieveList(){
 
     // all datasets of the current pgroup; sorted by pid, which is unique and among the requested fields
     // (the v3 endpoint sorts after selecting the fields)
-    const QJsonObject filterDatasets = {{"where", QJsonObject{{"ownerGroup", scicat->experiment()->getOwnerGroup()}}},
+    const QJsonObject filterDatasets = {{"where", scicat->experiment()->pgroupWhere()},
                                         {"fields", QJsonArray{"datasetlifecycle", "pid", "datasetName"}}};
     const SciCat::PagedResult datasets = scicat->fetchAllPages("datasets", SciCat::ApiVersion::V3, filterDatasets,
                                                                QJsonObject{{"order", "pid:asc"}});

@@ -100,6 +100,16 @@ target_link_libraries(SciCat PRIVATE Qt6::Widgets Qt6::Network Qt6::Concurrent Q
 
 include("${CMAKE_SOURCE_DIR}/cmake/SciCatCli.cmake")
 
+if(SCICAT_BUILD_TESTS)
+  find_package(Qt6 COMPONENTS Test REQUIRED)
+  # the app sources without main.cpp, so a test can link against them
+  set(SCICAT_TEST_SOURCES ${SCICAT_SOURCES})
+  list(REMOVE_ITEM SCICAT_TEST_SOURCES main.cpp)
+  add_executable(tst_experiment tests/tst_experiment.cpp ${SCICAT_TEST_SOURCES})
+  target_link_libraries(tst_experiment PRIVATE Qt6::Widgets Qt6::Network Qt6::Concurrent Qt6::Svg Qt6::Test)
+  add_test(NAME tst_experiment COMMAND tst_experiment)
+endif()
+
 if(SCICAT_BUNDLE_QT_RUNTIME AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
   if(NOT IS_DIRECTORY "${SCICAT_BUNDLED_QT_LIBRARY_DIR}")
     message(FATAL_ERROR "SCICAT_BUNDLED_QT_LIBRARY_DIR must point to an existing Qt library directory")

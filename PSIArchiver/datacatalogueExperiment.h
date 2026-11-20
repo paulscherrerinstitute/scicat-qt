@@ -2,6 +2,7 @@
 #define EXPERIMENT_H
 
 #include "datacatalogueClasses.h"
+#include <QJsonObject>
 
 namespace SciCat {
 namespace DataCatalogueCore {
@@ -43,6 +44,8 @@ public:
 
     QString getPgroup() const;
     void setPgroup(const QString &pgroup);
+    // where-clause for the datasets and jobs of the chosen pgroup; an edited owner group does not change it
+    QJsonObject pgroupWhere() const;
 
     bool getDataIsRaw() const;
     void setDataIsRaw(bool dataIsRaw);

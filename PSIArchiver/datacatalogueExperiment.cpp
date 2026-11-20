@@ -272,6 +272,11 @@ void Experiment::setPgroup(const QString &pgroup)
     m_ownerGroup = pgroup;
 }
 
+QJsonObject Experiment::pgroupWhere() const
+{
+    return QJsonObject{{"ownerGroup", m_pgroup}};
+}
+
 QString Experiment::getInstrument() const
 {
     return m_instrument;

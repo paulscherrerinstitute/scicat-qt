@@ -5,11 +5,16 @@ set(SCICAT_PACKAGE_RELEASE "1" CACHE STRING "SciCat RPM package release")
 set(SCICAT_PACKAGE_GENERATORS "RPM" CACHE STRING "CPack package generators")
 set(SCICAT_PACKAGE_SUFFIX "" CACHE STRING "Package filename suffix")
 option(SCICAT_INSTALL_SYSTEM_INTEGRATION "Install system-wide Linux launcher and desktop resources" ON)
+option(SCICAT_BUILD_TESTS "Build the unit tests (needs the Qt6 Test module)" OFF)
 
 project(SciCat VERSION "${SCICAT_VERSION}" LANGUAGES CXX)
 
 if(NOT SCICAT_PACKAGE_SUFFIX)
   set(SCICAT_PACKAGE_SUFFIX "${CMAKE_SYSTEM_PROCESSOR}")
+endif()
+
+if(SCICAT_BUILD_TESTS)
+  enable_testing()
 endif()
 
 # build app
