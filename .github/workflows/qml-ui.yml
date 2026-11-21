@@ -1,0 +1,112 @@
+name: Qt Quick UI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qml-ui-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qml-macos:
+    name: Qt Quick UI (macOS arm64)
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          brew update
+          brew install cmake ninja qt
+
+      - name: Configure
+        run: |
+          cmake -S qml-ui -B build/qml-ui -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt)"
+
+      - name: Build
+        run: cmake --build build/qml-ui --parallel
+
+      # Homebrew's Qt moves on and a newer qmllint knows more warnings, so they are reported, not failed on.
+      - name: Lint the QML
+        run: |
+          cmake --build build/qml-ui --target all_qmllint 2>&1 | tee qmllint.log
+          warnings="$(grep -c '^Warning: ' qmllint.log || true)"
+          if [ "$warnings" != "0" ]; then
+            echo "::warning::qmllint reports $warnings warnings"
+          fi
+
+      - name: Run tests
+        run: ctest --test-dir build/qml-ui --output-on-failure
+
+      - name: Upload test outputs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qml-ui-macos
+          path: |
+            build/qml-ui/walks
+            build/qml-ui/scenario-runs
+            build/qml-ui/Testing/Temporary/LastTest.log
+          retention-days: 7
+
+  qml-rhel9:
+    name: Qt Quick UI (RHEL 9 x86_64)
+    runs-on: ubuntu-24.04
+    container:
+      image: almalinux:9
+    timeout-minutes: 45
+    env:
+      # no graphics card in the container
+      QT_QUICK_BACKEND: software
+    steps:
+      - name: Install build dependencies
+        run: |
+          dnf -y install dnf-plugins-core epel-release
+          dnf config-manager --set-enabled crb
+          dnf -y --setopt=install_weak_deps=False install \
+            cmake \
+            dejavu-sans-fonts \
+            findutils \
+            gcc-c++ \
+            ninja-build \
+            python3 \
+            qt6-qtbase-devel \
+            qt6-qtbase-private-devel \
+            qt6-qtdeclarative-devel \
+            qt6-qtsvg-devel
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: |
+          cmake -S qml-ui -B build/qml-ui -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build/qml-ui --parallel
+
+      - name: Run tests
+        run: ctest --test-dir build/qml-ui --output-on-failure
+
+      - name: Upload test outputs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qml-ui-rhel9
+          path: |
+            build/qml-ui/walks
+            build/qml-ui/scenario-runs
+            build/qml-ui/Testing/Temporary/LastTest.log
+          retention-days: 7
