@@ -1,0 +1,20 @@
+{
+  "why": ["Q3-autoarchive-without-ingest", "Q5-messages"],
+  "expect": {
+    "cli": {
+      "$at": {
+        "0": [
+          "datasetIngestor",
+          "--testenv",
+          "--noninteractive",
+          "--allowexistingsource",
+          "--token",
+          "good",
+          "${LOG}/ingestion/scan_0001${STAMP}/metadata.json",
+          "${LOG}/ingestion/scan_0001${STAMP}/filelisting.txt"
+        ]
+      }
+    },
+    "messages": {"banners": ["scan_0001 passed the check. The check passed. Nothing was registered."]}
+  }
+}

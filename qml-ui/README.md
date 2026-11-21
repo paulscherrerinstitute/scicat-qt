@@ -11,13 +11,13 @@ What it does is the same as the Widgets GUI: sign in with a SciCat token, choose
 
 ## Build, test, run
 
-Qt 6.8 or newer with the Quick, Quick Controls 2, Quick Dialogs 2 and Svg modules; the scripted walks also need the
-private headers of Qt Quick, bash and Python 3. From the repository root:
+Qt 6.8 or newer with the Quick, Quick Controls 2, Quick Dialogs 2 and Svg modules; the scenario tests and the
+scripted walks also need the private headers of Qt Quick, Python 3 and (the walks) bash. From the repository root:
 
 ```bash
 cmake -S qml-ui -B build-qml -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=<Qt 6 prefix>
 cmake --build build-qml
-ctest --test-dir build-qml --output-on-failure     # unit tests and the walks; without the walks: -E walk
+ctest --test-dir build-qml --output-on-failure     # unit tests, scenarios and walks; without the walks: -E walk
 build-qml/src/app/SciCatQml.app/Contents/MacOS/SciCatQml      # macOS; elsewhere build-qml/src/app/SciCatQml
 ```
 
@@ -56,7 +56,7 @@ never overwrite each other's settings.
 | `src/SciCat/Ui` | QML module `SciCat.Ui`: colours and sizes (`Theme`), icons, and the controls shared by the pages. |
 | `src/SciCat/App` | QML module `SciCat.App`: the window and its pages. |
 | `src/app` | `main()`. |
-| `tests` | Unit tests of `core` and of the backend objects against an in-process fake catalogue, and `e2e/`, scripted click-throughs of the whole application ("walks"). `ctest` runs all of them. |
+| `tests` | Unit tests of `core` and of the backend objects against an in-process fake catalogue; `scenario/`, the scenarios of the Widgets GUI played on this application; `e2e/`, scripted click-throughs of the whole application ("walks"). `ctest` runs all of them. |
 
 Where the Widgets code went:
 
@@ -75,7 +75,8 @@ Where the Widgets code went:
 ## Where it deliberately differs from the Widgets GUI
 
 What it asks SciCat, what it writes for `scicat-cli` and how it calls it are the same as in the Widgets GUI, except
-where this table says otherwise.
+where this table says otherwise. The scenario tests (below) hold it to that: every scenario of the Widgets GUI runs
+against this application, and each place where the two differ names one of these reasons.
 
 | Id | What is different here |
 |---|---|
@@ -94,7 +95,7 @@ where this table says otherwise.
 | `B1-size-above-2GiB`, `B2-numbers-blank`, `B5-source-folder-prefix` | Three bugs of the Widgets GUI are not copied: files of 2 GiB and more keep their size, numbers in scientific metadata are shown, and the source folder is the real common parent of the chosen files (for `/data/run1` and `/data/run10` the Widgets GUI takes `/data/run1`). |
 | `S1-settings-store` | The preferences have the keys and defaults of the Widgets GUI but their own store and version (1.0). "Disable emails" is gone: nothing in the Widgets GUI reads it. |
 
-Also:
+Not reached by the scenarios:
 
 - Hidden files in a chosen folder are counted in the file total (they are archived either way).
 - At most two datasets are copied from the retrieve server at the same time; further ones wait their turn.
@@ -108,6 +109,39 @@ On Retrieve, Ctrl+F goes to the search and the Down key from there into the list
 Page Up, Page Down, Home and End move, Space ticks the current dataset and Ctrl+A ticks all that are listed.
 Ctrl+Z triggers the "Undo" of a message at the foot of the window, unless a text field is being typed in.
 A dialog puts the focus on the answer that changes nothing. The shortcuts rest while a dialog is open.
+
+## The scenario tests
+
+`tests/parity/` in the repository root holds 35 scenarios of what a user does with the Widgets GUI, and what came out
+of it: the requests to SciCat, the `scicat-cli` calls, the files written, the settings, and what the GUI showed.
+`tests/scenario/` plays the same scenarios on this application (`scicat_qml_driver`) and `ctest -R scenario` compares:
+
+```bash
+ctest --test-dir build-qml -R scenario -j8
+python3 tests/parity/run_scenarios.py --driver build-qml/tests/scenario/scicat_qml_driver --unordered-reads \
+        --differences qml-ui/tests/scenario/differences -k retrieve     # shows every difference; from the repository root
+```
+
+The driver plays a step the way a person does it, with mouse and key events on the real window: typing into the
+fields, clicking buttons and entries of lists. Three things are done differently. A test cannot work a file dialog
+of the system, so files are dropped on the Archive page, as from a file manager, and the folder a copy goes to is
+handed to the folder dialog, which is then accepted. And an entry of a long drop-down list is brought into view
+before it is clicked. When to go on is read from the application's own state, and a snapshot of a long list from
+its model.
+A step this application has no control for, because it does the thing differently on purpose (the settings have no
+Cancel), gets the result `unavailable`.
+
+`tests/scenario/differences/<scenario>.json` says where this application gives another result than the Widgets
+GUI, and why (the ids of the table above). Everything not listed there has to be equal. After a deliberate change:
+
+```bash
+python3 tests/parity/run_scenarios.py --driver build-qml/tests/scenario/scicat_qml_driver --unordered-reads \
+        --differences qml-ui/tests/scenario/differences --record
+git diff qml-ui/tests/scenario/differences        # review it; a new file needs its "why"
+```
+
+The driver refuses to start outside a test run, and translates the settings file of the scenario: the Widgets
+GUI's current settings version (0.x) is this application's current one (1.0), any other stays another.
 
 ## The scripted walk
 

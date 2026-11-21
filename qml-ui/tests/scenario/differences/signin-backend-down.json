@@ -1,0 +1,12 @@
+{
+  "why": ["Q5-messages"],
+  "expect": {
+    "messages": {
+      "banners": {
+        "$at": {
+          "0": "No connection to SciCat. Could not reach SciCat at ${SCICAT}. Check that you are inside the PSI network or on VPN, then try again."
+        }
+      }
+    }
+  }
+}

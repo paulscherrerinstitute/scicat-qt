@@ -1,0 +1,33 @@
+{
+  "why": ["Q1-retrieve-jobs", "Q2-dataset-fields", "Q9-actions-need-a-selection", "Q5-messages"],
+  "expect": {
+    "requests": {
+      "$at": {
+        "1": {
+          "query": {
+            "filter": {
+              "fields": [
+                "datasetlifecycle",
+                "pid",
+                "datasetName",
+                "size",
+                "creationTime",
+                "type",
+                "numberOfFiles",
+                "sourceFolder"
+              ]
+            }
+          }
+        },
+        "5": {"query": {"filter": {"where": {"statusCode": {"$remove": true}}}}}
+      }
+    },
+    "steps": {"$at": {"4": "blocked"}},
+    "messages": {
+      "banners": [
+        "Getting data back takes two steps. 1. Request: the archive copies the dataset from tape to the retrieve server. That can take hours, and SciCat emails you when it is done.\n2. Copy: a dataset that is \"Ready to copy\" can be copied to a folder on this computer.",
+        "None of the selected datasets is ready to copy yet. Request them first: a dataset can be copied once its state is \"Ready to copy\"."
+      ]
+    }
+  }
+}

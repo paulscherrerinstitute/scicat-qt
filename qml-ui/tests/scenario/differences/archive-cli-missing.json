@@ -1,0 +1,14 @@
+{
+  "why": ["Q12-start-failure-in-log", "Q5-messages"],
+  "expect": {
+    "files": {
+      "${LOG}/ingestion/notes${STAMP}/ingestion.log": {
+        "contains": [
+          "$ ${HOME}/no-such/scicat-cli datasetIngestor --ingest --autoarchive --testenv",
+          "Could not start ${HOME}/no-such/scicat-cli: "
+        ]
+      }
+    },
+    "messages": {"banners": ["notes was not sent. scicat-cli could not be started. Check its path in Settings."]}
+  }
+}

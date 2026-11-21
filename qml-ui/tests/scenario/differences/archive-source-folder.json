@@ -1,0 +1,10 @@
+{
+  "why": ["B5-source-folder-prefix", "Q5-messages"],
+  "expect": {
+    "files": {
+      "${LOG}/ingestion/two_runs${STAMP}/filelisting.txt": {"lines": {"$at": {"0": "run1/a.h5", "1": "run10/b.h5"}}},
+      "${LOG}/ingestion/two_runs${STAMP}/metadata.json": {"json": {"sourceFolder": "${DATA}"}}
+    },
+    "messages": {"banners": ["two_runs is in the catalogue. The dataset is registered and its archiving is requested."]}
+  }
+}

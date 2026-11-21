@@ -8,7 +8,7 @@
     {"do": "archive.toMetadata"},
     {"do": "archive.addFiles", "dir": "${DATA}", "names": ["notes.txt"]},
     {"do": "archive.toMetadata"},
-    {"do": "archive.setMetadata", "datasetName": "", "investigator": ""},
+    {"do": "archive.setMetadata", "type": "derived", "datasetName": "", "investigator": ""},
     {"do": "archive.submit"},
     {"do": "archive.setMetadata", "datasetName": "named"},
     {"do": "archive.submit"},

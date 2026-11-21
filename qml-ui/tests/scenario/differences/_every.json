@@ -1,0 +1,4 @@
+{
+  "why": ["S1-settings-store"],
+  "expect": {"settings": {"version": "1.0", "disableEmails": {"$remove": true}}}
+}

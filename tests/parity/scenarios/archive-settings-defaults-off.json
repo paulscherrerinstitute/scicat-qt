@@ -18,6 +18,7 @@
     {"do": "archive.addFiles", "dir": "${DATA}", "names": ["notes.txt"]},
     {"do": "archive.toMetadata"},
     {"do": "snapshot", "name": "archive.metadata", "as": "defaults"},
+    {"do": "archive.setMetadata", "type": "derived"},
     {"do": "archive.submit"}
   ],
   "expect": {
@@ -90,7 +91,7 @@
       "usePgroupAsDefaultPath": "true",
       "version": "0.4"
     },
-    "steps": ["ok", "signedIn", "ok", "ok", "ok", "ok", "ok", "done"],
+    "steps": ["ok", "signedIn", "ok", "ok", "ok", "ok", "ok", "ok", "done"],
     "messages": {"banners": [], "dialogs": []},
     "snapshots": {
       "defaults": {

@@ -1,0 +1,30 @@
+{
+  "why": ["Q11-order-of-sets", "Q6-raw-by-default", "Q4-derived-shows-scientific-metadata", "Q5-messages"],
+  "expect": {
+    "files": {
+      "${LOG}/ingestion/scan_0002${STAMP}/metadata.json": {
+        "json": {
+          "inputDatasets": {
+            "$at": {
+              "0": "20.500.11935/5cfec8ff-6a54-5d80-a364-d98fe46ce588",
+              "1": "20.500.11935/8e4c951e-84bc-566e-8cc4-ab63a572da48"
+            }
+          }
+        }
+      }
+    },
+    "messages": {"banners": ["scan_0002 is in the catalogue. The dataset is registered and its archiving is requested."]},
+    "snapshots": {
+      "defaults": {"type": "raw"},
+      "filled": {
+        "inputDatasets": {
+          "$at": {
+            "0": {"name": "saxs_polymer_0002", "pid": "20.500.11935/5cfec8ff-6a54-5d80-a364-d98fe46ce588"},
+            "1": {"name": "tomo_fuelcell_0000", "pid": "20.500.11935/8e4c951e-84bc-566e-8cc4-ab63a572da48"}
+          }
+        },
+        "scientificMetadata": null
+      }
+    }
+  }
+}

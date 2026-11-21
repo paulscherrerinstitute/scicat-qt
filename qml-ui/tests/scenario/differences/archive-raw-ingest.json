@@ -1,0 +1,7 @@
+{
+  "why": ["Q6-raw-by-default", "Q5-messages"],
+  "expect": {
+    "messages": {"banners": ["my_demo_run is in the catalogue. The dataset is registered and its archiving is requested."]},
+    "snapshots": {"defaults": {"type": "raw"}}
+  }
+}
