@@ -1,0 +1,167 @@
+{
+  "about": "SciCat refuses the retrieve job (HTTP 403): its message is shown.",
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p33333"},
+    {"do": "retrieve.open"},
+    {"do": "retrieve.select", "datasets": ["tomo_fuelcell_0000"]},
+    {"do": "retrieve.request"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p33333"}}},
+        "server": "qa"
+      },
+      {
+        "$known": "Q1-retrieve-jobs",
+        "value": {
+          "auth": "Bearer good",
+          "body": null,
+          "method": "GET",
+          "path": "/api/v4/jobs",
+          "query": {
+            "filter": {
+              "limits": {"limit": 500, "skip": 0, "sort": {"createdAt": "desc"}},
+              "where": {"ownerUser": "jdoe", "statusCode": "finishedSuccessful", "type": "retrieve"}
+            }
+          },
+          "server": "qa"
+        }
+      },
+      {
+        "$known": "Q2-dataset-fields",
+        "value": {
+          "auth": "Bearer good",
+          "body": null,
+          "method": "GET",
+          "path": "/api/v3/datasets",
+          "query": {
+            "filter": {
+              "fields": ["datasetlifecycle", "pid", "datasetName"],
+              "limits": {"limit": 500, "order": "pid:asc", "skip": 0},
+              "where": {"ownerGroup": "p33333"}
+            }
+          },
+          "server": "qa"
+        }
+      },
+      {
+        "$known": "Q2-dataset-fields",
+        "value": {
+          "auth": "Bearer good",
+          "body": null,
+          "method": "GET",
+          "path": "/api/v3/datasets",
+          "query": {
+            "filter": {
+              "fields": ["datasetlifecycle", "pid", "datasetName"],
+              "limits": {"limit": 500, "order": "pid:asc", "skip": 500},
+              "where": {"ownerGroup": "p33333"}
+            }
+          },
+          "server": "qa"
+        }
+      },
+      {
+        "$known": "Q2-dataset-fields",
+        "value": {
+          "auth": "Bearer good",
+          "body": null,
+          "method": "GET",
+          "path": "/api/v3/datasets",
+          "query": {
+            "filter": {
+              "fields": ["datasetlifecycle", "pid", "datasetName"],
+              "limits": {"limit": 500, "order": "pid:asc", "skip": 1000},
+              "where": {"ownerGroup": "p33333"}
+            }
+          },
+          "server": "qa"
+        }
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/datasets",
+        "query": {
+          "filter": {"include": ["origdatablocks"], "where": {"pid": "20.500.11935/86a5cf44-72fd-5618-80ff-69e434375179"}}
+        },
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/datasets/20.500.11935/86a5cf44-72fd-5618-80ff-69e434375179",
+        "query": {"filter": {"fields": ["scientificMetadata"]}},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": {
+          "contactEmail": "jdoe@example.org",
+          "jobParams": {
+            "datasetList": [{"files": [], "pid": "20.500.11935/86a5cf44-72fd-5618-80ff-69e434375179"}],
+            "destinationPath": "/archive/retrieve",
+            "option": "PSI",
+            "username": "jdoe"
+          },
+          "ownerGroup": "p33333",
+          "ownerUser": "jdoe",
+          "type": "retrieve"
+        },
+        "method": "POST",
+        "path": "/api/v4/jobs",
+        "query": {},
+        "server": "qa"
+      }
+    ],
+    "cli": [],
+    "files": {},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok", "ok"],
+    "messages": {
+      "banners": [],
+      "dialogs": [
+        {
+          "text": "SciCat rejected the retrieve request (HTTP 403): Invalid new job. User needs to belong to job owner group."
+        }
+      ]
+    },
+    "snapshots": {}
+  }
+}

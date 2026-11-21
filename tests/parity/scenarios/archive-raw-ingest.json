@@ -1,0 +1,134 @@
+{
+  "about": "Archive raw data of a pgroup with a proposal: two folders and a file, scientific metadata, ingest and archive.",
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "archive.open"},
+    {"do": "archive.addFiles", "dir": "${DATA}", "names": ["scan_0001", "scan_0002", "notes.txt"]},
+    {"do": "snapshot", "name": "archive.files"},
+    {"do": "archive.toMetadata"},
+    {"do": "snapshot", "name": "archive.metadata", "as": "defaults"},
+    {
+      "do": "archive.setMetadata",
+      "type": "raw",
+      "datasetName": "my demo run",
+      "description": "A short description",
+      "instrument": "/PSI/SLS/TOMCAT",
+      "scientificMetadata": {"sample/name": "S1", "sample/description": "fuel cell", "sample/temperature": "300 K"}
+    },
+    {"do": "snapshot", "name": "archive.metadata", "as": "filled"},
+    {"do": "archive.submit", "ingest": true, "archive": true}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      }
+    ],
+    "cli": [
+      [
+        "datasetIngestor",
+        "--ingest",
+        "--autoarchive",
+        "--testenv",
+        "--noninteractive",
+        "--allowexistingsource",
+        "--token",
+        "good",
+        "${LOG}/ingestion/my_demo_run${STAMP}/metadata.json",
+        "${LOG}/ingestion/my_demo_run${STAMP}/filelisting.txt"
+      ]
+    ],
+    "files": {
+      "${LOG}/ingestion/my_demo_run${STAMP}/filelisting.txt": {"lines": {"$count": 3, "$includes": ["notes.txt", "scan_0001", "scan_0002"]}},
+      "${LOG}/ingestion/my_demo_run${STAMP}/ingestion.log": {
+        "contains": [
+          "[fake scicat-cli] datasetIngestor, test environment. Nothing is sent anywhere.",
+          "Archive job submitted (fake)."
+        ]
+      },
+      "${LOG}/ingestion/my_demo_run${STAMP}/metadata.json": {
+        "json": {
+          "creationLocation": "/PSI/SLS/TOMCAT",
+          "datasetName": "my_demo_run",
+          "description": "A short description",
+          "owner": "Jane Doe",
+          "ownerEmail": "jane.doe@example.org",
+          "ownerGroup": "p12345",
+          "principalInvestigator": "jane.doe@example.org",
+          "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+          "scientificMetadata": {"sample": {"description": "fuel cell", "name": "S1", "principalInvestigator": "", "temperature": "300 K"}},
+          "sourceFolder": "${DATA}",
+          "type": "raw"
+        }
+      }
+    },
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "done"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {
+      "archive.files": {"$count": 3, "$includes": ["${DATA}/notes.txt", "${DATA}/scan_0001", "${DATA}/scan_0002"]},
+      "defaults": {
+        "datasetName": "data",
+        "description": "",
+        "inputDatasets": [],
+        "instrument": "/PSI/SLS/TOMCAT",
+        "investigator": "jdoe@example.org",
+        "owner": "Jane Doe",
+        "ownerEmail": "jane.doe@example.org",
+        "ownerGroup": "p12345",
+        "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+        "scientificMetadata": {"sample": {"description": "", "name": "", "principalInvestigator": ""}},
+        "type": "derived",
+        "usedSoftware": ""
+      },
+      "filled": {
+        "datasetName": "my_demo_run",
+        "description": "A short description",
+        "inputDatasets": [],
+        "instrument": "/PSI/SLS/TOMCAT",
+        "investigator": "jdoe@example.org",
+        "owner": "Jane Doe",
+        "ownerEmail": "jane.doe@example.org",
+        "ownerGroup": "p12345",
+        "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+        "scientificMetadata": {"sample": {"description": "fuel cell", "name": "S1", "principalInvestigator": "", "temperature": "300 K"}},
+        "type": "raw",
+        "usedSoftware": ""
+      }
+    }
+  }
+}

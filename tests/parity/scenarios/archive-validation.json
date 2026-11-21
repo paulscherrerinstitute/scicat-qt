@@ -1,0 +1,72 @@
+{
+  "about": "What stops the archive wizard: no files, no dataset name, no instrument for raw data, no investigator.",
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p22222"},
+    {"do": "enterPI", "firstname": "Ada", "lastname": "Lovelace", "email": "ada@example.org"},
+    {"do": "archive.open"},
+    {"do": "archive.toMetadata"},
+    {"do": "archive.addFiles", "dir": "${DATA}", "names": ["notes.txt"]},
+    {"do": "archive.toMetadata"},
+    {"do": "archive.setMetadata", "datasetName": "", "investigator": ""},
+    {"do": "archive.submit"},
+    {"do": "archive.setMetadata", "datasetName": "named"},
+    {"do": "archive.submit"},
+    {"do": "archive.setMetadata", "type": "raw"},
+    {"do": "archive.submit"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p22222"}}},
+        "server": "qa"
+      }
+    ],
+    "cli": [],
+    "files": {"${LOG}/proposals/proposal_p22222.dat": {"lines": ["Ada", "Lovelace", "ada@example.org"]}},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": {"$count": 13, "$includes": ["signedIn", "blocked"]},
+    "messages": {
+      "banners": [],
+      "dialogs": [
+        {"text": "Please add at least one file/directory."},
+        {"text": "Investigator cannot be empty"},
+        {"text": "Investigator cannot be empty"},
+        {"text": "Instrument cannot be empty."}
+      ]
+    },
+    "snapshots": {}
+  }
+}

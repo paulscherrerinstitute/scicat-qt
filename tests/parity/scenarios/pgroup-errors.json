@@ -1,0 +1,68 @@
+{
+  "about": "Malformed and foreign pgroups are refused before anything is asked from SciCat.",
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "x1234"},
+    {"do": "choosePgroup", "pgroup": "p1234567"},
+    {"do": "choosePgroup", "pgroup": "p99999"},
+    {"do": "archive.open"},
+    {"do": "snapshot", "name": "pgroup"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      }
+    ],
+    "cli": [],
+    "files": {},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok", "blocked", "ok"],
+    "messages": {
+      "banners": [],
+      "dialogs": [
+        {"text": "Please enter a valid pgroup/agroup"},
+        {"text": "Please enter a valid pgroup/agroup"},
+        {"text": "Cannot access pgroup p99999. Permission denied."},
+        {"text": "Cannot access pgroup p99999. Permission denied."}
+      ]
+    },
+    "snapshots": {
+      "pgroup": {
+        "pgroup": "p99999",
+        "piEditable": false,
+        "piEmail": "",
+        "piFirstname": "",
+        "piLastname": "",
+        "proposalId": "",
+        "proposalShown": false,
+        "title": ""
+      }
+    }
+  }
+}

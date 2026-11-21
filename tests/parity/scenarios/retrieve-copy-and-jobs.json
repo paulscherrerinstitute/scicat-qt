@@ -1,0 +1,145 @@
+{
+  "about": "Copy a retrieved dataset with scicat-cli; the copy is listed under Jobs while it runs.",
+  "files": {"${OUT}/hold": "the stand-in scicat-cli waits while this file exists\n"},
+  "env": {"FAKE_CLI_HOLD": "${OUT}/hold"},
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "retrieve.open"},
+    {"do": "retrieve.select", "datasets": ["tomo_fuelcell_0000"]},
+    {"do": "retrieve.copy", "to": "${OUT}/copies"},
+    {"do": "jobs.open"},
+    {"do": "snapshot", "name": "jobs", "as": "running"},
+    {"do": "quit", "answer": "no"},
+    {"do": "removeFile", "path": "${OUT}/hold"},
+    {"do": "jobs.refresh", "untilEmpty": true},
+    {"do": "snapshot", "name": "jobs", "as": "finished"},
+    {"do": "quit"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      },
+      {
+        "$known": "Q1-retrieve-jobs",
+        "value": {
+          "auth": "Bearer good",
+          "body": null,
+          "method": "GET",
+          "path": "/api/v4/jobs",
+          "query": {
+            "filter": {
+              "limits": {"limit": 500, "skip": 0, "sort": {"createdAt": "desc"}},
+              "where": {"ownerUser": "jdoe", "statusCode": "finishedSuccessful", "type": "retrieve"}
+            }
+          },
+          "server": "qa"
+        }
+      },
+      {
+        "$known": "Q2-dataset-fields",
+        "value": {
+          "auth": "Bearer good",
+          "body": null,
+          "method": "GET",
+          "path": "/api/v3/datasets",
+          "query": {
+            "filter": {
+              "fields": ["datasetlifecycle", "pid", "datasetName"],
+              "limits": {"limit": 500, "order": "pid:asc", "skip": 0},
+              "where": {"ownerGroup": "p12345"}
+            }
+          },
+          "server": "qa"
+        }
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/datasets",
+        "query": {
+          "filter": {"include": ["origdatablocks"], "where": {"pid": "20.500.11935/8e4c951e-84bc-566e-8cc4-ab63a572da48"}}
+        },
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/datasets/20.500.11935/8e4c951e-84bc-566e-8cc4-ab63a572da48",
+        "query": {"filter": {"fields": ["scientificMetadata"]}},
+        "server": "qa"
+      }
+    ],
+    "cli": [
+      [
+        "datasetRetriever",
+        "--testenv",
+        "--dataset",
+        "20.500.11935/8e4c951e-84bc-566e-8cc4-ab63a572da48",
+        "--token",
+        "good",
+        "--retrieve",
+        "${OUT}/copies"
+      ]
+    ],
+    "files": {
+      "${OUT}/copies/8e4c951e-84bc-566e-8cc4-ab63a572da48/FAKE_RETRIEVED.txt": {"lines": ["Placeholder written by the fake scicat-cli for 20.500.11935/8e4c951e-84bc-566e-8cc4-ab63a572da48."]}
+    },
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok", "ok", "ok", "ok", "stayed", "ok", "ok", "ok", "closed"],
+    "messages": {
+      "banners": [],
+      "dialogs": [
+        {
+          "text": "Some retrieve processes haven't finished yet. Do you really want to quit now and abort these processes?"
+        }
+      ]
+    },
+    "snapshots": {
+      "finished": [],
+      "running": [
+        {
+          "datasetId": "20.500.11935/8e4c951e-84bc-566e-8cc4-ab63a572da48",
+          "name": "tomo_fuelcell_0000",
+          "path": "${OUT}/copies"
+        }
+      ]
+    }
+  }
+}

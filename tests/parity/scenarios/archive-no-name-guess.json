@@ -1,0 +1,74 @@
+{
+  "about": "Without guessing the dataset name, an empty name stops the wizard.",
+  "steps": [
+    {"do": "changeSettings", "values": {"guessDatasetname": false}},
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "archive.open"},
+    {"do": "archive.addFiles", "dir": "${DATA}", "names": ["notes.txt"]},
+    {"do": "archive.toMetadata"},
+    {"do": "snapshot", "name": "archive.metadata"},
+    {"do": "archive.submit"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      }
+    ],
+    "cli": [],
+    "files": {},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "false",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["ok", "signedIn", "ok", "ok", "ok", "ok", "ok", "blocked"],
+    "messages": {"banners": [], "dialogs": [{"text": "Dataset name cannot be empty."}]},
+    "snapshots": {
+      "archive.metadata": {
+        "datasetName": "",
+        "description": "",
+        "inputDatasets": [],
+        "instrument": "/PSI/SLS/TOMCAT",
+        "investigator": "jdoe@example.org",
+        "owner": "Jane Doe",
+        "ownerEmail": "jane.doe@example.org",
+        "ownerGroup": "p12345",
+        "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+        "scientificMetadata": {"sample": {"description": "", "name": "", "principalInvestigator": ""}},
+        "type": "derived",
+        "usedSoftware": ""
+      }
+    }
+  }
+}

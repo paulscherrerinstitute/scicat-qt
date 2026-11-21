@@ -1,0 +1,110 @@
+{
+  "about": "scicat-cli refuses the dataset (exit code 1): the GUI says the ingestion failed and keeps the log.",
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "archive.open"},
+    {"do": "archive.addFiles", "dir": "${DATA}", "names": ["notes.txt"]},
+    {"do": "archive.toMetadata"},
+    {"do": "archive.setMetadata", "type": "raw", "datasetName": "will fail", "instrument": "/PSI/SLS/TOMCAT"},
+    {"do": "archive.submit"},
+    {"do": "snapshot", "name": "archive.metadata", "as": "after"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      }
+    ],
+    "cli": [
+      [
+        "datasetIngestor",
+        "--ingest",
+        "--autoarchive",
+        "--testenv",
+        "--noninteractive",
+        "--allowexistingsource",
+        "--token",
+        "good",
+        "${LOG}/ingestion/will_fail${STAMP}/metadata.json",
+        "${LOG}/ingestion/will_fail${STAMP}/filelisting.txt"
+      ]
+    ],
+    "files": {
+      "${LOG}/ingestion/will_fail${STAMP}/filelisting.txt": {"lines": ["notes.txt"]},
+      "${LOG}/ingestion/will_fail${STAMP}/ingestion.log": {
+        "contains": [
+          "[fake scicat-cli] datasetIngestor, test environment. Nothing is sent anywhere.",
+          "Error: the catalogue refused the dataset (simulated failure, because the dataset name contains 'fail')"
+        ]
+      },
+      "${LOG}/ingestion/will_fail${STAMP}/metadata.json": {
+        "json": {
+          "creationLocation": "/PSI/SLS/TOMCAT",
+          "datasetName": "will_fail",
+          "description": "",
+          "owner": "Jane Doe",
+          "ownerEmail": "jane.doe@example.org",
+          "ownerGroup": "p12345",
+          "principalInvestigator": "jane.doe@example.org",
+          "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+          "scientificMetadata": {"sample": {"description": "", "name": "", "principalInvestigator": ""}},
+          "sourceFolder": "${DATA}",
+          "type": "raw"
+        }
+      }
+    },
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok", "ok", "ok", "failed", "ok"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {
+      "after": {
+        "datasetName": "will_fail",
+        "description": "",
+        "inputDatasets": [],
+        "instrument": "/PSI/SLS/TOMCAT",
+        "investigator": "jdoe@example.org",
+        "owner": "Jane Doe",
+        "ownerEmail": "jane.doe@example.org",
+        "ownerGroup": "p12345",
+        "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+        "scientificMetadata": {"sample": {"description": "", "name": "", "principalInvestigator": ""}},
+        "type": "raw",
+        "usedSoftware": ""
+      }
+    }
+  }
+}

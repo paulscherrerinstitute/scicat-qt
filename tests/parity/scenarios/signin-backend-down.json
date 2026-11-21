@@ -1,0 +1,37 @@
+{
+  "about": "Nothing answers at the SciCat address: the sign-in reports a connection problem.",
+  "backend": "down",
+  "steps": [{"do": "signIn", "token": "good"}, {"do": "snapshot", "name": "session"}],
+  "expect": {
+    "requests": [],
+    "cli": [],
+    "files": {},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "scicat-cli",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["rejected", "ok"],
+    "messages": {
+      "banners": ["Could not connect to SciCat.\nPlease make sure that you are within the PSI intranet and try again."],
+      "dialogs": []
+    },
+    "snapshots": {"session": {"server": "QA", "signedIn": false, "username": ""}}
+  }
+}

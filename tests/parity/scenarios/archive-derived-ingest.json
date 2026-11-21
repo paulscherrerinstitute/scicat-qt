@@ -1,0 +1,153 @@
+{
+  "about": "Archive derived data with input datasets picked from the pgroup and the software used.",
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "archive.open"},
+    {"do": "archive.addFiles", "dir": "${DATA}", "names": ["scan_0002"]},
+    {"do": "archive.toMetadata"},
+    {"do": "snapshot", "name": "archive.metadata", "as": "defaults"},
+    {
+      "do": "archive.setMetadata",
+      "description": "Reconstruction",
+      "usedSoftware": "https://gitlab.psi.ch/demo/recon@60629a1",
+      "inputDatasets": ["tomo_fuelcell_0000", "saxs_polymer_0002"]
+    },
+    {"do": "snapshot", "name": "archive.metadata", "as": "filled"},
+    {"do": "archive.submit"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/datasets",
+        "query": {
+          "filter": {
+            "fields": ["datasetName", "pid"],
+            "limits": {"limit": 500, "order": "pid:asc", "skip": 0},
+            "where": {"ownerGroup": "p12345"}
+          }
+        },
+        "server": "qa"
+      }
+    ],
+    "cli": [
+      [
+        "datasetIngestor",
+        "--ingest",
+        "--autoarchive",
+        "--testenv",
+        "--noninteractive",
+        "--allowexistingsource",
+        "--token",
+        "good",
+        "${LOG}/ingestion/scan_0002${STAMP}/metadata.json",
+        "${LOG}/ingestion/scan_0002${STAMP}/filelisting.txt"
+      ]
+    ],
+    "files": {
+      "${LOG}/ingestion/scan_0002${STAMP}/filelisting.txt": {"lines": ["scan_0002"]},
+      "${LOG}/ingestion/scan_0002${STAMP}/ingestion.log": {
+        "contains": [
+          "[fake scicat-cli] datasetIngestor, test environment. Nothing is sent anywhere.",
+          "Archive job submitted (fake)."
+        ]
+      },
+      "${LOG}/ingestion/scan_0002${STAMP}/metadata.json": {
+        "json": {
+          "datasetName": "scan_0002",
+          "description": "Reconstruction",
+          "inputDatasets": ["20.500.11935/8e4c951e-84bc-566e-8cc4-ab63a572da48", "20.500.11935/5cfec8ff-6a54-5d80-a364-d98fe46ce588"],
+          "investigator": "jdoe@example.org",
+          "owner": "Jane Doe",
+          "ownerEmail": "jane.doe@example.org",
+          "ownerGroup": "p12345",
+          "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+          "sourceFolder": "${DATA}",
+          "type": "derived",
+          "usedSoftware": ["https://gitlab.psi.ch/demo/recon@60629a1"]
+        }
+      }
+    },
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "done"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {
+      "defaults": {
+        "datasetName": "scan_0002",
+        "description": "",
+        "inputDatasets": [],
+        "instrument": "/PSI/SLS/TOMCAT",
+        "investigator": "jdoe@example.org",
+        "owner": "Jane Doe",
+        "ownerEmail": "jane.doe@example.org",
+        "ownerGroup": "p12345",
+        "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+        "scientificMetadata": {
+          "$known": "Q4-derived-shows-scientific-metadata",
+          "value": {"sample": {"description": "", "name": "", "principalInvestigator": ""}}
+        },
+        "type": "derived",
+        "usedSoftware": ""
+      },
+      "filled": {
+        "datasetName": "scan_0002",
+        "description": "Reconstruction",
+        "inputDatasets": [
+          {"name": "tomo_fuelcell_0000", "pid": "20.500.11935/8e4c951e-84bc-566e-8cc4-ab63a572da48"},
+          {"name": "saxs_polymer_0002", "pid": "20.500.11935/5cfec8ff-6a54-5d80-a364-d98fe46ce588"}
+        ],
+        "instrument": "/PSI/SLS/TOMCAT",
+        "investigator": "jdoe@example.org",
+        "owner": "Jane Doe",
+        "ownerEmail": "jane.doe@example.org",
+        "ownerGroup": "p12345",
+        "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+        "scientificMetadata": {
+          "$known": "Q4-derived-shows-scientific-metadata",
+          "value": {"sample": {"description": "", "name": "", "principalInvestigator": ""}}
+        },
+        "type": "derived",
+        "usedSoftware": "https://gitlab.psi.ch/demo/recon@60629a1"
+      }
+    }
+  }
+}

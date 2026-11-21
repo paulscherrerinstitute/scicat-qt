@@ -1,0 +1,66 @@
+{
+  "about": "A proposal without the PI's email cannot be used for archiving.",
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p55555"},
+    {"do": "snapshot", "name": "pgroup"},
+    {"do": "archive.open"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p55555"}}},
+        "server": "qa"
+      }
+    ],
+    "cli": [],
+    "files": {},
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${CLI}",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "blocked"],
+    "messages": {"banners": [], "dialogs": [{"text": "Please enter a valid email address"}]},
+    "snapshots": {
+      "pgroup": {
+        "pgroup": "p55555",
+        "piEditable": false,
+        "piEmail": "",
+        "piFirstname": "Jane",
+        "piLastname": "Doe",
+        "proposalId": "20.500.11935/6c50dc08-4ab3-5869-9543-2d71f47",
+        "proposalShown": true,
+        "title": "Proposal without the email of its principal investigator (fake backend)"
+      }
+    }
+  }
+}

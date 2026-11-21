@@ -1,0 +1,78 @@
+{
+  "about": "No scicat-cli anywhere: the stored path is kept, it cannot be started, the ingestion fails.",
+  "cliOnPath": false,
+  "settings": {"version": "0.4", "serverID": 1, "logPath": "${LOG}", "scicatCliBinary": "${HOME}/no-such/scicat-cli"},
+  "steps": [
+    {"do": "signIn", "token": "good"},
+    {"do": "choosePgroup", "pgroup": "p12345"},
+    {"do": "archive.open"},
+    {"do": "archive.addFiles", "dir": "${DATA}", "names": ["notes.txt"]},
+    {"do": "archive.toMetadata"},
+    {"do": "archive.setMetadata", "type": "raw", "instrument": "/PSI/SLS/TOMCAT"},
+    {"do": "archive.submit"}
+  ],
+  "expect": {
+    "requests": [
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/auth/whoami",
+        "query": {},
+        "server": "qa"
+      },
+      {
+        "auth": "Bearer good",
+        "body": null,
+        "method": "GET",
+        "path": "/api/v3/proposals",
+        "query": {"filters": {"where": {"ownerGroup": "p12345"}}},
+        "server": "qa"
+      }
+    ],
+    "cli": [],
+    "files": {
+      "${LOG}/ingestion/notes${STAMP}/filelisting.txt": {"lines": ["notes.txt"]},
+      "${LOG}/ingestion/notes${STAMP}/ingestion.log": {"contains": ["Error: FailedToStart", "Child process set up failed: execve: No such file or directory"]},
+      "${LOG}/ingestion/notes${STAMP}/metadata.json": {
+        "json": {
+          "creationLocation": "/PSI/SLS/TOMCAT",
+          "datasetName": "notes",
+          "description": "",
+          "owner": "Jane Doe",
+          "ownerEmail": "jane.doe@example.org",
+          "ownerGroup": "p12345",
+          "principalInvestigator": "jane.doe@example.org",
+          "proposalId": "20.500.11935/0228e981-b524-56b5-8723-78c4772",
+          "scientificMetadata": {"sample": {"description": "", "name": "", "principalInvestigator": ""}},
+          "sourceFolder": "${DATA}",
+          "type": "raw"
+        }
+      }
+    },
+    "settings": {
+      "deleteLog": "false",
+      "disableEmails": "false",
+      "disableSystemCalls": "false",
+      "enableArchive": "true",
+      "enableIngest": "true",
+      "filenameFilelisting": "filelisting.txt",
+      "filenameMetadata": "metadata.json",
+      "guessDatasetname": "true",
+      "investigatorIsPI": "false",
+      "loadProposalInfo": "true",
+      "logPath": "${LOG}",
+      "printIngestion": "true",
+      "requestAlreadyRetrievedData": "true",
+      "saveLog": "true",
+      "saveProposalInfo": "true",
+      "scicatCliBinary": "${HOME}/no-such/scicat-cli",
+      "serverID": "1",
+      "usePgroupAsDefaultPath": "true",
+      "version": "0.4"
+    },
+    "steps": ["signedIn", "ok", "ok", "ok", "ok", "ok", "failed"],
+    "messages": {"banners": [], "dialogs": []},
+    "snapshots": {}
+  }
+}
