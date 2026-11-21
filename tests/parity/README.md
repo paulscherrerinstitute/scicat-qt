@@ -31,6 +31,8 @@ python3 tests/parity/run_scenarios.py --driver build-tests/tests/scicat_widgets_
 | `--tolerate-known` | Report differences at places marked `$known` (below) without failing. |
 | `--record` | Write what was observed into the scenarios' `expect`, keeping the `$known` marks. For a new scenario, or after a deliberate change of behaviour; review the diff before committing it. |
 | `--work <dir>` | Keep each run in `<dir>/<scenario>/` (default: a new temporary folder): `requests.jsonl`, `cli-calls.jsonl`, `settings.ini`, `observations.json`, `driver.log` and the files the GUI wrote. |
+| `--differences <folder>` | For a second GUI: what it does differently on purpose is kept in this folder, not in the scenarios (below). |
+| `--unordered-reads` | For a GUI that does not wait for one answer before it asks the next question: GET requests that follow each other directly are compared in the order of their paths, not in the order they arrived in. |
 
 ## How the Widgets GUI is tested
 
@@ -64,8 +66,11 @@ offscreen platform.
 Everything before `steps` is optional; the defaults are the settings above (QA, logs in the run folder), four sample
 files, the backend up and the stand-in `scicat-cli` first on `PATH`. `"settings": null` starts without a settings file.
 Placeholders: `${HOME}` (the run's home folder), `${LOG}`, `${DATA}`, `${OUT}` (a scratch folder), `${CLI}` (the stand-in
-`scicat-cli`), `${BIN}`; in expectations also `${STAMP}` (the 10-digit time in the name of an ingestion folder) and
-`${ANY}`.
+`scicat-cli`), `${BIN}`; in expectations also `${STAMP}` (the 10-digit time in the name of an ingestion folder),
+`${SCICAT}` (host and port of the run's fake SciCat) and `${ANY}`.
+
+A scenario says which data type it archives (`"type"` in `archive.setMetadata`) where that matters: the Widgets GUI
+starts a dataset as derived data, the Qt Quick GUI as raw data.
 
 ### The fake world
 
@@ -134,6 +139,24 @@ differently on purpose. Each one is a decision to take, not a test to "fix" sile
 | `Q2-dataset-fields` | The retrieve list asks for three fields; the rewrite asks for more. | retrieve-* |
 | `Q3-autoarchive-without-ingest` | A check run (ingest off, archive on) passes `--autoarchive`; the rewrite only with `--ingest`. | archive-check-only |
 | `Q4-derived-shows-scientific-metadata` | Derived data shows the scientific metadata editor although it is not sent. | archive-derived-ingest |
+
+## A second GUI: its differences
+
+The Qt Quick GUI in `qml-ui/` runs the same scenarios through its own driver (`qml-ui/tests/scenario`; `ctest` in a
+build of `qml-ui` runs them). It does some things differently on purpose, and those are not written into the scenarios:
+
+```bash
+python3 tests/parity/run_scenarios.py --driver <build of qml-ui>/tests/scenario/scicat_qml_driver \
+        --unordered-reads --differences qml-ui/tests/scenario/differences [--record]
+```
+
+`<folder>/<scenario>.json` is `{"why": [...], "expect": {...}}`. Its `expect` holds only the parts that differ from the
+scenario's and is laid over it before comparing: objects key by key, `{"$at": {"2": ...}}` for single items of a
+list, `{"$remove": true}` for a key that is not there, anything else replaces what the scenario says (a `$known` mark
+included). `_every.json` is laid over every scenario first. Everything the differences do not mention has to equal
+what the Widgets GUI does, and a file without a `why` fails. `--record` together with `--differences` rewrites that
+folder and leaves the scenarios alone; a file check loosened by hand (a `contains` with the part of a line that is the
+same on every system) is kept as long as it holds.
 
 ## Driver protocol (for another GUI)
 

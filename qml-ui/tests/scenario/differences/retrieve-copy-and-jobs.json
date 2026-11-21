@@ -1,0 +1,41 @@
+{
+  "why": ["Q1-retrieve-jobs", "Q2-dataset-fields", "Q5-messages"],
+  "expect": {
+    "requests": {
+      "$at": {
+        "1": {
+          "query": {
+            "filter": {
+              "fields": [
+                "datasetlifecycle",
+                "pid",
+                "datasetName",
+                "size",
+                "creationTime",
+                "type",
+                "numberOfFiles",
+                "sourceFolder"
+              ]
+            }
+          }
+        },
+        "5": {"query": {"filter": {"where": {"statusCode": {"$remove": true}}}}}
+      }
+    },
+    "messages": {
+      "banners": [
+        "Getting data back takes two steps. 1. Request: the archive copies the dataset from tape to the retrieve server. That can take hours, and SciCat emails you when it is done.\n2. Copy: a dataset that is \"Ready to copy\" can be copied to a folder on this computer.",
+        "Copying 1 dataset to ${OUT}/copies. Follow the progress under Activity."
+      ],
+      "dialogs": {
+        "$at": {
+          "0": {
+            "text": "Quitting stops them. A dataset that scicat-cli has already registered stays registered; files copied so far stay where they are.",
+            "dialog": "quitDialog",
+            "title": "Quit while 1 task is still running?"
+          }
+        }
+      }
+    }
+  }
+}

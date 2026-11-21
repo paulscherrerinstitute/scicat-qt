@@ -1,0 +1,13 @@
+{
+  "why": ["Q10-pi-can-be-completed", "Q5-messages"],
+  "expect": {
+    "messages": {
+      "banners": [
+        "The proposal of p55555 in SciCat does not name its principal investigator completely. Archiving needs to know, so fill in what is missing here. Retrieving works without it.",
+        "Enter the email address of the principal investigator."
+      ],
+      "dialogs": []
+    },
+    "snapshots": {"pgroup": {"piEditable": true}}
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "why": ["Q5-messages"],
+  "expect": {
+    "messages": {
+      "banners": [
+        "SciCat has no proposal for p22222. These details were entered on this computer last time; change them if they are no longer right."
+      ]
+    }
+  }
+}

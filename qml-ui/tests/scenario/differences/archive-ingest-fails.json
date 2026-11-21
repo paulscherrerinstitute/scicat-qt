@@ -1,0 +1,8 @@
+{
+  "why": ["Q5-messages"],
+  "expect": {
+    "messages": {
+      "banners": ["will_fail was not sent. scicat-cli reported a problem (exit code 1). The log below says what it was."]
+    }
+  }
+}

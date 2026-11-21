@@ -1,0 +1,14 @@
+{
+  "why": ["Q5-messages"],
+  "expect": {
+    "messages": {
+      "banners": [
+        "SciCat has no proposal for p22222. Archiving needs to know the principal investigator, so enter the details here. Retrieving works without them.",
+        "Enter the first name of the principal investigator.",
+        "Enter the last name of the principal investigator.",
+        "Enter the email address of the principal investigator."
+      ],
+      "dialogs": []
+    }
+  }
+}

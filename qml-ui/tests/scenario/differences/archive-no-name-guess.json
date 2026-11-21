@@ -1,0 +1,7 @@
+{
+  "why": ["Q6-raw-by-default", "Q5-messages"],
+  "expect": {
+    "messages": {"banners": ["Give the dataset a name."], "dialogs": []},
+    "snapshots": {"archive.metadata": {"type": "raw"}}
+  }
+}

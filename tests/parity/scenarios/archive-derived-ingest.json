@@ -9,6 +9,7 @@
     {"do": "snapshot", "name": "archive.metadata", "as": "defaults"},
     {
       "do": "archive.setMetadata",
+      "type": "derived",
       "description": "Reconstruction",
       "usedSoftware": "https://gitlab.psi.ch/demo/recon@60629a1",
       "inputDatasets": ["tomo_fuelcell_0000", "saxs_polymer_0002"]

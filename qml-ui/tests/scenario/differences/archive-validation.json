@@ -1,0 +1,15 @@
+{
+  "why": ["Q5-messages"],
+  "expect": {
+    "messages": {
+      "banners": [
+        "SciCat has no proposal for p22222. Archiving needs to know the principal investigator, so enter the details here. Retrieving works without them.",
+        "Add at least one file or folder.",
+        "Give the dataset a name.",
+        "Enter the email address of the investigator.",
+        "Choose the instrument the data was measured at."
+      ],
+      "dialogs": []
+    }
+  }
+}

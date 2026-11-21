@@ -1,0 +1,4 @@
+{
+  "why": ["Q7-server-at-sign-in", "Q5-messages"],
+  "expect": {"settings": {"serverID": "1"}, "steps": {"$at": {"1": "unavailable"}}, "messages": {"dialogs": []}}
+}

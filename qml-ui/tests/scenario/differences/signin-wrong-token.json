@@ -1,0 +1,12 @@
+{
+  "why": ["Q5-messages"],
+  "expect": {
+    "messages": {
+      "banners": {
+        "$at": {
+          "0": "That token did not work. SciCat did not accept this token. Tokens expire: get a new one and paste it here."
+        }
+      }
+    }
+  }
+}

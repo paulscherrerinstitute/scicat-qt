@@ -1,0 +1,45 @@
+{
+  "why": ["Q1-retrieve-jobs", "Q2-dataset-fields", "Q11-order-of-sets", "Q5-messages"],
+  "expect": {
+    "requests": {
+      "$at": {
+        "1": {
+          "query": {
+            "filter": {
+              "fields": [
+                "datasetlifecycle",
+                "pid",
+                "datasetName",
+                "size",
+                "creationTime",
+                "type",
+                "numberOfFiles",
+                "sourceFolder"
+              ]
+            }
+          }
+        },
+        "5": {"query": {"filter": {"where": {"statusCode": {"$remove": true}}}}},
+        "6": {
+          "body": {
+            "jobParams": {
+              "datasetList": {
+                "$at": {
+                  "0": {"pid": "20.500.11935/7111153e-7ba7-5d9a-ba06-b3e52d044563"},
+                  "1": {"pid": "20.500.11935/b7cdc32e-f531-5ff6-ab5e-d4849726151e"}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "messages": {
+      "banners": [
+        "Getting data back takes two steps. 1. Request: the archive copies the dataset from tape to the retrieve server. That can take hours, and SciCat emails you when it is done.\n2. Copy: a dataset that is \"Ready to copy\" can be copied to a folder on this computer.",
+        "Requested 2 datasets from the archive. SciCat emails you when the data is ready, and this list updates by itself. Skipped: 1 not in the archive yet."
+      ],
+      "dialogs": []
+    }
+  }
+}

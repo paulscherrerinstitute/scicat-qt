@@ -1,0 +1,12 @@
+{
+  "why": ["Q5-messages"],
+  "expect": {
+    "messages": {
+      "banners": [
+        "A pgroup looks like p12345: p or a, then five or six characters.",
+        "You are not a member of p99999, so SciCat will not let you use it."
+      ],
+      "dialogs": []
+    }
+  }
+}
