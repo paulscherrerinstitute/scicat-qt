@@ -115,7 +115,9 @@ the outputs. `steps` (one result per step), `messages` (`dialogs`: the text of e
 `banners`: the message line of the window at the end of a step) and `snapshots` are what the driver saw.
 
 Values must be equal, objects must have the same keys and lists the same length, except where an operator says
-otherwise: `{"$count": n, "$includes": [...], "$countWhere": [[{...}, n]]}` for long lists, `{"$partial": {...}}` for
+otherwise: `{"$count": n, "$includes": [...], "$countWhere": [[{...}, n]]}` for long lists and for lists whose
+order depends on the platform (Qt's file dialog lists folders first except on macOS, so `archive-raw-ingest` compares
+the picked entries without order; `--record` writes such a list back in order, so restore it after recording), `{"$partial": {...}}` for
 an object of which only some keys matter, and `{"$known": "<id>", "value": ...}` (below).
 
 ### Places marked `$known`

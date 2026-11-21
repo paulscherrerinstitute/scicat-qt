@@ -53,7 +53,7 @@
       ]
     ],
     "files": {
-      "${LOG}/ingestion/my_demo_run${STAMP}/filelisting.txt": {"lines": ["notes.txt", "scan_0001", "scan_0002"]},
+      "${LOG}/ingestion/my_demo_run${STAMP}/filelisting.txt": {"lines": {"$count": 3, "$includes": ["notes.txt", "scan_0001", "scan_0002"]}},
       "${LOG}/ingestion/my_demo_run${STAMP}/ingestion.log": {
         "contains": [
           "[fake scicat-cli] datasetIngestor, test environment. Nothing is sent anywhere.",
@@ -100,7 +100,7 @@
     "steps": ["signedIn", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "done"],
     "messages": {"banners": [], "dialogs": []},
     "snapshots": {
-      "archive.files": ["${DATA}/notes.txt", "${DATA}/scan_0001", "${DATA}/scan_0002"],
+      "archive.files": {"$count": 3, "$includes": ["${DATA}/notes.txt", "${DATA}/scan_0001", "${DATA}/scan_0002"]},
       "defaults": {
         "datasetName": "data",
         "description": "",
